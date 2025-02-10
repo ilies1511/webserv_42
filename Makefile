@@ -40,7 +40,7 @@ PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
 SRC := src_file.cpp
 
-#Combine all
+#Combines all
 SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
@@ -113,6 +113,8 @@ redebug: fclean debug
 
 test: clean
 	make $(NAME_TEST) MAIN_FILE="$(SRC_TEST_MAIN)" NAME=$(NAME_TEST)
+
+retest: fclean test
 
 -include $(OBJS:%.o=%.d)
 
