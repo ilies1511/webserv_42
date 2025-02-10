@@ -12,7 +12,7 @@ OBJ_DIR := _obj
 # INC_DIRS := .
 INC_DIRS := Includes Includes/Extra Includes/Tests
 # SRC_DIRS := .
-SRC_DIRS := src src/Extra src/Tests
+SRC_DIRS := src src/Extra src/Tests src/playground
 
 # Tell the Makefile where headers and source files are
 vpath %.hpp $(INC_DIRS)
@@ -24,6 +24,8 @@ vpath %.cpp $(SRC_DIRS)
 
 MAIN_FILE := main.cpp
 
+SRC_TEST_MAIN := main_tests.cpp
+
 EXTRA_FILES := Log.cpp printer.cpp
 EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 
@@ -33,8 +35,13 @@ TEST := $(addprefix Tests/, $(TEST_FILES))
 DUMMY_REPO_FILES := dummy_file.cpp
 DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
 
+PLAYGROUND_REPO_FILES := play.cpp
+PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
+
 SRC := src_file.cpp
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO))
+
+#Combine all
+SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 
@@ -54,6 +61,9 @@ GREEN := \033[0;32m
 MAGENTA := \033[0;35m
 BOLD := \033[1m
 NC := \033[0m # Reset
+
+#Test/Playground exec.
+NAME_TEST=tests.out
 
 all: $(NAME)
 
@@ -98,6 +108,11 @@ submodule_rebuild:
 debug: clean
 debug: CFLAGS += -DDEBUG
 debug: $(NAME)
+
+redebug: fclean debug
+
+test: clean
+	make $(NAME_TEST) MAIN_FILE="$(SRC_TEST_MAIN)" NAME=$(NAME_TEST)
 
 -include $(OBJS:%.o=%.d)
 
