@@ -85,7 +85,7 @@ clean:
 	$(RM) $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) $(NAME) $(NAME_TEST)
 	@echo "$(MAGENTA)$(BOLD)Executable + Object Files cleaned$(NC)"
 
 re: fclean submodule_update all
