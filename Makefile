@@ -111,7 +111,7 @@ debug: $(NAME)
 
 redebug: fclean debug
 
-test: clean
+test:
 	make $(NAME_TEST) MAIN_FILE="$(SRC_TEST_MAIN)" NAME=$(NAME_TEST)
 
 retest: fclean test

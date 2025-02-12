@@ -4,6 +4,8 @@
 
 void play(char **args)
 {
+	Log	log("webserv-playground");
+
 	struct addrinfo	*result;
 	int error = getaddrinfo(args[1], NULL, NULL, &result);
 	if(error == 0)
@@ -28,7 +30,8 @@ void play(char **args)
 			}
 			else
 			{
-				std::cerr << args[1] << " : Fehler in getnameinfo().\n";
+				log.complain("ERROR", static_cast<std::string>(args[1]) + " : Fehler in getnameinfo().\n");
+				// std::cerr << args[1] << " : Fehler in getnameinfo().\n";
 			}
 			item = item->ai_next;
 		}
@@ -36,6 +39,7 @@ void play(char **args)
 	}
 	else
 	{
-		std::cout << args[1] << " kann nicht ermittelt werden.\n";
+		log.complain("ERROR", static_cast<std::string>(args[1]) + " kann nicht ermittelt werden", __FILE__, __FUNCTION__, __LINE__);
+		// std::cout << args[1] << " kann nicht ermittelt werden.\n";
 	}
 }

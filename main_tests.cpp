@@ -2,11 +2,13 @@
 
 int main(int argc, char* argv[])
 {
+	Log	log;
+
 	(void)argc;
 	(void)argv;
 	if(argc == 1)
 	{
-		std::cout << "Gebrauch: ihost Rechnername\n";
+		log.complain("INFO", "Gebrauch: ihost Rechnername", __FILE__, __FUNCTION__, __LINE__);
 	}
 	else
 		play(argv);
