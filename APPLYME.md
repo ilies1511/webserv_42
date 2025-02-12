@@ -23,7 +23,7 @@ Beispiel:
 # Git Wokrflow:
 
 ## Always Work in Your Own Branch - Never Push Directly to Master
-1. git checkout -b NameOfNewBranch
+1. git checkout -b IntraName_TypeOfBranch --> z.B iziane_fix/parser
 2. only push here
 
 ## You have worked on your branch and now want to merge it into the master branch
