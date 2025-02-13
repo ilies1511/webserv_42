@@ -6,10 +6,13 @@ int main(int argc, char* argv[])
 
 	(void)argc;
 	(void)argv;
-	if(argc == 1)
+	if (argc == 1)
 	{
 		log.complain("INFO", "Gebrauch: ihost Rechnername", __FILE__, __FUNCTION__, __LINE__);
 	}
 	else
-		play(argv);
+	{
+		// playground::play(argv);
+		playground::beej_chapter5(argc, argv);
+	}
 }
