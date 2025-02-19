@@ -1,7 +1,10 @@
 /*
 	Send msg "Hello, world!" using stream sockets:
 		1. Run Programm in one terminal
-		2. Run in another terminal: telnet $(hostname) 3490
+		2.1 Run in another terminal: telnet $(hostname) 3490 ||
+		2.2 ifconfig | grep inet, dann inet rausholen und verwenden --> curl -X POST 10.13.6.2:3490 "asd"
+		2.3 Use 3_client.cpp file, that simulates a client (pro: greater controll, con: more time investment)
+			How2run: compile server under one specific executable name, client under another in a different terminal
 
 **	server.c -- a stream socket server demo
 */
@@ -125,9 +128,15 @@ int main(void)
 			s, sizeof s);
 		printf("server: got connection from %s\n", s);
 
+		/*
+			Hier wird ge-fork()-t um mehrer Clients gleichzeit bedienen zu
+			koennen. Statt fork() oder multithreading, wird standardgemäß mit
+			Multiplexing gearbeitet (z.B poll(), um mehrere Clients gleichzeitig
+			zu managen)
+		*/
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Ouey Zizou!\n", 13, 0) == -1) //Msg that will be received from Client (that server sends)
+			if (send(new_fd, "Hallo Qdo !\n",13, 0) == -1) //Msg that will be received from Client (that server sends)
 				perror("send");
 			close(new_fd);
 			exit(0);

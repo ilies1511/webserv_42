@@ -1,18 +1,8 @@
 #include "webserv.hpp"
 
-int main(int argc, char* argv[])
+int main(void)
 {
-	Log	log;
+	// playground::multipersonChatServer();
 
-	(void)argc;
-	(void)argv;
-	if (argc == 1)
-	{
-		log.complain("INFO", "Gebrauch: ihost Rechnername", __FILE__, __FUNCTION__, __LINE__);
-	}
-	else
-	{
-		// playground::play(argv);
-		playground::beej_chapter5(argc, argv);
-	}
+	return (0);
 }

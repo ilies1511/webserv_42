@@ -3,3 +3,8 @@
 webserv
 _obj
 tests.out
+a.out
+server.dSYM/Contents/Resources/DWARF/server
+client
+server
+server.dSYM

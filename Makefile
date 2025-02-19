@@ -85,7 +85,7 @@ clean:
 	$(RM) $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_TEST)
+	$(RM) $(NAME) $(NAME_TEST) server client
 	@echo "$(MAGENTA)$(BOLD)Executable + Object Files cleaned$(NC)"
 
 re: fclean submodule_update all
@@ -116,6 +116,12 @@ test:
 
 retest: fclean test
 
+server:
+	$(CPP) -Wall -Werror -Wextra -o server src/playground/2_server.cpp
+
+client:
+	$(CPP) -Wall -Werror -Wextra  -o client src/playground/3_client.cpp
+
 -include $(OBJS:%.o=%.d)
 
-.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases
+.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client
