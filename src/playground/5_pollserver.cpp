@@ -11,7 +11,10 @@
 	** To test:
 	** 1. Compile: c++ -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
 	** 2. Run: ./pollserver
-	** 3. In another terminal, connect via telnet: telnet localhost 9034
+	** 3. In another terminal, connect via telnet:
+		3.1 telnet localhost 9034
+		3.2 cat ../screen.png | nc localhost 9034
+		3.3 ./test_server.sh
 	** 4. Type in the telnet window and observe the server output
 */
 
