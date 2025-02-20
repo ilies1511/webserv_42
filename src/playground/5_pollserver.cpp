@@ -1,5 +1,18 @@
 /*
 ** pollserver.c -- a cheezy multiperson chat server
+
+	** This is a TCP server using the poll() function to handle multiple clients
+	** simultaneously without forking or multithreading.
+	**
+	** It listens on port 9034 and accepts incoming connections. When a client
+	** sends a message, the server prints it to the console and echoes the
+	** message back to all connected clients.
+	**
+	** To test:
+	** 1. Compile: c++ -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
+	** 2. Run: ./pollserver
+	** 3. In another terminal, connect via telnet: telnet localhost 9034
+	** 4. Type in the telnet window and observe the server output
 */
 
 #include <stdio.h>
@@ -190,8 +203,35 @@ int main(void)
                         del_from_pfds(pfds, i, &fd_count);
 
                     } else {
-                        // We got some good data from a client
+					// CLIENTs MSG AUSGABE -- BEGIN
+						//Methode 3 um txt & binary auszulesen
+						printf("Received %d bytes of data\n", nbytes);
+                        printf("Raw data (hex): ");
+                        for (int k = 0; k < nbytes; k++) {
+                            printf("%02x ", (unsigned char)buf[k]);
+                        }
+                        printf("\n");
 
+                        // Sanitize input to handle both \r\n and stray \r or \n
+						if (nbytes >= 2 && buf[nbytes - 2] == '\r' && buf[nbytes - 1] == '\n') {
+						    buf[nbytes - 2] = '\n';
+						    nbytes -= 1; // Correctly adjust the byte count
+						} else if (nbytes >= 1 && (buf[nbytes - 1] == '\r' || buf[nbytes - 1] == '\n')) {
+						    buf[nbytes - 1] = '\n';
+						}
+                        fwrite(buf, 1, (size_t)nbytes, stdout);
+                        printf("\n");
+
+                        // We got some good data from a client
+						//Methode 2 um nur textdata und Binary auszulesen
+						// printf("Received %d bytes of data\n", nbytes);
+						// fwrite(buf, 1, (size_t)nbytes, stdout);
+						// printf("\n");
+
+						//Methode 1 um nur textdata auszulesen
+						// buf[nbytes] = '\0';
+						// printf("Received data: %s\n", buf);
+					// CLIENTs MSG AUSGABE -- END
                         for(int j = 0; j < fd_count; j++) {
                             // Send to everyone!
                             int dest_fd = pfds[j].fd;
