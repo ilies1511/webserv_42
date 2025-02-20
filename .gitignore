@@ -8,3 +8,6 @@ server.dSYM/Contents/Resources/DWARF/server
 client
 server
 server.dSYM
+poll
+.idea
+pollserver

@@ -24,6 +24,14 @@
 
 int main(void)
 {
+	/*
+		struct pollfd
+		{
+			int fd; // the socket descriptor
+			short events; // bitmap of events we're interested in
+			short revents; // when poll() returns, bitmap of events that occurred
+		};
+	*/
 	struct pollfd pfds[1]; // More if you want to monitor more
 
 	pfds[0].fd = 0;          // Standard input
@@ -111,6 +119,13 @@ int main(void)
  * pfds[0].events = POLLIN;
  * - Specifies that we are interested in the POLLIN event.
  * - POLLIN triggers when data is available to read.
+ * - 🧠Other Possible Event Flags:
+		Flag	Description
+		POLLIN	Data is ready to read
+		POLLOUT	Ready for writing without blocking
+		POLLERR	Error occurred
+		POLLHUP	Hang up (e.g., connection closed)
+		POLLNVAL	Invalid request on file descriptor
  *
  * printf("Hit RETURN or wait 2.5 seconds for timeout\n");
  * - Informs the user about the input options.
@@ -152,5 +167,23 @@ int main(void)
  * - The user is prompted to hit RETURN or wait 2.5 seconds.
  * - If input is detected within the timeout, the program notifies that stdin is ready.
  * - If no input is received, it notifies that the poll timed out.
+ *
+ *
+ *	⏲️	Blocking			vs.			Non-Blocking Behavior in poll()
+		Timeout	Behavior				Use Case
+	0	Non-blocking					Check and return immediately
+	-1	Blocking indefinitely			Wait until an event occurs
+	>0	Blocking with timeout (2500ms)	Wait for a limited time
+
+	🕵️ What Happens?
+	Non-blocking: The program can continue other tasks while waiting.
+	Blocking: The program is frozen until input is available.
+	Timeout: A compromise, allowing responsiveness while waiting for input.
+
+ * 🎯 Key Takeaways:
+ *		poll() is a non-blocking technique for I/O multiplexing.
+ *		It can monitor multiple file descriptors, including standard input, sockets, files, and pipes.
+ *		The timeout parameter is crucial for responsiveness in event-driven applications.
+ *		Ideal for network servers, interactive applications, and real-time systems.
  *
  */
