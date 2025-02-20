@@ -10,13 +10,27 @@ RM := rm -rf
 
 OBJ_DIR := _obj
 # INC_DIRS := .
-INC_DIRS := Includes Includes/Extra Includes/Tests
-# SRC_DIRS := .
-SRC_DIRS := src src/Extra src/Tests src/playground
+# # SRC_DIRS := .
 
+INC_DIRS := Includes Includes/Extra Includes/Tests
+SRC_DIRS := src src/Extra src/Tests src/playground src/dummy_repo
+
+# INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
+# SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
 # Tell the Makefile where headers and source files are
+
 vpath %.hpp $(INC_DIRS)
 vpath %.cpp $(SRC_DIRS)
+
+# there for preproc. -- BEGIN
+HEADERS :=	Log.hpp \
+			printer.hpp \
+			test.hpp \
+			playground.hpp \
+			webserv.hpp
+
+HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))
+# there for preproc. -- END
 
 ################################################################################
 ###############                  SOURCE FILES                     ##############
@@ -50,7 +64,9 @@ OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 ################################################################################
 
 # CFLAGS := -Wall -Wextra -Werror -g -MMD -MP -I$(INC_DIRS)
-CFLAGS := -Wall -Werror -Wextra -Wpedantic -Wshadow -Wno-shadow -std=c++17 -Wconversion -Wsign-conversion -g -MMD -MP $(addprefix -I, $(INC_DIRS))
+CFLAGS :=	-Wall -Werror -Wextra -Wpedantic -Wshadow -Wno-shadow -std=c++17 \
+			-Wconversion -Wsign-conversion -g -MMD -MP \
+			$(addprefix -I, $(INC_DIRS))
 CFLAGS_SAN := $(CFLAGS) -fsanitize=address
 LDFLAGS := -lncurses
 LDFLAGS_SAN := -lncurses -fsanitize=address
@@ -67,25 +83,29 @@ NAME_TEST=tests.out
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
+$(NAME): $(OBJS) $(HDR_CHECK)
 #$(AR) $(ARFLAGS) $(NAME) $(OBJS)
 	$(CPP) $(LDFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(GREEN)$(BOLD)Successful Compilation$(NC)"
 
 # Rule to compile .o files
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	$(CPP) $(CFLAGS) -c $< -o $@
+
+# Rule to create precompiled headers --> precom. specific
+$(OBJ_DIR)/%.hpp.gch: %.hpp | $(OBJ_DIR)
+	$(CPP) $(CFLAGS) -x c++-header -c $< -o $@
 
 # Ensure the directories exist
 $(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 
 clean:
 	$(RM) $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_TEST) server client
+	$(RM) $(NAME) $(NAME_TEST) server client poll
 	@echo "$(MAGENTA)$(BOLD)Executable + Object Files cleaned$(NC)"
 
 re: fclean submodule_update all
@@ -120,7 +140,13 @@ server:
 	$(CPP) -Wall -Werror -Wextra -o server src/playground/2_server.cpp
 
 client:
-	$(CPP) -Wall -Werror -Wextra  -o client src/playground/3_client.cpp
+	$(CPP) -Wall -Werror -Wextra -o client src/playground/3_client.cpp
+
+poll:
+	$(CPP) -Wall -Werror -Wextra -o poll src/playground/4_simple_poll.cpp
+
+pollserver:
+	$(CPP) -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
 
 -include $(OBJS:%.o=%.d)
 
