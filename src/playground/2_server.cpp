@@ -136,7 +136,7 @@ int main(void)
 		*/
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Hallo Qdo !\n",13, 0) == -1) //Msg that will be received from Client (that server sends)
+			if (send(new_fd, "Ouey Zizou !\n",14, 0) == -1) //Msg that will be received from Client (that server sends)
 				perror("send");
 			close(new_fd);
 			exit(0);
