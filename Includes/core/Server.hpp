@@ -22,10 +22,10 @@ class Server
 		std::unordered_map<int, Connection *>	_connections;
 		int										listener_fd;
 		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
-		char									*_port;
+		const std::string						_port;
 	//OCF -- BEGIN
 	public:
-		Server(char *port);
+		Server(const std::string &port);
 		~Server(void);
 	private:
 		Server(void) = delete;
@@ -40,7 +40,7 @@ class Server
 	// Get sockaddr, IPv4 or IPv6:
 		void	get_listener_socket(void); //Only one per Server
 		void	add_to_pollfds(int new_fd);
-		void	del_from_pollfds(int index);
+		void	del_from_pollfds(size_t index);
 		void	*get_in_addr(struct sockaddr *sa);
 	//Methodes -- END
 

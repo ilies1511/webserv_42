@@ -2,7 +2,7 @@
 #define PORT "9034"   // Port we're listening on
 
 // OCF -- BEGIN
-Server::Server(char *port) : _connections{}, listener_fd(-1), _pollfds{}, _port((char *)PORT)
+Server::Server(const std::string &port) : _connections{}, listener_fd(-1), _pollfds{}, _port(port)
 {
 	(void)port;
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
@@ -11,6 +11,11 @@ Server::Server(char *port) : _connections{}, listener_fd(-1), _pollfds{}, _port(
 Server::~Server(void)
 {
 	printer::ocf_printer("Server", printer::OCF_TYPE::D);
+	for (auto& pfd : _pollfds)
+	{
+		close(pfd.fd);
+	}
+	close(listener_fd);
 }
 // OCF -- END
 
@@ -26,18 +31,28 @@ void Server::get_listener_socket(void)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	if ((rv = getaddrinfo(NULL, _port, &hints, &ai)) != 0)
+	if ((rv = getaddrinfo(NULL, _port.c_str(), &hints, &ai)) != 0)
 	{
-		fprintf(stderr, "pollserver: %s\n", gai_strerror(rv));
-		exit(1);
+		// fprintf(stderr, "pollserver: %s\n", gai_strerror(rv));
+		// exit(1);
+		throw (std::runtime_error("pollserver: " + std::string(gai_strerror(rv))));
 	}
+	// 🔴 RAII: Smart Pointer mit Custom-Deleter für addrinfo (nun keine Notwendigkeit mehr, freeaddrinfo(ai) manuell zu callen)
+	std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> ai_raii(
+		ai,				// Übergebe das allokierte addrinfo-Objekt
+		&freeaddrinfo  	// Custom-Deleter-Funktion
+	);
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener_fd < 0)
 			continue ;
 		// Lose the pesky "address already in use" error message
-		setsockopt(listener_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+		if (setsockopt(listener_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+		{
+			throw (std::runtime_error("setsockopt Failed"));
+			close(listener_fd);
+		}
 		if (bind(listener_fd, p->ai_addr, p->ai_addrlen) < 0)
 		{
 			close(listener_fd);
@@ -48,15 +63,18 @@ void Server::get_listener_socket(void)
 	// If we got here, it means we didn't get bound
 	if (p == NULL)
 	{
-		this->listener_fd = -1;
-		return ;
+		throw (std::runtime_error("Failed to bind"));
+		// this->listener_fd = -1;
+		// return ;
 	}
-	freeaddrinfo(ai); // All done with this
+	// freeaddrinfo(ai); // All done with this --> not needed since 🔴 RAII: Smart Pointer mit Custom-Deleter für addrinfo
 	// Listen
 	if (listen(listener_fd, 10) == -1)
 	{
-		this->listener_fd = -1;
-		return ;
+		close(listener_fd);
+		throw (std::runtime_error("Failed to listen"));
+		// this->listener_fd = -1;
+		// return ;
 	}
 }
 
@@ -71,11 +89,19 @@ void Server::add_to_pollfds(int new_fd)
 	this->_pollfds.emplace_back(new_element);
 }
 
-void Server::del_from_pollfds(int index)
+// void Server::del_from_pollfds(int index)
+// {
+// 	if (index < 0 || static_cast<size_t>(index) >= _pollfds.size())
+// 		return ;
+// 	_pollfds.erase(_pollfds.begin() + index);
+// }
+
+void Server::del_from_pollfds(size_t index)
 {
-	if (index < 0 || static_cast<size_t>(index) >= _pollfds.size())
-		return ;
-	_pollfds.erase(_pollfds.begin() + index);
+	if (index >= _pollfds.size())
+		return;
+	std::swap(_pollfds[index], _pollfds.back());
+	_pollfds.pop_back();
 }
 
 void Server::poll_loop(void)
@@ -90,8 +116,9 @@ void Server::poll_loop(void)
 	get_listener_socket();
 	if (listener_fd == -1)
 	{
-		fprintf(stderr, "error getting listening socket\n");
-		exit(1);
+		// fprintf(stderr, "error getting listening socket\n");
+		// exit(1);
+		throw (std::runtime_error("error getting listening socket\n"));
 	}
 	struct pollfd	init_listener;
 
@@ -153,11 +180,11 @@ void Server::poll_loop(void)
 						}
 						else
 						{
-						    perror("recv");
+							perror("recv");
 						}
 						close(_pollfds[i].fd); // Bye!
-						del_from_pollfds(static_cast<int>(i));
-
+						del_from_pollfds(i);
+						i--;
 					}
 					else
 					{

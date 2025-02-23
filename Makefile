@@ -46,9 +46,6 @@ EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 TEST_FILES := test.cpp
 TEST := $(addprefix Tests/, $(TEST_FILES))
 
-DUMMY_REPO_FILES := dummy_file.cpp
-DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
-
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
@@ -58,7 +55,14 @@ CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 SRC := src_file.cpp
 
 #Combines all
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CORE_REPO))
+MELTING_POT :=	$(SRC) \
+				$(EXTRA) \
+				$(TEST) \
+				$(PLAYGROUND_REPO) \
+				$(CORE_REPO)
+
+# SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
+SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 
