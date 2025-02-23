@@ -12,8 +12,8 @@ OBJ_DIR := _obj
 # INC_DIRS := .
 # # SRC_DIRS := .
 
-INC_DIRS := Includes Includes/Extra Includes/Tests
-SRC_DIRS := src src/Extra src/Tests src/playground src/dummy_repo
+INC_DIRS := Includes Includes/Extra Includes/Tests Includes/core
+SRC_DIRS := src src/Extra src/Tests src/playground src/dummy_repo src/core
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -52,10 +52,13 @@ DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
+CORE_REPO_FILES := Server.cpp
+CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO))
+SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CORE_REPO))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 

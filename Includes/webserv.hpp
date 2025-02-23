@@ -29,6 +29,7 @@
 
 //Headers -- BEGIN
 #include "playground.hpp"
+#include "Server.hpp"
 //Headers -- END
 
 //FNC-Prototypes -- BEGIN
