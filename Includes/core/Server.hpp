@@ -38,6 +38,7 @@ class Server
 		void	poll_loop(void);
 	//Utils
 	// Get sockaddr, IPv4 or IPv6:
+		void	init_listener_socket(void);
 		void	get_listener_socket(void); //Only one per Server
 		void	add_to_pollfds(int new_fd);
 		void	del_from_pollfds(size_t index);

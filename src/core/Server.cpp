@@ -6,6 +6,7 @@ Server::Server(const std::string &port) : _connections{}, listener_fd(-1), _poll
 {
 	(void)port;
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
+	init_listener_socket();
 }
 
 Server::~Server(void)
@@ -78,6 +79,26 @@ void Server::get_listener_socket(void)
 	}
 }
 
+void	Server::init_listener_socket(void)
+{
+	// Set up and get a listening socket
+	get_listener_socket();
+	if (listener_fd == -1)
+	{
+		// fprintf(stderr, "error getting listening socket\n");
+		// exit(1);
+		throw (std::runtime_error("error getting listening socket\n"));
+	}
+	struct pollfd	init_listener;
+
+	init_listener.fd = listener_fd;
+	// Add the listener to set
+	this->_pollfds.emplace_back(init_listener);
+	_pollfds.at(0).events = POLLIN;
+	// _pollfds[0].events = POLLIN; // Report ready to read on incoming connection
+	// Main loop
+}
+
 void Server::add_to_pollfds(int new_fd)
 {
 	struct pollfd	new_element;
@@ -104,6 +125,14 @@ void Server::del_from_pollfds(size_t index)
 	_pollfds.pop_back();
 }
 
+// Get sockaddr, IPv4 or IPv6:
+void *Server::get_in_addr(struct sockaddr *sa)
+{
+	if (sa->sa_family == AF_INET)
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
 void Server::poll_loop(void)
 {
 	int newfd;        // Newly accept()ed socket descriptor
@@ -111,23 +140,6 @@ void Server::poll_loop(void)
 	socklen_t addrlen;
 	char buf[256];    // Buffer for client data
 	char remoteIP[INET6_ADDRSTRLEN];
-
-	// Set up and get a listening socket
-	get_listener_socket();
-	if (listener_fd == -1)
-	{
-		// fprintf(stderr, "error getting listening socket\n");
-		// exit(1);
-		throw (std::runtime_error("error getting listening socket\n"));
-	}
-	struct pollfd	init_listener;
-
-	init_listener.fd = listener_fd;
-	// Add the listener to set
-	this->_pollfds.emplace_back(init_listener);
-	_pollfds.at(0).events = POLLIN;
-	// _pollfds[0].events = POLLIN; // Report ready to read on incoming connection
-	// Main loop
 
 	for(;;)
 	{
@@ -240,13 +252,4 @@ void Server::poll_loop(void)
 		} // END looping through file descriptors
 	} // END for(;;)--and you thought it would never end!
 }
-
-// Get sockaddr, IPv4 or IPv6:
-void *Server::get_in_addr(struct sockaddr *sa)
-{
-	if (sa->sa_family == AF_INET)
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
 // Methodes -- END
