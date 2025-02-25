@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
 
 //Includes -- BEGIN
 #include <iostream>
@@ -36,3 +38,5 @@
 void	dummy_function(void);
 void	src_function(void);
 //FNC-Prototypes -- END
+
+#endif

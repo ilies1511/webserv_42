@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef PRINTER_HPP
+#define PRINTER_HPP
 
 #include <iostream>
 #include <string>
@@ -35,3 +37,4 @@ namespace printer
 	//Exception Printer (try catch)
 	void LogException(const std::exception& e, const char* file, const char* function, int line);
 }
+#endif
