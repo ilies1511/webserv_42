@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
+#include <memory>
 #include <vector>
 #include <unordered_map>
 #include <poll.h>
@@ -20,6 +22,7 @@ class Server
 {
 	private:
 		std::unordered_map<int, Connection *>	_connections;
+		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
 		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
 		const std::string						_port;
@@ -43,6 +46,8 @@ class Server
 		void	add_to_pollfds(int new_fd);
 		void	del_from_pollfds(size_t index);
 		void	*get_in_addr(struct sockaddr *sa);
+		void	new_connection_handler(void);
+		void	regular_Client_handler(size_t &i);
 	//Methodes -- END
 
 };
