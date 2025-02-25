@@ -52,6 +52,9 @@ PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 CORE_REPO_FILES := Server.cpp
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
+UTILS_REPO_FILES := utils_pollserver.cpp
+UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -59,7 +62,8 @@ MELTING_POT :=	$(SRC) \
 				$(EXTRA) \
 				$(TEST) \
 				$(PLAYGROUND_REPO) \
-				$(CORE_REPO)
+				$(CORE_REPO) \
+				$(UTILS_REPO)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
