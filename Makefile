@@ -10,9 +10,12 @@ RM := rm -rf
 
 OBJ_DIR := _obj
 # INC_DIRS := .
-INC_DIRS := Includes Includes/Extra Includes/Tests
+#INC_DIRS := Includes Includes/Extra Includes/Tests Includes/Config
 # SRC_DIRS := .
-SRC_DIRS := src src/Extra src/Tests src/playground
+#SRC_DIRS := src src/Extra src/Tests src/playground src/config
+
+INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests Includes/Config Includes/StatusCodes)
+SRC_DIRS := $(abspath src src/Extra src/Tests src/playground src/Config)
 
 # Tell the Makefile where headers and source files are
 vpath %.hpp $(INC_DIRS)
@@ -23,6 +26,7 @@ vpath %.cpp $(SRC_DIRS)
 ################################################################################
 
 MAIN_FILE := main.cpp
+
 
 SRC_TEST_MAIN := main_tests.cpp
 
@@ -38,10 +42,17 @@ DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
+CONFIG_DIR_FILES := serverConfig.cpp \
+					route.cpp \
+					token.cpp
+CONFIG_DIR := $(addprefix config/, $(CONFIG_DIR_FILES))
+
 SRC := src_file.cpp
 
+
+
 #Combines all
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO))
+SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CONFIG_DIR))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 

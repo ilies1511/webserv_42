@@ -62,9 +62,9 @@ void serverConfig::setServerName(const std::vector<std::string>& serverName) {
     _server_name = serverName;
 }
 
-void serverConfig::setErrorPages(std::size_t errorNbr, const std::string &path) {
-    // implementation
-}
+// void serverConfig::setErrorPages(std::size_t errorNbr, const std::string &path) {
+//     // implementation
+// }
 
 void serverConfig::setClientMaxBodySize(std::size_t size) {
     _client_max_body_size = size;
@@ -82,9 +82,9 @@ void serverConfig::setRoot(std::string &path) {
     _root = path;
 }
 
-void serverConfig::setLocation(route Route) {
-    // implementation
-}
+// void serverConfig::setLocation(route Route) {
+//     // implementation
+// }
 
 
 

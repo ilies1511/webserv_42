@@ -3,7 +3,7 @@
  route::route() : _GETOption(false),
                  _POSTOption(false),
                  _root(""),
-                 _redirect(std::make_pair(0, "")),
+                 // _redirect(std::make_pair(0, "")),
                  _autoindex(false),
                  _index(),
                  _file_upload("") {
@@ -29,9 +29,9 @@ std::string route::getRoot() const {
     return _root;
 }
 
-std::pair<std::size_t, std::string> route::getRedirect() {
-    return _redirect;
-}
+// std::pair<std::size_t, std::string> route::getRedirect() {
+//     return _redirect;
+// }
 
 bool route::getAutoIndex() {
     return _autoindex;
@@ -62,9 +62,9 @@ void route::setRoot(const std::string &path) {
     _root = path;
 }
 
-void route::setRedirect(std::size_t errorNbr, std::string path) {
-    // implementation
-}
+// void route::setRedirect(std::size_t errorNbr, std::string path) {
+//     // implementation
+// }
 
 void route::setAutoIndex(bool option) {
     _autoindex = option;
