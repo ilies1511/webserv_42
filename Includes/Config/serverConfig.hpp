@@ -22,6 +22,7 @@ class serverConfig {
 		~serverConfig();
 
 		//getters
+		std::string						getIP() const;
 		std::size_t						getPort() const;
 		std::vector<std::string>		getServerName() const;
 		std::map<size_t, std::string>	getErrorPages() const;
@@ -33,6 +34,7 @@ class serverConfig {
 		std::vector<route>				getLocation() const;
 
 		//setters
+		void	setIP(const std::string& ip);
 		void	setPort(std::size_t port);
 		void	setServerName(const std::vector<std::string>& serverName);
 		void	setErrorPages(std::size_t errorNbr, const std::string& path);

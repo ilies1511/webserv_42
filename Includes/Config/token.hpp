@@ -13,6 +13,20 @@ enum TYPE {
   SEMICOLON
 };
 
+enum KEYWORDS {
+  HTTP,
+  SERVER,
+  LISTEN,
+  SERVER_NAME,
+  CLIENT_MAX_BODY_SIZE,
+  ROOT,
+  ERROR_PAGE,
+  LOCATION,
+  LIMIT_EXCEPT,
+  INDEX,
+  RETURN
+};
+
 struct TOKEN {
   TYPE         type;
   std::string  content;
@@ -24,4 +38,4 @@ void        getToken(const std::string& input, std::vector<TOKEN>& tokenList);
 void        tokenizer(const std::string& word, std::vector<TOKEN>& tokenList);
 bool        check_keywords(const std::string& keyword);
 std::string typeToString(TYPE type);
-void        printToken(std::vector<TOKEN> tokenList);
+void        printToken(const std::vector<TOKEN>& tokenList);

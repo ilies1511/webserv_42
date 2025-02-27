@@ -18,6 +18,10 @@ serverConfig::~serverConfig() = default;
 ///////////////                  GETTERS                           /////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+std::string serverConfig::getIP() const {
+    return _ip;
+}
+
 std::size_t serverConfig::getPort() const {
     return _port;
 }
@@ -54,6 +58,9 @@ std::vector<route> serverConfig::getLocation() const {
 ///////////////                  SETTERS                           /////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+void serverConfig::setIP(const std::string& ip) {
+    _ip = ip;
+}
 
 void serverConfig::setPort(std::size_t port) {
     _port = port;
