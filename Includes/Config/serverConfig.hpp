@@ -4,6 +4,7 @@
 
 class serverConfig {
 	private:
+		std::string							_ip;
 		std::size_t					 		_port;
 		std::vector<std::string>		    _server_name;
         std::map<size_t, std::string>    	_error_pages;
@@ -16,7 +17,8 @@ class serverConfig {
 
 
 	public:
-		explicit serverConfig(const size_t port);
+		serverConfig();
+		// explicit serverConfig(const size_t port);
 		~serverConfig();
 
 		//getters

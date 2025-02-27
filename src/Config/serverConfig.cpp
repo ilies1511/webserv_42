@@ -1,15 +1,16 @@
 #include "../../Includes/Config/serverConfig.hpp"
 //#include "webserv.hpp"
 
-serverConfig::serverConfig(const size_t port) : _port(port) {
-    _server_name.emplace_back("127.0.0.1");
-    _error_pages[404] = "404.html";
-    _client_max_body_size = 1000;
-
-    _GETOption = false;
-    _POSTOption = false;
-    _root = "configFiles";
-};
+// serverConfig::serverConfig(const size_t port) : _port(port) {
+//     _server_name.emplace_back("127.0.0.1");
+//     _error_pages[404] = "404.html";
+//     _client_max_body_size = 1000;
+//
+//     _GETOption = false;
+//     _POSTOption = false;
+//     _root = "configFiles";
+// };
+serverConfig::serverConfig() {};
 
 serverConfig::~serverConfig() = default;
 

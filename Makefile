@@ -44,7 +44,8 @@ PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
 CONFIG_DIR_FILES := serverConfig.cpp \
 					route.cpp \
-					token.cpp
+					token.cpp \
+					parser.cpp
 CONFIG_DIR := $(addprefix config/, $(CONFIG_DIR_FILES))
 
 SRC := src_file.cpp

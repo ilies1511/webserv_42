@@ -3,6 +3,7 @@
 //Includes -- BEGIN
 #include "serverConfig.hpp"
 #include "token.hpp"
+#include "parser.hpp"
 #include <iostream>
 #include <string>
 #include <sstream>

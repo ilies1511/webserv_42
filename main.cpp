@@ -10,8 +10,9 @@ int	main(void)
 
 	//setting up 2 basic servers
 	std::vector<serverConfig> servers;
-	servers.emplace_back(80);
-	servers.emplace_back(8080);
+	parsing(tokenList);
+	// servers.emplace_back(80);
+	// servers.emplace_back(8080);
 
 	
 	printer::Header("main");

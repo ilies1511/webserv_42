@@ -3,18 +3,18 @@
 #include <vector>
 //#include "webserv.hpp"
 
-void printToken(std::vector<TOKEN> tokenList) {
+void printToken(const std::vector<TOKEN>& tokenList) {
  	for (const auto& token : tokenList) {
 		std::cout << token << std::endl;
 	}
 }
 
-std::string typeToString(TYPE nbr) {
-  if (nbr == 0) return "KEYWORD";
-  if (nbr == 1) return "PARAM";
-  if (nbr == 2) return "LBRACE";
-  if (nbr == 3) return "RBRACE";
-  if (nbr == 4) return "SEMICOLON";
+std::string typeToString(TYPE type) {
+  if (type == KEYWORD) return "KEYWORD";
+  if (type == PARAM) return "PARAM";
+  if (type == LBRACE) return "LBRACE";
+  if (type == RBRACE) return "RBRACE";
+  if (type == SEMICOLON) return "SEMICOLON";
   return  "SOMETHINGWENTWRONG";
 }
 
@@ -40,9 +40,8 @@ bool check_keywords(const std::string& keyword) {
 	return false;
 }
 
-void tokens(const std::string& word, std::vector<TOKEN>& tokenList) {
+void tokenizer(const std::string& word, std::vector<TOKEN>& tokenList) {
 
-	std::cout << "\"" << word << "\"" << "[";
 	if (word == ";") {
 		tokenList.push_back({SEMICOLON, word});
 	} else if (word == "{") {
@@ -52,11 +51,11 @@ void tokens(const std::string& word, std::vector<TOKEN>& tokenList) {
 	} else if (check_keywords(word)) {
 		tokenList.push_back({KEYWORD, word});
 	} else if (word[0] == '#') {
+        return ;
 		// std::cout << "COMMENT";
 	} else {
 		tokenList.push_back({PARAM, word});
 	}
-	std::cout << "] ";
 }
 
 void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
@@ -76,13 +75,12 @@ void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
 			if (!word.empty() && word.back() == ';') {
 				std::string baseWord = word.substr(0, word.size() - 1);
 				if (word.length() > 1) {
-					tokens(baseWord, tokenList);
+					tokenizer(baseWord, tokenList);
 				}
-				tokens(";", tokenList);
+				tokenizer(";", tokenList);
 			} else {
-				tokens(word, tokenList);
+				tokenizer(word, tokenList);
 			}
 		}
-		std::cout << std::endl;
 	}
 };
