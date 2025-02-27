@@ -28,6 +28,7 @@ void Server::get_listener_socket(void)
 		listener_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener_fd < 0)
 			continue ;
+		setup_non_blocking(listener_fd);
 		// Lose the pesky "address already in use" error message
 		if (setsockopt(listener_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 		{
@@ -80,6 +81,8 @@ void	Server::init_listener_socket(void)
 	_pollfds.at(0).events = POLLIN;
 	// _pollfds[0].events = POLLIN; // Report ready to read on incoming connection
 	// Main loop
+	int flags = fcntl(_pollfds.at(0).fd, F_GETFL, 0);
+	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << _pollfds.at(0).fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
 }
 
 void Server::add_to_pollfds(int new_fd)
@@ -104,8 +107,10 @@ void Server::del_from_pollfds(size_t index)
 {
 	if (index >= _pollfds.size())
 		return;
+	std::cout << RED << "In " << __FUNCTION__ << " " << __LINE__ << " Size pre Del: " << _pollfds.size() << NC << "\n";
 	std::swap(_pollfds[index], _pollfds.back());
 	_pollfds.pop_back();
+	std::cout << RED << "In " << __FUNCTION__ << " " << __LINE__ << " Size POST Del: " << _pollfds.size() << NC << "\n";
 }
 
 // Get sockaddr, IPv4 or IPv6:
@@ -116,3 +121,34 @@ void *Server::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+void Server::setup_non_blocking(int fd)
+{
+	//Warum errno auf old setzten, was macht errno ?
+	int	old_err = errno;
+	// Non-Blocking für alle Sockets (F_SETFL)
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+	{
+		std::cerr << "fcntl(F_GETFL) failed: " << strerror(errno) << std::endl;
+			close(listener_fd);
+			return ;
+	}
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	{
+		std::cerr << "fcntl(F_SETFL) failed: " << strerror(errno) << std::endl;
+			close(listener_fd);
+			return ;
+	}
+	flags = fcntl(fd, F_GETFL, 0);
+	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
+	// FD_CLOEXEC nur für macOS (F_SETFD)
+	#ifdef __APPLE__
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
+	{
+		std::cerr << "fcntl(F_SETFD) failed: " << strerror(errno) << std::endl;
+			close(listener_fd);
+			return ;
+	}
+	#endif
+	errno = old_err;
+}

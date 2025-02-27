@@ -111,6 +111,7 @@ void	Server::new_connection_handler(void)
 	}
 	else
 	{
+		setup_non_blocking(newfd);
 		add_to_pollfds(newfd);
 		printf("pollserver: new connection from %s on "
 			"socket %d\n",

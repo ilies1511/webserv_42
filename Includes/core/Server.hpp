@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 class Connection;
 
@@ -48,6 +49,7 @@ class Server
 		void	*get_in_addr(struct sockaddr *sa);
 		void	new_connection_handler(void);
 		void	regular_Client_handler(size_t &i);
+		void	setup_non_blocking(int fd);
 	//Methodes -- END
 
 };
