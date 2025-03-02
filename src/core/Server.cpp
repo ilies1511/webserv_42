@@ -1,4 +1,7 @@
 #include "Server.hpp"
+#include "Connection.hpp"
+#include <cstring>
+#include <stdio.h>
 
 #define PORT "9034"   // Port we're listening on
 
@@ -21,11 +24,66 @@ Server::~Server(void)
 }
 // OCF -- END
 
+void	Server::del_from_map(int fd)
+{
+	auto it = this->_connections.find(fd);
+	if (it != _connections.end())
+	{
+		_connections.erase(it);
+	}
+}
+
+void	Server::ft_closeNclean(size_t i)
+{
+	// close(_pollfds[i].fd); // Bye!
+
+	if (i >= _pollfds.size())
+	{
+		std::cerr << "Error: Invalid index " << i
+				  << " for _pollfds (size = " << _pollfds.size() << ")\n";
+		del_from_map(_pollfds[i].fd);
+		return ;
+	}
+	const int fd = _pollfds[i].fd;
+	if (fd >= 0)
+	{
+		close(fd);
+		std::cout << "Closed connection on fd " << fd << "\n";
+	}
+	else
+	{
+		std::cerr << "Warning: Invalid fd " << fd << " at index " << i << "\n";
+	}
+	del_from_pollfds(i);
+	del_from_map(_pollfds[i].fd);
+}
+
 void	Server::regular_Client_handler(size_t &i)
 {
-	char buf[256];    // Buffer for client data
+	// char buf[256];    // Buffer for client data
 	// If not the listener_fd, we're just a regular client
-	int nbytes = (int)recv(_pollfds[i].fd, buf, sizeof buf, 0);
+	// int nbytes = (int)recv(_pollfds[i].fd, buf, sizeof buf, 0);
+	/*
+		TODO: recv mit Buffer der Client Instance und dessen Buffer (Class)
+		Attribut / gleiches gilt auch fuer sendv()
+	*/
+	int	fd = _pollfds.at(i).fd;
+	auto it = _connections.find(fd);
+	if (it == _connections.end())
+	{
+		ft_closeNclean(i);  // Handle missing connection
+		return;
+	}
+
+	char	*buf = (char *)_connections[_pollfds[i].fd]->_InputBuffer.data();
+	char	*buf_output = (char *)_connections[_pollfds[i].fd]->_OutputBuffer.data();
+	(void)buf_output;
+	size_t buf_size = _connections[_pollfds[i].fd]->_InputBuffer.size();
+	// size_t buf_size_output = _connections[_pollfds[i].fd]->_OutputBuffer.size();
+
+	int nbytes = (int)recv(_pollfds[i].fd, buf, buf_size, 0);
+	// int nbytes = (int)recv(_pollfds[i].fd, buf, \
+	// 		sizeof (this->_connections[_pollfds[i].fd]->_InputBuffer), 0);
 
 	int sender_fd = _pollfds[i].fd;
 
@@ -40,8 +98,11 @@ void	Server::regular_Client_handler(size_t &i)
 		{
 			perror("recv");
 		}
-		close(_pollfds[i].fd); // Bye!
-		del_from_pollfds(i);
+		// close(_pollfds[i].fd); // Bye!
+		// del_from_pollfds(i);
+		// del_from_map(_pollfds[i].fd);
+		ft_closeNclean(i);
+		//TODO: Mit Connection Instance arbeiten --> Object mit das dem Key entspricht aus Map loeschen
 		i--;
 	}
 	else
@@ -87,6 +148,8 @@ void	Server::regular_Client_handler(size_t &i)
 			// Except the listener_fd and ourselves
 			if (dest_fd != listener_fd && dest_fd != sender_fd)
 			{
+				std::cout << "buf len: " << std::strlen(buf) << "\n";
+				std::cout << "buf content: " << buf << "\n";
 				if (send(dest_fd, buf, (size_t)nbytes, 0) == -1) {
 					perror("send");
 				}
@@ -94,6 +157,14 @@ void	Server::regular_Client_handler(size_t &i)
 		}
 	}
 } // END handle data from client
+
+void	Server::add_to_map(int fd)
+{
+	//Maybe need to add some checks (ignore addition, if key already known)
+	// this->_connections.insert({fd, new Connection(fd)});
+	this->_connections.emplace(fd, std::make_unique<Connection>(fd));
+	return ;
+}
 
 void	Server::new_connection_handler(void)
 {
@@ -113,6 +184,8 @@ void	Server::new_connection_handler(void)
 	{
 		setup_non_blocking(newfd);
 		add_to_pollfds(newfd);
+		add_to_map(newfd);
+		//TODO: Mit Connection Instance arbeiten --> neues Objekt
 		printf("pollserver: new connection from %s on "
 			"socket %d\n",
 			inet_ntop(remoteaddr.ss_family,

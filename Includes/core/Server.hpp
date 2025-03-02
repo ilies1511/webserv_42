@@ -22,7 +22,7 @@ class Connection;
 class Server
 {
 	private:
-		std::unordered_map<int, Connection *>	_connections;
+		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
 		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
@@ -50,6 +50,9 @@ class Server
 		void	new_connection_handler(void);
 		void	regular_Client_handler(size_t &i);
 		void	setup_non_blocking(int fd);
+		void	add_to_map(int fd);
+		void	del_from_map(int fd);
+		void	ft_closeNclean(size_t i);
 	//Methodes -- END
 
 };
