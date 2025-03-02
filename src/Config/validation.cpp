@@ -1,5 +1,25 @@
 #include "../../Includes/Config/validation.hpp"
 
+/*  IP:Port
+ *      already done
+ *  server_name
+ *      only "a-z" "A-Z" "0-9" "-" "."
+ *      start and end not "." or "-"
+ *  root and index
+ *      ensure exists and is accessible
+ *  location
+ *      detect duplicate location blocks
+ *  CGI
+ *      check if script interpreter exists (example php-fpm, phyton etc.)
+ *  client_max_body size is set correctly
+ *
+ *  upload
+ *      directory exists and is writable
+ * every server block should have a different Port
+ *
+ *
+ */
+
 bool isNumeric(const std::string& nbr) {
     return std::all_of(nbr.begin(), nbr.end(), ::isdigit);
 }
@@ -34,17 +54,21 @@ bool isValidIPv4(const std::string& ip) {
     return std::regex_match(ip, ipv4_regex);
 }
 
-bool isValidIPPort(const std::string& combination) {
+bool isValidIPPort(const std::string& combination, std::string& ip, std::string& port) {
     if (!checkOccurrences(combination, ':')) {
         return false;
     }
-    std::string substring1, substring2;
     std::size_t split_point = combination.find(':');
-    substring1 = combination.substr(0, split_point);
-    substring2 = combination.substr(split_point+1, combination.size());
+    ip = combination.substr(0, split_point);
+    port = combination.substr(split_point + 1, combination.size());
     // std::cout << "IP: " << substring1 << " Port: " << substring2 << std::endl;
-    if (isValidIPv4(substring1) && isValidPort(substring2)) {
+    if (isValidIPv4(ip) && isValidPort(port)) {
         return true;
     }
     return false;
+}
+
+bool isValidServerName(const std::string& server_name) {
+    const std::regex server_name_regex(R"(^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$)");
+    return std::regex_match(server_name, server_name_regex);
 }

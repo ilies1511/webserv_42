@@ -30,7 +30,7 @@ std::vector<std::string> serverConfig::getServerName() const {
     return _server_name;
 }
 
-std::map<size_t, std::string> serverConfig::getErrorPages() const {
+std::unordered_map<size_t, std::string> serverConfig::getErrorPages() const {
     return _error_pages;
 }
 
@@ -38,20 +38,22 @@ std::size_t serverConfig::getClientMaxBodySize() const {
     return _client_max_body_size;
 }
 
-bool serverConfig::getGETOption() const {
-    return _GETOption;
+
+std::vector<std::string> serverConfig::getLimitsExcept() const {
+    return _limit_except;
 }
 
-bool serverConfig::getPostOption() const {
-    return _POSTOption;
-}
 
 std::string serverConfig::getRoot() const {
     return _root;
 }
 
-std::vector<route> serverConfig::getLocation() const {
-    return _location;
+// std::vector<route> serverConfig::getLocation() const {
+//     return _location;
+// }
+
+std::unordered_map<std::string, route> serverConfig::getLocation() const {
+   return _location;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,34 +68,57 @@ void serverConfig::setPort(std::size_t port) {
     _port = port;
 }
 
-void serverConfig::setServerName(const std::vector<std::string>& serverName) {
-    _server_name = serverName;
+void serverConfig::setServerName(const std::string& serverName) {
+    // _server_name = serverName;
+    _server_name.push_back(serverName);
+    // _server_name.emplace_back(serverName);
 }
 
-// void serverConfig::setErrorPages(std::size_t errorNbr, const std::string &path) {
-//     // implementation
-// }
+void serverConfig::setErrorPages(const std::size_t errorNbr, const std::string &path) {
+    _error_pages[errorNbr] = path;
+}
 
 void serverConfig::setClientMaxBodySize(std::size_t size) {
     _client_max_body_size = size;
 }
 
-void serverConfig::setGETOption(bool option) {
-    _GETOption = option;
-}
 
-void serverConfig::setPOSTOption(bool option) {
-    _POSTOption = option;
+void serverConfig::setLimitsExcept(const std::string& option) {
+    _limit_except.push_back(option);
 }
 
 void serverConfig::setRoot(std::string &path) {
     _root = path;
 }
 
-// void serverConfig::setLocation(route Route) {
-//     // implementation
-// }
+void serverConfig::setLocation(const std::string& path, const route& Route) {
+    _location[path] = Route;
+}
 
+void serverConfig::printData() {
+    std::cout << "IP: " << _ip << "     " << "Port: " << _port << std::endl;
+    std::cout << "Server Name:";
+    for (const auto& name : _server_name) {
+        std::cout << " " << name;
+    }
+    std::cout << std::endl;
+    std::cout << "Error Pages:" << std::endl;;
+    for (const auto&[fst, snd] : _error_pages) {
+        std::cout << "  " << fst << " " << snd << std::endl;
+    }
+    std::cout << "Client max body size: " << _client_max_body_size << std::endl;
+    std::cout << "Allowed methods: ";
+    for (const auto& method : _limit_except) {
+        std::cout << " " << method;
+    }
+    std::cout << std::endl;
+    std::cout << "Root: " << _root << std::endl;
+    for (const auto& [fst, snd] : _location) {
+        std::cout << "Location: " << fst << std::endl;
+        std::cout << snd << std::endl;
+    }
+
+}
 
 
 

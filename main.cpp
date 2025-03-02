@@ -10,7 +10,11 @@ int	main(void)
 
 	//setting up 2 basic servers
 	std::vector<serverConfig> servers;
-	parsing(tokenList);
+	servers = parsing(tokenList);
+	for (auto& instance : servers) {
+		instance.printData();
+	}
+
 	// servers.emplace_back(80);
 	// servers.emplace_back(8080);
 
