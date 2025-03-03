@@ -24,40 +24,6 @@ Server::~Server(void)
 }
 // OCF -- END
 
-void	Server::del_from_map(int fd)
-{
-	auto it = this->_connections.find(fd);
-	if (it != _connections.end())
-	{
-		_connections.erase(it);
-	}
-}
-
-void	Server::ft_closeNclean(size_t i)
-{
-	// close(_pollfds[i].fd); // Bye!
-
-	if (i >= _pollfds.size())
-	{
-		std::cerr << "Error: Invalid index " << i
-				  << " for _pollfds (size = " << _pollfds.size() << ")\n";
-		del_from_map(_pollfds[i].fd);
-		return ;
-	}
-	const int fd = _pollfds[i].fd;
-	if (fd >= 0)
-	{
-		close(fd);
-		std::cout << "Closed connection on fd " << fd << "\n";
-	}
-	else
-	{
-		std::cerr << "Warning: Invalid fd " << fd << " at index " << i << "\n";
-	}
-	del_from_pollfds(i);
-	del_from_map(_pollfds[i].fd);
-}
-
 void	Server::regular_Client_handler(size_t &i)
 {
 	// char buf[256];    // Buffer for client data
@@ -120,12 +86,12 @@ void	Server::regular_Client_handler(size_t &i)
 		// Sanitize input to handle both \r\n and stray \r or \n
 		if (nbytes >= 2 && buf[nbytes - 2] == '\r' && buf[nbytes - 1] == '\n')
 		{
-		    buf[nbytes - 2] = '\n';
-		    nbytes -= 1; // Correctly adjust the byte count
+			buf[nbytes - 2] = '\n';
+			nbytes -= 1; // Correctly adjust the byte count
 		}
 		else if (nbytes >= 1 && (buf[nbytes - 1] == '\r' || buf[nbytes - 1] == '\n'))
 		{
-		    buf[nbytes - 1] = '\n';
+			buf[nbytes - 1] = '\n';
 		}
 		fwrite(buf, 1, (size_t)nbytes, stdout);
 		printf("\n");
@@ -157,14 +123,6 @@ void	Server::regular_Client_handler(size_t &i)
 		}
 	}
 } // END handle data from client
-
-void	Server::add_to_map(int fd)
-{
-	//Maybe need to add some checks (ignore addition, if key already known)
-	// this->_connections.insert({fd, new Connection(fd)});
-	this->_connections.emplace(fd, std::make_unique<Connection>(fd));
-	return ;
-}
 
 void	Server::new_connection_handler(void)
 {

@@ -152,3 +152,50 @@ void Server::setup_non_blocking(int fd)
 	#endif
 	errno = old_err;
 }
+
+////TODO: TimeOuts
+// void	Server::check_timeouts(void)
+// {}
+
+
+void	Server::del_from_map(int fd)
+{
+	auto it = this->_connections.find(fd);
+	if (it != _connections.end())
+	{
+		_connections.erase(it);
+	}
+}
+
+void	Server::ft_closeNclean(size_t i)
+{
+	// close(_pollfds[i].fd); // Bye!
+
+	if (i >= _pollfds.size())
+	{
+		std::cerr << "Error: Invalid index " << i
+				  << " for _pollfds (size = " << _pollfds.size() << ")\n";
+		del_from_map(_pollfds[i].fd);
+		return ;
+	}
+	const int fd = _pollfds[i].fd;
+	if (fd >= 0)
+	{
+		close(fd);
+		std::cout << "Closed connection on fd " << fd << "\n";
+	}
+	else
+	{
+		std::cerr << "Warning: Invalid fd " << fd << " at index " << i << "\n";
+	}
+	del_from_pollfds(i);
+	del_from_map(_pollfds[i].fd);
+}
+
+void	Server::add_to_map(int fd)
+{
+	//Maybe need to add some checks (ignore addition, if key already known)
+	// this->_connections.insert({fd, new Connection(fd)});
+	this->_connections.emplace(fd, std::make_unique<Connection>(fd, *this));
+	return ;
+}
