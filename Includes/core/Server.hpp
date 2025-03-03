@@ -16,12 +16,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include "Connection.hpp"
 
-class Connection;
+#define TIMEOUT 1000
 
 class Server
 {
 	private:
+		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
@@ -53,6 +55,8 @@ class Server
 		void	add_to_map(int fd);
 		void	del_from_map(int fd);
 		void	ft_closeNclean(size_t i);
+		//TODO:
+		// void	check_timeouts(void);
 	//Methodes -- END
 
 };
