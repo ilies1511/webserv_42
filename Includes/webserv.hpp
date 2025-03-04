@@ -1,10 +1,15 @@
 #pragma once
 
 //Includes -- BEGIN
+#include "serverConfig.hpp"
+#include "token.hpp"
+#include "parser.hpp"
 #include <iostream>
 #include <string>
 #include <string.h>
 #include <cstring>
+#include <sstream>
+#include <fstream>
 #include "Extra/printer.hpp"
 //Beej's Buch
 #include <sys/types.h>

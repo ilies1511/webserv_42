@@ -1,5 +1,6 @@
 *.pdf
 .vscode
+.idea
 webserv
 _obj
 tests.out
