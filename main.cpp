@@ -1,24 +1,27 @@
 #include "webserv.hpp"
 
+void printServerConfig(std::vector<serverConfig>& servers) {
+	for (auto& instance : servers) {
+		instance.printData();
+	}
+}
+
 int	main(void)
 {
 
 	std::vector<TOKEN> tokenList;
-
 	getToken("configFiles/default.conf", tokenList);
-	printToken(tokenList);
+	// printToken(tokenList);
 
-	//setting up 2 basic servers
 	std::vector<serverConfig> servers;
-	servers = parsing(tokenList);
-	for (auto& instance : servers) {
-		instance.printData();
+	try {
+		servers = parsing(tokenList);
+	} catch (const std::exception& e) {
+		std::cout << "Error: " << e.what() << std::endl;
+		return 1;
 	}
+	printServerConfig(servers);
 
-	// servers.emplace_back(80);
-	// servers.emplace_back(8080);
-
-	
 	printer::Header("main");
 	std::cout << "ALO aus main.cpp\n";
 	printer::Header("dummy func Call");

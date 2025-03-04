@@ -2,78 +2,59 @@
 
 void validateLocationParams(route& current_route, const std::string& keyword, std::vector<std::string>& params) {
     if (keyword == "index") {
-        if (params.size() < 1) {
-            std::cout << "(invalid)";
-            return;
+        if (params.empty()) {
+            throw std::runtime_error("index: invalid arguments");
         }
-        for (std::size_t i = 0; i < params.size(); ++i) {
-            current_route.setIndex(params[i]);
+        for (const auto & param : params) {
+            current_route.setIndex(param);
         }
-        std::cout << "(valid)";
-
     } if (keyword == "limit_except") {
-        if (params.size() < 1) {
-            std::cout << "(invalid)";
-            return;
+        if (params.empty()) {
+            throw std::runtime_error("limit_except: invalid arguments");
         }
-        for (std::size_t i = 0; i < params.size(); ++i) {
-           if (params[i] == "POST" || params[i] == "GET" || params[i] == "DELETE") {
-               current_route.setLimitsExcept(params[i]);
+        for (const auto & param : params) {
+           if (param == "POST" || param == "GET" || param == "DELETE") {
+               current_route.setLimitsExcept(param);
            } else {
-               std::cout << "(invalid)";
-               return;
+               throw std::runtime_error("limit_except: invalid arguments");
            }
         }
-        std::cout << "(valid)";
     } if (keyword == "return") {
         // should be validated first
         if (params.size() != 2) {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("return: invalid arguments");
         }
-        std::cout << "(valid)";
         current_route.setRedirect(stoul(params[0]), params[1]);
     } if (keyword == "autoindex") {
         if (params.size() != 1) {
-            std::cout << "(invalid)";
-            return ;
+            throw std::runtime_error("autoindex: invalid arguments");
         } if (params[0] == "on") {
             current_route.setAutoIndex(true);
         } else if (params[0] == "off") {
             current_route.setAutoIndex(false);
         } else {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("autoindex: invalid arguments");
         }
-        std::cout << "(valid)";
-
     } if (keyword == "root") {
         // should be validated first
         if (params.size() != 1) {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("root: invalid arguments");
         }
         current_route.setRoot(params[0]);
-        std::cout << "valid";
-
     } if (keyword == "cgi") {
         // should be validated first
         if (params.size() != 2) {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("cgi: invalid arguments");
         }
         current_route.setCgi(params[0], params[1]);
-        std::cout << "(valid)";
     }
 }
 
 std::size_t locationPrint(serverConfig& server_config, const std::vector<TOKEN>& tokenList, std::size_t i) {
-    std::cout << "location: ";
     if (i < tokenList.size() && tokenList[i].type == PARAM ) {
-        std::cout << tokenList[i].content << std::endl;;
+        // should be a valid location path
     } else {
-        std::cout << "(invalid)" << std::endl;
-        return i;
+        throw std::runtime_error(tokenList[i].content + " is not a valid path of a location");
     }
     const std::string current_location = tokenList[i].content;
     i++;
@@ -85,60 +66,53 @@ std::size_t locationPrint(serverConfig& server_config, const std::vector<TOKEN>&
                 server_config.setLocation(current_location, current_route);
                 return i;
             }
+            std::string current_keyword = tokenList[i].content;
             if (tokenList[i].type == KEYWORD) {
-                std::string current_keyword = tokenList[i].content;
-                // std::cout << "  " << tokenList[i].content << ": ";
-                std::cout << "  " << current_keyword << ": ";
                 i++;
                 std::vector<std::string> keyword_params;
                 for ( ; i < tokenList.size(); ++i) {
                     if (tokenList[i].type == SEMICOLON) {
-                        validateLocationParams(current_route, current_keyword, keyword_params);
-                        std::cout << std::endl;
+                        try {
+                            validateLocationParams(current_route, current_keyword, keyword_params);
+                        } catch (const std::exception& e) {
+                            throw ;
+                        }
                         break;
                     } else if (tokenList[i].type == PARAM) {
-                        std::cout << tokenList[i].content << " ";
                         keyword_params.push_back(tokenList[i].content);
                     } else {
-                        std::cout << "Config file invalid" << std::endl;
-                        break;
+                        throw std::runtime_error("Missing Semicolon after: " + current_keyword);
                     }
                 }
             } else {
-                std::cout << "Config file invalid" << std::endl;
+                throw std::runtime_error("Invalid Keyword: " + current_keyword);
             }
         }
     } else {
-        std::cout << "Config file invalid" << std::endl;
+        throw std::runtime_error("Config file invalid");
     }
-    std::cout << "Config file invalid" << std::endl;
+    throw std::runtime_error("Config file invalid");
 
-    return i;
+    // return i;
 }
 
 // add serverConfig& server_config to add values
-void validateParam(serverConfig& server_config, const std::string &keyword, std::vector<std::string> &params) {
+void validateParam(serverConfig& server_config, const std::string &keyword, const std::vector<std::string>& params) {
     if (keyword == "listen") {
+        if (params.size() != 1) {
+            throw std::runtime_error("listen: invalid arguments");
+        }
         std::string ip;
         std::string port;
-        if (params.size() != 1) {
-            std::cout << "(invalid)";
-            return;
-        }
         if (isValidPort(params[0])) {
-            std::cout << "(valid Port) ";
             ip = "0.0.0.0";
             port = params[0];
         } else if (isValidIPv4(params[0])) {
-            std::cout << "(valid IP) ";
             ip = params[0];
             port = "80";
         } else if (isValidIPPort(params[0], ip, port)) {
-            std::cout << "(valid Port:IP) ";
         } else {
-            // program should stop with error
-            std::cout << "(invalid) ";
-            return ;
+            throw std::runtime_error("listen: invalid arguments");
         }
         server_config.setIP(ip);
         server_config.setPort(std::stoul(port));
@@ -147,66 +121,53 @@ void validateParam(serverConfig& server_config, const std::string &keyword, std:
             if (isValidServerName(param)) {
                 server_config.setServerName(param);
             } else {
-                std::cout << ("invalid");
-                return;
+                throw std::runtime_error("server_name: invalid arguments");
             }
         }
-        std::cout << "(valid)";
     } if (keyword == "client_max_body_size") {
         if (params.size() != 1) {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("client_max_body_size: invalid arguments");
         }
-        // should be validated first
-        server_config.setClientMaxBodySize(std::stoul(params[0]));
-        std::cout << "(valid)";
+        std::size_t result;
+        if (!isValidDataSize(params[0], result)) {
+            throw std::runtime_error("client_max_body_size: invalid arguments");
+        }
+        server_config.setClientMaxBodySize(result);
     } if (keyword == "root") {
         if (params.size() != 1) {
-            std::cout << "(invalid)";
-            return;
-        }
-        server_config.setRoot(params[0]);
-        std::cout << "(valid)";
-    } if (keyword == "error_page") {
-        if (params.size() < 2) {
-            std::cout << "(invalid)";
-            return;
+            throw std::runtime_error("root: invalid arguments");
         }
         // should be validated first
+        server_config.setRoot(params[0]);
+    } if (keyword == "error_page") {
+        if (params.size() < 2) {
+            throw std::runtime_error("error_page: invalid arguments");
+        }
         for (std::size_t i = 0; i < params.size() - 1; ++i) {
             auto temp_map = server_config.getErrorPages();
             std::size_t errorNbr = std::stoul(params[i]);
             if (temp_map.find(errorNbr) != temp_map.end()) {
-                std::cout << "(invalid)";
-                return;
+                throw std::runtime_error("error_page: invalid arguments");
             }
             server_config.setErrorPages(errorNbr, params.back());
         }
-        std::cout << "(valid)";
-
-    // } if (keyword == "location") {
-    //     // should be redundant
-    //     // add all value;
+    } if (keyword == "timeout") {
+         if (params.size() != 1) {
+             throw std::runtime_error("timeout: invalid arguments");
+         }
+         double result;
+         if (!isValidTime(params[0], result)) {
+             throw std::runtime_error("timeout: invalid arguments");
+         }
+         server_config.setTimeout(result);
     } if (keyword == "limit_except") {
         for (const auto& option : params) {
             if (option == "GET" || option == "POST" || option == "DELETE") {
                 server_config.setLimitsExcept(option);
+            } else {
+                throw std::runtime_error("limit_except: invalid arguments");
             }
-            else {
-                std::cout << "(invalid)";
-                return ;
-            }
-            std::cout << "(valid)";
         }
-        // add all value;
-    // } if (keyword == "index") {
-    //     if (params.size() != 1) {
-    //         std::cout << "(invalid)";
-    //         return;
-    //     }
-    //     // add all value;
-    // } if (keyword == "return") {
-    //     // add all value;
     }
 }
 
@@ -215,7 +176,6 @@ std::vector<serverConfig> parsing(const std::vector<TOKEN>& tokenList) {
 
     for (std::size_t i = 0; i < tokenList.size(); ++i) {
         if (tokenList[i].type == KEYWORD && tokenList[i].content == "server" ) {
-            std::cout << "\nSERVER INSTANCE:" << std::endl;
             i++;
             if (i < tokenList.size() && tokenList[i].type == LBRACE) {
                 server_configs.emplace_back();
@@ -224,40 +184,43 @@ std::vector<serverConfig> parsing(const std::vector<TOKEN>& tokenList) {
                     if (tokenList[i].type == RBRACE) {
                         break;
                     }
+                    std::string current_keyword = tokenList[i].content;
                     if (tokenList[i].type == KEYWORD) {
-                        std::string current_keyword = tokenList[i].content;
+                        // std::string current_keyword = tokenList[i].content;
                         if (tokenList[i].content == "location") {
                             i++;
-                            i = locationPrint(server_configs.back() ,tokenList, i);
+                            try {
+                                i = locationPrint(server_configs.back() ,tokenList, i);
+                            } catch (const std::exception& e) {
+                                throw;
+                            }
                         } else {
-                            std::cout << tokenList[i].content << ": ";
                             i++;
                             std::vector<std::string> keyword_params;
                             for (; i < tokenList.size(); ++i) {
                                if (tokenList[i].type == SEMICOLON) {
-                                   validateParam(server_configs.back(),current_keyword, keyword_params);
-                                   std::cout << std::endl;
+                                   try {
+                                       validateParam(server_configs.back(),current_keyword, keyword_params);
+                                   } catch (const std::exception& e) {
+                                       throw;
+                                   }
                                    break;
                                } if (tokenList[i].type == PARAM) {
-                                   std::cout << tokenList[i].content << " ";
-                                   // validateParam(server_configs.back(),current_keyword, tokenList[i].content);
                                    keyword_params.push_back(tokenList[i].content);
                                } else {
-                                   std::cout << "Config file invalid1" << std::endl;
-                                   break;
+                                   throw std::runtime_error("Missing Semicolon after: " + current_keyword);
                                }
                             }
                         }
-
                     } else {
-                        std::cout << "Config file invalid2" << std::endl;
+                        throw std::runtime_error("Invalid Keyword: " + current_keyword);
                     }
                 }
             } else {
-                std::cout << "Config file invalid3" << std::endl;
+                throw std::runtime_error("Missing opening curly brace after server");
             }
         } else {
-            std::cout << "Config file invalid4" << std::endl;
+            throw std::runtime_error("Server Block should start with the keyword: server");
         }
     }
     return server_configs;

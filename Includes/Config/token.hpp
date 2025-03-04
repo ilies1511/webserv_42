@@ -24,7 +24,8 @@ enum KEYWORDS {
   LOCATION,
   LIMIT_EXCEPT,
   INDEX,
-  RETURN
+  RETURN,
+  TIMEOUT
 };
 
 struct TOKEN {

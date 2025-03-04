@@ -1,5 +1,7 @@
 #include "../../Includes/Config/validation.hpp"
 
+#include <unordered_map>
+
 /*  IP:Port
  *      already done
  *  server_name
@@ -17,14 +19,15 @@
  *      directory exists and is writable
  * every server block should have a different Port
  *
- *
+ *  timeout done
+ *  client_max_body_size done
  */
 
 bool isNumeric(const std::string& nbr) {
     return std::all_of(nbr.begin(), nbr.end(), ::isdigit);
 }
 
-bool checkOccurrences(const std::string& str, char value) {
+bool checkOccurrences(const std::string& str, const char value) {
     if (std::count(str.begin(), str.end(), value) == 1) {
         return true;
     }
@@ -72,3 +75,81 @@ bool isValidServerName(const std::string& server_name) {
     const std::regex server_name_regex(R"(^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$)");
     return std::regex_match(server_name, server_name_regex);
 }
+
+bool isValidTime(const std::string& time, double& result) {
+    if (time.empty()) return false;
+
+    static const std::unordered_map<std::string, double> conversion = {
+        {"ms", 0.001},
+        {"s", 1},
+        {"m", 60},
+        {"h", 3600}
+    };
+
+    std::size_t pos = 0;
+    while (pos < time.size() && std::isdigit(time[pos])) pos++;
+
+    if (pos == time.size()) {
+        result = std::stod(time);
+        return true;
+    }
+
+    const std::string value = time.substr(0, pos);
+    const std::string unit = time.substr(pos);
+
+    const auto it = conversion.find(unit);
+    if (it == conversion.end()) return false;
+
+    try {
+        result = std::stod(value) * it->second;
+        if (result > MaxTimeout) return false;
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool isValidDataSize(const std::string& data, std::size_t& result) {
+    if (data.empty()) return false;
+
+    std::size_t pos = 0;
+    while (pos < data.size() && std::isdigit(data[pos])) pos++;
+
+    if (pos == data.size()) {
+        try {
+            result = std::stoul(data);
+            return result <= MaxDataSize;
+        } catch (...) {
+            return false;
+        }
+    }
+    if (pos > 0 && pos < data.size()) {
+        const char typeSpecifier = static_cast<char>(std::toupper(data.back()));
+        const std::string value = data.substr(0, pos);
+        std::size_t raw = 0;
+        try {
+            raw = std::stoul(value);
+        } catch (...) {
+            return false;
+        }
+        switch (typeSpecifier) {
+            case 'K':
+                result = raw * 1024;
+                break;
+            case 'M':
+                result = raw * 1024 * 1024;
+                break;
+            case 'G':
+                result = raw * 1024 * 1024 * 1024;
+                break;
+            default:
+                return false;
+        }
+        if (result > MaxDataSize) return false;
+        return true;
+    }
+    return false;
+
+}
+
+

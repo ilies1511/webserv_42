@@ -10,7 +10,7 @@
 //     _POSTOption = false;
 //     _root = "configFiles";
 // };
-serverConfig::serverConfig() {};
+serverConfig::serverConfig() : _timeout(75) {};
 
 serverConfig::~serverConfig() = default;
 
@@ -48,6 +48,11 @@ std::string serverConfig::getRoot() const {
     return _root;
 }
 
+double serverConfig::getTimeout() const {
+    return _timeout;
+}
+
+
 // std::vector<route> serverConfig::getLocation() const {
 //     return _location;
 // }
@@ -69,7 +74,6 @@ void serverConfig::setPort(std::size_t port) {
 }
 
 void serverConfig::setServerName(const std::string& serverName) {
-    // _server_name = serverName;
     _server_name.push_back(serverName);
     // _server_name.emplace_back(serverName);
 }
@@ -87,9 +91,14 @@ void serverConfig::setLimitsExcept(const std::string& option) {
     _limit_except.push_back(option);
 }
 
-void serverConfig::setRoot(std::string &path) {
+void serverConfig::setRoot(const std::string &path) {
     _root = path;
 }
+
+void serverConfig::setTimeout(const double value) {
+    _timeout = value;
+}
+
 
 void serverConfig::setLocation(const std::string& path, const route& Route) {
     _location[path] = Route;
@@ -106,7 +115,8 @@ void serverConfig::printData() {
     for (const auto&[fst, snd] : _error_pages) {
         std::cout << "  " << fst << " " << snd << std::endl;
     }
-    std::cout << "Client max body size: " << _client_max_body_size << std::endl;
+    std::cout << "Client max body size: " << _client_max_body_size << " bytes" << std::endl;
+    std::cout << "Timeout: " << _timeout << " seconds" <<std::endl;
     std::cout << "Allowed methods: ";
     for (const auto& method : _limit_except) {
         std::cout << " " << method;

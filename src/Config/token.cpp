@@ -1,5 +1,4 @@
 #include "../../Includes/Config/token.hpp"
-// #include "token.hpp"
 #include <vector>
 //#include "webserv.hpp"
 
@@ -34,6 +33,7 @@ bool check_keywords(const std::string& keyword) {
 		keyword == "index" ||
 		keyword == "return" ||
 		keyword == "limit_except" ||
+		keyword == "timeout" ||
 		keyword == "location") {
 		return true;
 		}

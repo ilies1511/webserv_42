@@ -10,10 +10,11 @@ class serverConfig {
 		std::size_t					 			_port;
 		std::vector<std::string>				_server_name;
         std::unordered_map<size_t, std::string>	_error_pages;
-        std::size_t								_client_max_body_size;
+        std::size_t								_client_max_body_size; // in bytes
 
 		std::vector<std::string>				_limit_except;
        	std::string								_root;
+		double									_timeout; // in seconds
         // std::vector<route>						_location;
 		std::unordered_map<std::string, route>	_location;
 
@@ -21,7 +22,6 @@ class serverConfig {
 
 	public:
 		serverConfig();
-		// explicit serverConfig(const size_t port);
 		~serverConfig();
 
 		void	printData();
@@ -35,6 +35,7 @@ class serverConfig {
 
 		std::vector<std::string>		        getLimitsExcept() const;
 		std::string						        getRoot() const;
+		double									getTimeout() const;
 		// std::vector<route>				        getLocation() const;
 		std::unordered_map<std::string, route>	getLocation() const;
 		//setters
@@ -45,7 +46,8 @@ class serverConfig {
 		void	setClientMaxBodySize(std::size_t size);
 
 		void	setLimitsExcept(const std::string& option);
-		void	setRoot(std::string& path);
+		void	setRoot(const std::string& path);
+		void	setTimeout(double value);
 		// void	setLocation(route Route);
 		void	setLocation(const std::string& path, const route& Route);
 

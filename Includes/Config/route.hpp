@@ -10,15 +10,11 @@ class route {
     private:
         // both
         std::vector<std::string>                        _limit_except;
-        // bool							    _GETOption;
-        // bool								_POSTOption;
         std::string							            _root;
         // route specific
         std::pair<std::size_t,std::string>	            _redirect;
-        // std::string                         _location;
         bool								            _autoindex;
         std::vector<std::string>			            _index;
-        // std::string                                     _file_upload;
         std::unordered_map<std::string, std::string>    _cgi;
 
     public:
@@ -30,8 +26,6 @@ class route {
 
         //getters
         std::vector<std::string>                        getLimitsExcept() const;
-        // bool                                            getGETOption() const;
-        // bool                                            getPOSTOption() const;
         std::string                                     getRoot() const;
 
         std::pair<std::size_t, std::string>             getRedirect();

@@ -128,7 +128,7 @@ std::ostream& operator<<(std::ostream& os, const route& r) {
     }
     os << std::endl;
     os << "  Root: " << r._root << std::endl;
-    os << "  Redirect: " << r._redirect.first << " " << r._redirect.second;
+    os << "  Redirect: " << r._redirect.first << " " << r._redirect.second << std::endl;
     os << "  Autoindex: ";
     if (r._autoindex == true) {
         os << "on";
