@@ -19,8 +19,8 @@ class Request
 		Request(void);
 		~Request(void);
 	private:
-		Request(const Request& other);
-		Request& operator=(const Request& other);
+		Request(const Request& other) = delete;
+		Request& operator=(const Request& other) = delete;
 	//OCF -- END
 
 	//Methodes -- BEGIN
