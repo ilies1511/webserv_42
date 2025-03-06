@@ -36,5 +36,7 @@ namespace printer
 
 	//Exception Printer (try catch)
 	void LogException(const std::exception& e, const char* file, const char* function, int line);
+
+	void debug_putstr(const char* msg, const char* file, const char* function, int line);
 }
 #endif

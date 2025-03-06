@@ -68,5 +68,12 @@ namespace printer
 		std::cerr << coloring("Line: ", YELLOW) << line << "\n";
 		std::cerr << coloring("Reason: ", YELLOW) << coloring(e.what(), RED) << "\n";
 	}
+
+	void	debug_putstr(const char* msg, const char* file, const char* function, int line)
+	{
+		std::cout << YELLOW <<  "File: " << NC << file << YELLOW << ", Function: " \
+			<< NC << function << YELLOW << ", Line: " << NC << line \
+			<< YELLOW << ", msg: " << NC << msg << "\n";
+	}
 }
 
