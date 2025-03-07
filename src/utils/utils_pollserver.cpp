@@ -171,6 +171,7 @@ void	Server::ft_closeNclean(size_t i)
 {
 	// close(_pollfds[i].fd); // Bye!
 
+	printer::debug_putstr("alo", __FILE__, __FUNCTION__, __LINE__);
 	if (i >= _pollfds.size())
 	{
 		std::cerr << "Error: Invalid index " << i

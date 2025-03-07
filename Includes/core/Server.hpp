@@ -22,15 +22,17 @@
 
 class Server
 {
+	public:
+		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
 	private:
 		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
-		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
 		const std::string						_port;
-	//OCF -- BEGIN
+		//OCF -- BEGIN
 	public:
+		size_t									_i;
 		Server(const std::string &port);
 		~Server(void);
 	private:
@@ -55,6 +57,10 @@ class Server
 		void	add_to_map(int fd);
 		void	del_from_map(int fd);
 		void	ft_closeNclean(size_t i);
+		pollfd	*getPollFd(void);
+		void	handle_output(int fd);
+		void	enable_output(int fd);
+
 		//TODO:
 		// void	check_timeouts(void);
 	//Methodes -- END

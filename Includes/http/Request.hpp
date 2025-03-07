@@ -8,11 +8,11 @@
 class Request
 {
 	public:
-	std::string										_methode;
-	std::string										_uri;
-	std::string										_version;
-	std::unordered_map< std::string, std::string >	_headers;
-	std::string										_body;
+		std::string										_method;
+		std::string										_uri;
+		std::string										_version;
+		std::unordered_map< std::string, std::string >	_headers;
+		std::string										_body;
 
 	public:
 	//OCF -- BEGIN

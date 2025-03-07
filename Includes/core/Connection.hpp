@@ -5,11 +5,14 @@
 #include <string>
 #include <sys/socket.h>
 #include "Buffer.hpp"
+#include "Request.hpp"
+#include "HTTP_Parser.hpp"
+// #include "Server.hpp"
 #include <unistd.h>
 
 class Buffer;
 class Server;
-// class Request;
+class Request;
 // class Response;
 // class State;
 // class HTTP_Parser;
@@ -18,11 +21,17 @@ class Server;
 class Connection
 {
 	public:
-	enum class State { READ_HEADER, READ_BODY, PROCESS, WRITE, CLOSING };
+		enum class State { READ_HEADER, READ_BODY, PROCESS, WRITE, CLOSING };
+		State				_state;
+		Server&				_server;
+		Request				request;
+		HTTP_Parser			parser;
 	private:
-	int					_fdConnection;
-	Server&				_server;
-	State				_state;
+		int					_fdConnection;
+		//TODO:
+		// int					_fdWrite;
+		// int					_fdRead;
+	private:
 	// Request				_request;
 	// Response			_response;
 	// HTTP_Parser			_parser; //vielleicht schlauer, wenn in request gecallt wird.
@@ -51,12 +60,17 @@ class Connection
 		// void	handle_input(); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
 		// void	handle_output(); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Response)
 	public:
-		State	state() const;
+		// State	state() const;
+		bool	process_request(const Request &request);
+		// std::string	process_request(const Request &request);
+
 		void	handle_input(void); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
 		void	handle_output(void); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Response)
 		// void	process_request(); // Setzt alles in Gang --> Zentrale Funktion hier
 		// void	close();
 		int		getFdConnection(void);
+
+		bool	process_request(void);
 	//Methodes -- END
 };
 
