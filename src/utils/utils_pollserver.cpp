@@ -103,6 +103,19 @@ void Server::add_to_pollfds(int new_fd)
 // 	_pollfds.erase(_pollfds.begin() + index);
 // }
 
+//Improved Stand: 08.03.2025
+void Server::del_from_pollfds(int fd)
+{
+	auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
+		[fd](const pollfd& pfd) { return pfd.fd == fd; });
+	if (it != _pollfds.end())
+	{
+		_pollfds.erase(it, _pollfds.end());
+		std::cout << "Removed fd: " << fd << " from pollfds\n";
+	}
+}
+
+//Replaced by del_from_pollfds(int fd)
 void Server::del_from_pollfds(size_t index)
 {
 	if (index >= _pollfds.size())
@@ -167,6 +180,42 @@ void	Server::del_from_map(int fd)
 	}
 }
 
+//Improved Version: fd based handling
+// void Server::ft_closeNclean(int fd)
+// {
+// 	del_from_map(fd);
+// 	auto it = std::find_if(_pollfds.begin(), _pollfds.end(),
+// 		[fd](const pollfd& pfd) { return pfd.fd == fd; });
+// 	if (it != _pollfds.end())
+// 	{
+// 		close(it->fd);
+// 		_pollfds.erase(it);
+// 		_connections.erase(fd); // Entferne aus der Map
+// 	}
+// 	del_from_pollfds();
+// }
+
+void Server::ft_closeNclean(int fd)
+{
+	// 1. Schließe den Socket
+	if (fd != -1)
+	{
+		std::cout << "Closing fd: " << fd << "\n";
+		close(fd);
+	}
+	// 2. Entferne aus der Connection-Map
+	// if (_connections.count(fd)) {
+	//     std::cout << "Removing from connections map\n";
+	//     _connections.erase(fd);
+	// }
+	del_from_map(fd);
+	// 3. Entferne aus pollfds
+	del_from_pollfds(fd);
+	// 4. Setze FD auf ungültigen Wert
+	fd = -1;
+}
+
+// Obsoletes (new: ft_closeNclean(int fd))
 void	Server::ft_closeNclean(size_t i)
 {
 	// close(_pollfds[i].fd); // Bye!

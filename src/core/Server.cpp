@@ -64,6 +64,7 @@ void	Server::regular_Client_handler(size_t &i)
 		}
 		else
 		{
+			printer::debug_putstr("Pre perror Server", __FILE__, __FUNCTION__, __LINE__);
 			perror("recv");
 		}
 		// close(_pollfds[i].fd); // Bye!
@@ -172,6 +173,7 @@ void	Server::new_connection_handler(void)
 
 void Server::poll_loop(void)
 {
+	// static int iter = 1;
 	for(;;)
 	{
 		int poll_count = poll(&_pollfds[0], (nfds_t)_pollfds.size(), -1);
@@ -184,8 +186,8 @@ void Server::poll_loop(void)
 		}
 		poll_count = 1; //Listener
 		// Run through the existing connections looking for data to read
-		_i = 0;
-		for(; _i < _pollfds.size(); _i++)
+		// size_t	i = 0;
+		for (_i = 0; _i < _pollfds.size(); _i++)
 		{
 			// Check if someone's ready to read
 			//TODO: Eher in handle Input verschieben bzw in den jeweiligen Klassen
@@ -198,7 +200,13 @@ void Server::poll_loop(void)
 				else
 				{
 					//TODO: Input Handler
-					_connections.at(_pollfds.at(_i).fd)->handle_input();
+					printer::debug_putstr("PRE handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
+					//TODO: Work with fd + iterator
+					// _connections.at(_pollfds.at(_i).fd)->handle_input(int fd, int i);
+
+					// _connections.at(_pollfds.at(i).fd)->handle_input(_pollfds.at(i).fd);
+					_connections.at(_pollfds.at(_i).fd)->handle_input(_pollfds.at(_i).fd);
+					printer::debug_putstr("POST handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
 					// std::cout << "Var. i PRE regular Client Handler " << _i <<"\n";
 					// regular_Client_handler(_i);
 					// std::cout << "Var. i POST regular Client Handler " << _i <<"\n";
@@ -211,11 +219,18 @@ void Server::poll_loop(void)
 			// {
 			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
 			// }
-			if (_pollfds[_i].revents & POLL_OUT)
-			{
-				_connections.at(_pollfds.at(_i).fd)->handle_output();
-			}
+
+			// if (_pollfds[_i].revents & POLL_OUT)
+			// {
+			// 	// _connections.at(_pollfds.at(_i).fd)->handle_output();
+			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
+			// }
+
 		} // END looping through file descriptors
+
+		// std::cout << "iter : " << iter << "\n";
+		// iter++;
+
 	} // END for(;;)--and you thought it would never end!
 }
 
@@ -270,10 +285,34 @@ void Server::enable_output(int fd)
 	}
 }
 
+// void Server::handle_output(int fd)
+// {
+// 	auto it = _connections.find(fd);
+// 	if (it != _connections.end())
+// 	{
+// 		it->second->handle_output();
+// 	}
+// 	else
+// 	{
+// 		ft_closeNclean(fd); // Falls nicht vorhanden, aufräumen
+// 	}
+// }
 void	Server::handle_output(int fd)
 {
-	Connection	*conn = _connections.at(fd).get();
-	conn->handle_output();
+	printer::debug_putstr("PRE handle Output", __FILE__, __FUNCTION__, __LINE__);
+	auto it = _connections.find(fd);
+	if (it != _connections.end())
+	{
+		it->second->handle_output();
+	}
+	else
+	{
+		ft_closeNclean(fd); // Falls nicht vorhanden, aufräumen
+	}
+
+	// Connection	*conn = _connections.at(fd).get();
+	// conn->handle_output();
+
 	// Nach Sendevorgang zurück zu POLLIN
 	for(auto& pfd : this->_pollfds)
 	{
@@ -283,6 +322,7 @@ void	Server::handle_output(int fd)
 			break;
 		}
 	}
+	printer::debug_putstr("POST handle Output", __FILE__, __FUNCTION__, __LINE__);
 }
 
 ////Regulr Client Handler -- BackUp

@@ -60,6 +60,8 @@ class Server
 		pollfd	*getPollFd(void);
 		void	handle_output(int fd);
 		void	enable_output(int fd);
+		void	ft_closeNclean(int fd);
+		void	del_from_pollfds(int fd);
 
 		//TODO:
 		// void	check_timeouts(void);

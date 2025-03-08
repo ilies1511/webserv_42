@@ -64,8 +64,12 @@ class Connection
 		bool	process_request(const Request &request);
 		// std::string	process_request(const Request &request);
 
+		void	handle_input(const int &fd); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
 		void	handle_input(void); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
-		void	handle_output(void); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Response)
+		void	handle_output(void);
+		// void	handle_output(int fd);
+// --> Koennte auch in den jeweiligen Klassen definiert werden. (Response)
+		// void	handle_output(const int &fd); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Response)
 		// void	process_request(); // Setzt alles in Gang --> Zentrale Funktion hier
 		// void	close();
 		int		getFdConnection(void);
