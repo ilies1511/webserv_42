@@ -14,8 +14,8 @@ OBJ_DIR := _obj
 # SRC_DIRS := .
 #SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
-INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests Includes/Config Includes/StatusCodes)
-SRC_DIRS := $(abspath src src/Extra src/Tests src/playground src/Config)
+INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests Includes/Config Includes/StatusCodes Includes/Request)
+SRC_DIRS := $(abspath src src/Extra src/Tests src/playground src/Config src/Request)
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -29,7 +29,13 @@ HEADERS :=	Log.hpp \
 			printer.hpp \
 			test.hpp \
 			playground.hpp \
-			webserv.hpp
+			webserv.hpp \
+			parser.hpp \
+			route.hpp \
+			serverConfig.hpp \
+			token.hpp \
+			validation.hpp \
+			requestParsing.hpp
 
 HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))
 # there for preproc. -- END
@@ -60,14 +66,17 @@ CONFIG_DIR_FILES := serverConfig.cpp \
 					token.cpp \
 					parser.cpp \
 					validation.cpp
-CONFIG_DIR := $(addprefix config/, $(CONFIG_DIR_FILES))
+CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
+
+REQUEST_DIR_FILES := requestParsing.cpp
+REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 
 SRC := src_file.cpp
 
 
 
 #Combines all
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CONFIG_DIR))
+SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CONFIG_DIR)) $(REQUEST_DIR)
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 

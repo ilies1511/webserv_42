@@ -1,6 +1,7 @@
 #pragma once
 
 //Includes -- BEGIN
+#include "requestParsing.hpp"
 #include "serverConfig.hpp"
 #include "token.hpp"
 #include "parser.hpp"
