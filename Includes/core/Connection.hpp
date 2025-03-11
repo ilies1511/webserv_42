@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include "Buffer.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
 #include <unistd.h>
@@ -13,7 +14,7 @@
 class Buffer;
 class Server;
 class Request;
-// class Response;
+class Response;
 // class State;
 // class HTTP_Parser;
 // class MiddlewareChain;
@@ -21,13 +22,15 @@ class Request;
 class Connection
 {
 	public:
-		enum class State { READ_HEADER, READ_BODY, PROCESS, WRITE, CLOSING };
+		enum class State { READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, CLOSING };
 		State				_state;
 		Server&				_server;
 		Request				request;
 		HTTP_Parser			parser;
+		Response			_current_response;
 	private:
 		int					_fdConnection;
+		int					_fdFile;
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
@@ -75,6 +78,8 @@ class Connection
 		int		getFdConnection(void);
 
 		bool	process_request(void);
+
+		void	generate_error_response(Response& response);
 	//Methodes -- END
 };
 

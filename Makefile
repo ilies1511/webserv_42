@@ -15,6 +15,7 @@ INC_DIRS :=	Includes \
 			Includes/Tests \
 			Includes/core \
 			Includes/http \
+			Includes/handler \
 			Includes/utils
 SRC_DIRS :=	src \
 			src/Extra \
@@ -23,6 +24,7 @@ SRC_DIRS :=	src \
 			src/dummy_repo \
 			src/core \
 			src/http \
+			src/handler \
 			src/utils
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
@@ -73,6 +75,9 @@ UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
 HTTP_REPO_FILES := Request.cpp Response.cpp HTTP_Parser.cpp
 HTTP_REPO := $(addprefix http/, $(HTTP_REPO_FILES))
 
+HANDLER_REPO_FILES := StaticFileHandler.cpp
+HANDLER_REPO := $(addprefix handler/, $(HANDLER_REPO_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -82,7 +87,8 @@ MELTING_POT :=	$(SRC) \
 				$(PLAYGROUND_REPO) \
 				$(CORE_REPO) \
 				$(UTILS_REPO) \
-				$(HTTP_REPO)
+				$(HTTP_REPO) \
+				$(HANDLER_REPO)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
@@ -113,7 +119,8 @@ NAME_TEST=tests.out
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(HDR_CHECK)
+# $(NAME): $(OBJS) $(HDR_CHECK)
+$(NAME): $(OBJS)
 #$(AR) $(ARFLAGS) $(NAME) $(OBJS)
 	$(CPP) $(LDFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(GREEN)$(BOLD)Successful Compilation$(NC)"

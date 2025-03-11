@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "Request.hpp"
 
@@ -13,15 +14,17 @@ class Response
 	public:
 		std::string	status_code;
 		std::string	body;
+		std::unordered_map< std::string, std::string > headers;
 	private:
 		Request	_data; //Wird eingesplegt durch Constructor
 	public:
 	//OCF -- BEGIN
+		// Response(void);
 		Response(const Request &request);
 		~Response(void);
+		Response(const Response& other);
+		Response& operator=(const Response& other);
 	private:
-		Response(const Response& other) = delete;
-		Response& operator=(const Response& other) = delete;
 	//OCF -- END
 
 	//Methodes -- BEGIN

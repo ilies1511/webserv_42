@@ -176,7 +176,7 @@ void Server::poll_loop(void)
 	// static int iter = 1;
 	for(;;)
 	{
-		int poll_count = poll(&_pollfds[0], (nfds_t)_pollfds.size(), -1);
+		int poll_count = poll(&_pollfds[0], (nfds_t)_pollfds.size(), 0); //TODO: check difference
 
 
 		if (poll_count == -1)
@@ -184,7 +184,9 @@ void Server::poll_loop(void)
 			perror("poll");
 			exit(1);
 		}
-		poll_count = 1; //Listener
+
+		// poll_count = 1; //Listener
+
 		// Run through the existing connections looking for data to read
 		// size_t	i = 0;
 		for (_i = 0; _i < _pollfds.size(); _i++)
