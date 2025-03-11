@@ -1,0 +1,68 @@
+mainloop() {
+	poll() // pollfd, das hier gepollt wird
+	for listener in listeners {
+		listener.execute() // loop kommt spaeter da bis jetzt nur ein Server aka Listener
+	}
+}
+
+/*
+	Server der execute methode hat
+*/
+Listener::execute() {
+	for connection in connections {
+		connection.execute_layer2()
+	}
+	if poll (Event for POLLIN) {
+		new_connection_fd = accept()
+		new_connection(new_connection_fd);
+	}
+}
+
+
+/*
+	Unterscheidung zwischen SOCKET_POLLIN und FILE_POLLIN
+*/
+Connection::execute_layer2() {
+	if (_server._pollfds[_server._i].revents & (SOCKET_POLLHUP))
+	{
+		close connection & return // fuer spaeter: early close
+	}
+	switch(state) {
+		case(RECV): // Fuer Sockets
+			if !SOCKET_POLLIN: aka if (_server._pollfds[_server._i].revents & (SOCKET_POLLIN))
+				return
+			request = parse(input_data);
+			input_data = recv();
+			if request->finished:
+				state = EXECUTE
+				return
+			else
+				return;
+		case (EXECUTE): //aka Process
+			if request->read_file and !response->file_data: // Kontext: Parsed bzw. fertig eingepflegeter Request z.B bei GET
+				state=READ
+				add_poll_fd(open(request->file))
+				return;
+			else
+				response->some_data = request->other_execution
+				return
+		case (READ): // Fuer Files
+			if !FILE_POLLIN: // Wenn file nicht ready zum Poll ist --> checken ob aus dem pollfd struct pollin ready ist
+				return;
+			response->file_data = read(file_fd)
+			if finshed:
+				close(file_fd)
+				state = EXECUTE //inefficient since only gets called later but fine
+			return
+		case (WRITE): // Fuer File
+			// simmilar TO READ
+		case (SEND): // Fuer Socket
+			if !SOCKET_POLLOUT
+				return
+			send(response->data);
+			if !finished
+				return
+			close_connection() // No keep alive, since more complexety
+			return
+	}
+}
