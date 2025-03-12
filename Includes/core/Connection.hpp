@@ -22,7 +22,7 @@ class Response;
 class Connection
 {
 	public:
-		enum class State { READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, CLOSING };
+		enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
 		State				_state;
 		Server&				_server;
 		Request				request;
@@ -80,6 +80,9 @@ class Connection
 		bool	process_request(void);
 
 		void	generate_error_response(Response& response);
+
+
+		void	execute_layer2(void);
 	//Methodes -- END
 };
 

@@ -418,4 +418,272 @@ void Connection::generate_error_response(Response &response)
 					status_texts.at(response.status_code) + "</h1></body></html>";
 }
 
+void	Connection::execute_layer2(void)
+{
+	// Prevents going in switch - cases again, if Client already hung up
+	if (_server._pollfds[_server._i].revents & POLLHUP)
+	{
+		printf("pollserver: socket %d hung up\n", this->_fdConnection);
+		_server.ft_closeNclean(_fdConnection);
+		return;
+	}
+
+	switch (_state)
+	{
+	case State::RECV:
+	{
+		if (_server._pollfds[_server._i].revents & (POLLIN))
+			return ;
+
+		//Parsing auch in diesem Schritt, koennte aber auch als eigener State abgehandelt werden
+
+		//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
+		ssize_t bytes = recv(_fdConnection, _InputBuffer._buffer.data(), \
+							_InputBuffer._buffer.capacity() - 1, 0);
+		_InputBuffer._buffer[(size_t)bytes] = 0;
+		printer::debug_putstr("Post recv", __FILE__, __FUNCTION__, __LINE__);
+		if (bytes <= 0) //TODO: 12.03 check if return of 0 is valid
+		{
+			printer::debug_putstr("Post recv '<= case'", __FILE__, __FUNCTION__, __LINE__);
+			if (bytes == 0)
+			{
+				// Connection closed
+				printf("pollserver: socket %d hung up\n", this->_fdConnection);
+			}
+			else
+			{
+				printer::debug_putstr("Pre perror Connection", __FILE__, __FUNCTION__, __LINE__);
+				perror("recv");
+			}
+			_server.ft_closeNclean(_fdConnection);//TODO: statt clean hier, erst nach der current loop interation z.B mit clean_after
+			return ;
+		}
+
+		std::cout << "Received Data:\n"
+					<< std::string(_InputBuffer.data(), (size_t)bytes) << "\n";
+		// Versuche, Header zu parsen
+		if (parser.parse_header(_InputBuffer, request)) // TODO: parse_header = parser
+		{
+			printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
+			_state = State::READ_BODY;
+		}
+		if (strlen(_InputBuffer._buffer.data()) > 10)
+		{
+			/*TODO:
+			// open and read text.txt with polling the read calls on the text.txt fd
+			// set content as data to send to connection fd
+			*/
+			;
+		}
+
+		//Zusatz-Check um zu ueberpruefen ob die Request Datenstruktur ferig ist
+		if (request->finished) // Indikator: Parser muss Condition setzen ob fertig oder noch in Bearbeitung
+		{
+			_state = State::PROCESS;
+			return ;
+		}
+		else
+			return ;
+		break;
+	}
+	case State::PROCESS:
+	{
+		/*
+			Dieser Block verstehe ich noch nicht gut genug
+			 - Alles von CGI muss in Pipe geschrieben und dann auch davon gelesen werden
+			 - GET-request muss FILE lesen (angegeben durch "uri")
+			 - Status Code muss man von FILE lesen (z.b 404.html)
+
+		*/
+		/*
+			// Der Process muss auf Grundlage des fertigen Requests, zu ermittlern ob eine File geoffnet werden muss
+			Logik fuer Faehigkeit, File zu lesen, in Buffer zu speichern, Body
+
+			Response String Stueck fuer Stueck zusammenbauen und dabei Body lesen
+			und dann Resonse generieren  --> siehe void Response::finish_up(void) Logik
+			eigenen Buffer speichern.
+
+			Z.B:
+
+			response_str = "HTTP/1.1 200 OK\r\n" --> Header
+					"Content-Type: text/plain\r\n"
+					"Content-Length: 13\r\n\r\n"
+					"Hello World!\n"; --> das was man aus der File liest
+
+			Ueberlegungstatt OutputBuffer, std::string zu verwenden
+				--> Gefahr: c_str am Ende nullterminiert, waehrend std::strings nicht
+
+		*/
+		// READ_FILE KOENNRE auch eine Sub-State sein.
+		if (request->read_file && !response->file_data)
+		{
+			_state = State::READ_FILE; // Und von hier aus geht man ja wieder zuruecl zu Execution State
+
+			struct pollfd new_fd;
+			add_poll_fd(open(request->file)); //Pseudo Code
+			//Sofern open nicht -1 returnt
+			new_fd.fd = open(request->file);
+			new_fd.events = POLLIN;
+			new_fd.revents = 0;
+			add_poll_fd(new_fd);
+
+			return;
+		}
+		else
+		{
+			/*
+				Hier baut man den Response String zusammen. Man liest nur den File
+				sondern
+				z.B innerhalb einer process() Funktionen oder Execection
+					siehe Response.cpp
+			*/
+			response->some_data = request->other_execution;
+			/*
+				Ziel:
+									std::string http_response = "HTTP/1.1 200 OK\r\n"
+												"Content-Type: " +
+												content_type + "\r\n"
+															   "Content-Length: " +
+												std::to_string(_current_response.body.size()) + "\r\n"
+																								"\r\n" +
+												_current_response.body;
+
+					_OutputBuffer._buffer.assign(http_response.begin(), http_response.end());
+			*/
+
+		}
+		break;
+	}
+	case State::READ_FILE:
+	{
+		/*
+			1. PollValue des File_Fd checken, in diesem Fall auf POLLIN
+			2. wenn nicht ready return
+			3. Wenn ready: In permanent Buffer reinlesen => der Body der Response
+				(separat vom recv und vom Response_string) um damit die
+				Response zu generieren, weil man nicht in die Zukfunft schauen kann.
+					--> Ziel: content-lenght zu ermittlen und dann Body ran-appenden (aus permanten Body Buffer)
+
+				Alternativ:
+				auch mit stat() moelgich
+ 		*/
+		if !FILE_POLLIN: // Wenn file nicht ready zum Poll ist --> checken ob aus dem pollfd struct pollin ready ist
+		{
+			return ;
+		}
+		response->file_data = read(file_fd);
+		if (finished)
+		{
+			close(file_fd);
+			// _server.ft_closeNclean(_fdFile); // --> ist das gut, hier den Clean-Up zu machen
+			_state = State::PROCESS
+			return ;
+		}
+		break;
+		default:
+		break;
+	}
+	/*
+		Dafuer fuer CGI, um in Pipes zu schreiben --> CGI spezifisch:
+
+		Kontext: z.B ein POST-Request
+		state = State::PROCESS;
+		das folgende gehoert in den PROCESS Statw
+		0. Uri zu path Umwandlung, Method und cgi Determinierung usw.
+		1. CGI skript starten mit fork, dub etc, sprich minishell exec
+
+			pipe(pipe_in);
+			pipe(pipe_out);
+			->
+			fork()
+			->
+			CHILD:
+			dub2(pipe_in[0], STDIN);
+				pipe_in ist dafuer da, den Request-Body als STDIN zu mappen
+					Das CGI Skript verwendet genau diesen Input um auszufuehren
+				pipe_out ist dafuer da, den Output des Skript in STDOUT zu mappn
+					 --> output des Skripts statt in STDOUt in pipe_out
+					 	 gespeichert, also quasi die ganze HTTP-REesponse ist in
+						 Pipe_out gespeichert, was wir dann wieder mittels read in
+						 ein Buffer (z.B OutBuffer reinlesen), was wiederrum
+						 verwenden wird um gesendet zu werden (Erklaerung zu post execve)
+
+
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+			dup2(pipe_out[1], STDOUT);
+			close(pipe_out[0]);
+			close(pipe_out[1]);
+			->
+			execve();
+
+			Im Parent : PARENT(webserv):
+			close(pipe_in[0]);
+			close(pipe_out[1]);
+			->
+			Kontext: wie gekommen POST-Request und das CGI liest die Daten vom
+						stdin, in das davor den Request Body schreiben. --> nach dem forken
+			state = State::WRITE;
+			das folgende gehoert in den WRITE State
+			write(pipe_in[1], request_body, buffer_size);
+			if (alles geschrieben)
+			{
+				close(pipe_in[1])
+				state = was auch immer Sinn macht --> State eben dafuer praktisch sich non-konform eine Posiotion zu merken oder hinzuwechseln
+			}
+			->
+			Der Output des ausgefuehrten CGI-Skripts und damit einhergehend dessen
+			Output (vom Skript) wird in die pipe_out reingeschrieben.
+			In diesem Schritt lesen wir nun aus jener pipe mittels read in den
+			response_buffer
+			state = State::READ
+			das folgende gehoert in den READ:
+			read_returnval = read(pipe_out[0], response_buffer, buffer_size);
+			if (read_returnval <= 0)
+			{
+				if (read_returnval == 0)
+				{
+					close(pipe_out[0])
+					fertig, also READ_STATE verlassen und auf PROCESS/EXECUTE
+					return
+				}
+			}
+			siehe auch webserv/www/eval/post/upload.py --> Beispiel fuer CGI Skript
+			->
+			send(socket_fd, response_buffer, buffer_size);
+	*/
+	case State::WRITE:
+	{
+		//siehe Kommentar oben
+	}
+	case State::SEND:
+	{
+		/*
+			0. immer event beim POLLFD immer (POLLIN & POLLOUT) initen, statt ueber enable_pollout() zu gehen
+			1. CHECK ob _fdConnection revent auf POLLOUT
+			2. wenn nein, return
+			3. wenn ja, dann send-Vorgang starten: bytes_send = send(_fdConnection, respone_buffer,  respone_buffer.size(), MSG_DONTWAIT)
+				--> Checken ob alles geschickt wurde, und erst wenn bytes_send der response.size() entspricht
+					dann Connection closen. Wenn nicht, dann position merken, wieder ueber poll gehen und
+					da dann wieder ansaetzen und senden;s
+					(siehe Client.cpp) --> send()
+			4. Close connection
+				- close_later: nach jeder Iter cleanup
+		*/
+		if !SOCKET_POLLOUT
+		{
+
+			return
+		}
+		send(response->data);
+	/*
+		response_buffer ko
+	*/
+		if !finished // Bei langer Response (1GB), viele Calls notwendih
+			return
+		close_connection() // No keep alive, since more complexety
+		return;
+	}
+}
+}
 // Methodes -- END
