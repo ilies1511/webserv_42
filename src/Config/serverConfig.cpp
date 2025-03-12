@@ -60,6 +60,13 @@ double serverConfig::getTimeout() const {
 std::unordered_map<std::string, route> serverConfig::getLocation() const {
    return _location;
 }
+route serverConfig::getRoute(const std::string& Route) const {
+    const auto it = _location.find(Route);
+    if (it == _location.end()) {
+        throw std::runtime_error("404 Not Found");
+    }
+   return it->second;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////                  SETTERS                           /////////////

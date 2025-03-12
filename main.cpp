@@ -24,13 +24,13 @@ int	main(void)
 	try {
 		servers = parsing(tokenList);
 	} catch (const std::exception& e) {
-		std::cout << "Error: " << e.what() << std::endl;
+		std::cout << coloring("Error: " + std::string(e.what()), RED) << std::endl;
 		return 1;
 	}
 	printServerConfig(servers);
-	const std::string request = exampleGetRequest();
-	requestParser request_parser(request, servers);
-	request_parser.parseMessage();
+	// const std::string request = exampleGetRequest();
+	// requestParser request_parser(request, servers);
+	// request_parser.parseMessage();
 
 
 	printer::Header("main");

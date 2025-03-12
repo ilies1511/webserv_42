@@ -31,6 +31,7 @@ enum KEYWORDS {
 struct TOKEN {
   TYPE         type;
   std::string  content;
+  std::size_t  line;
 
   friend std::ostream& operator<<(std::ostream& os, const TOKEN& t);
 };

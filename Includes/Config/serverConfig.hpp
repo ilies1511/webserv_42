@@ -38,6 +38,7 @@ class serverConfig {
 		double									getTimeout() const;
 		// std::vector<route>				        getLocation() const;
 		std::unordered_map<std::string, route>	getLocation() const;
+		route									getRoute(const std::string& Route) const;
 		//setters
 		void	setIP(const std::string& ip);
 		void	setPort(std::size_t port);
