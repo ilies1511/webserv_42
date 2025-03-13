@@ -12,3 +12,5 @@ server.dSYM
 poll
 .idea
 pollserver
+.cache
+compile_commands.json
