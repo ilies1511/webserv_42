@@ -436,11 +436,19 @@ void	Connection::execute_layer2(void)
 	// 	return;
 	// }
 	// printer::debug_putstr("PRE execute_layer2", __FILE__, __FUNCTION__, __LINE__);
-	pollfd	*pfd = _server.getPollFdElement(_fdConnection);
-	if (pfd && pfd->revents & POLLHUP)
+
+
+	// pollfd	*pfd = _server.getPollFdElement(_fdConnection);
+	// if (pfd && pfd->revents & POLLHUP)
+	// {
+	// 	_server.ft_closeNclean(_fdConnection);
+	// 	return;
+	// }
+
+	if (check_revent(_fdConnection, POLLHUP))
 	{
 		_server.ft_closeNclean(_fdConnection);
-		return;
+		return ;
 	}
 	// if ('Event der aktullen Connection im _pollfd' & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
 	// {
@@ -468,11 +476,17 @@ void	Connection::execute_layer2(void)
 	{
 		// if (!(_server._pollfds[_server._i].revents & (POLLIN)))
 		// 	return ;
-		pollfd	*pfd = _server.getPollFdElement(_fdConnection);
-		if (!pfd || !(pfd->revents & POLLIN)) {
-			// printer::debug_putstr("_fdConnection not POLLIN ready 'case'", __FILE__, __FUNCTION__, __LINE__);
+
+		if (!check_revent(_fdConnection, POLLIN)) {
 			return ;
 		}
+
+		// pollfd	*pfd = _server.getPollFdElement(_fdConnection);
+		// if (!pfd || !(pfd->revents & POLLIN)) {
+		// 	// printer::debug_putstr("_fdConnection not POLLIN ready 'case'", __FILE__, __FUNCTION__, __LINE__);
+		// 	return ;
+		// }
+
 		//Parsing auch in diesem Schritt, koennte aber auch als eigener State abgehandelt werden
 
 		//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
@@ -626,11 +640,16 @@ void	Connection::execute_layer2(void)
 		// {
 		// 	return ;
 		// }
-		pollfd	*temp = _server.getPollFdElement(this->_fdFile);
-		if (!temp || !(temp->revents & POLLIN))
-		{
+
+		if (!check_revent(_fdConnection, POLLIN)) {
 			return ;
 		}
+
+		// pollfd	*temp = _server.getPollFdElement(this->_fdFile);
+		// if (!temp || !(temp->revents & POLLIN))
+		// {
+		// 	return ;
+		// }
 
 		// response->file_data = read(file_fd);
 		/*
@@ -759,12 +778,18 @@ void	Connection::execute_layer2(void)
 		// }
 		printer::debug_putstr("In PRE send", __FILE__, __FUNCTION__, __LINE__);
 
-		pollfd	*alo = _server.getPollFdElement(this->_fdConnection);
-		if (!alo || !(alo->revents & POLLOUT))
+		if (!check_revent(_fdConnection, POLLOUT))
 		{
 			printer::debug_putstr("In alo Case", __FILE__, __FUNCTION__, __LINE__);
 			return ;
 		}
+
+		// pollfd	*alo = _server.getPollFdElement(this->_fdConnection);
+		// if (!alo || !(alo->revents & POLLOUT))
+		// {
+		// 	printer::debug_putstr("In alo Case", __FILE__, __FUNCTION__, __LINE__);
+		// 	return ;
+		// }
 		std::string	alo2 =	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: text/plain\r\n"
 		"Content-Length: 13\r\n\r\n"
