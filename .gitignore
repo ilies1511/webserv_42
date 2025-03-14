@@ -11,3 +11,4 @@ server.dSYM
 poll
 .idea
 pollserver
+.gitignore

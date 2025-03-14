@@ -91,8 +91,13 @@ void Server::add_to_pollfds(int new_fd)
 
 	// _pollfds.push_back({newfd, POLLIN, 0}); //Kuerzer aber nicht leserlich
 	new_element.fd = new_fd;
-	new_element.events = POLLIN; // Check ready-to-read
+	new_element.events = POLLIN | POLLOUT; // Check ready-to-read
 	new_element.revents = 0;
+	this->_pollfds.emplace_back(new_element);
+}
+
+void Server::add_to_pollfds_prefilled(pollfd &new_element)
+{
 	this->_pollfds.emplace_back(new_element);
 }
 
@@ -248,4 +253,31 @@ void	Server::add_to_map(int fd)
 	// this->_connections.insert({fd, new Connection(fd)});
 	this->_connections.emplace(fd, std::make_unique<Connection>(fd, *this));
 	return ;
+}
+
+pollfd	*Server::getPollFd()
+{
+	return (_pollfds.data());
+}
+
+void Server::enable_output(int fd)
+{
+	for(auto& pfd : this->_pollfds)
+	{
+		if(pfd.fd == fd)
+		{
+			pfd.events = POLLOUT;
+			break;
+		}
+	}
+}
+
+pollfd* Server::getPollFdElement(int fd)
+{
+	for (auto& p : _pollfds) {
+		if (p.fd == fd) {
+			return &p;
+		}
+	}
+	return (nullptr);
 }
