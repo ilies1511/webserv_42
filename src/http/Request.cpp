@@ -1,7 +1,14 @@
 #include "Request.hpp"
 
 Request::Request(void)
-	: _method{}, _uri{}, _version{}, _headers{}, _body{}
+	:	_method(""),
+		_uri{},
+		_version{},
+		_headers{},
+		_body{},
+		is_finished(false),
+		readFile(false),
+		filename("")
 {}
 
 Request::~Request(void) {}
@@ -22,4 +29,9 @@ Request& Request::operator=(const Request& other)
 		this->_body = other._body;
 	}
 	return (*this);
+}
+
+std::string	Request::execute_and_generate_response(void)
+{
+	return ("");
 }

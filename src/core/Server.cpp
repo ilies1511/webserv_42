@@ -141,8 +141,8 @@ void	Server::regular_Client_handler(size_t &i)
 
 void	Server::new_connection_handler(void)
 {
-	if (_pollfds[_i].revents & (POLLIN | POLLHUP))
-	{
+	// if (_pollfds[_i].revents & (POLLIN | POLLHUP))
+	// {
 		int	newfd;
 		socklen_t addrlen;
 		struct sockaddr_storage remoteaddr; // Client address
@@ -168,73 +168,133 @@ void	Server::new_connection_handler(void)
 					remoteIP, INET6_ADDRSTRLEN),
 				newfd);
 		}
-	}
+	// }
 }
 
 void Server::poll_loop(void)
 {
-	// static int iter = 1;
-	for(;;)
+	for (;;)
 	{
-		int poll_count = poll(&_pollfds[0], (nfds_t)_pollfds.size(), 0); //TODO: check difference
-
-
-		if (poll_count == -1)
+		int poll_count = poll(_pollfds.data(), static_cast<nfds_t>(_pollfds.size()), 0);
+		if (poll_count < 0)
 		{
 			perror("poll");
 			exit(1);
 		}
-
-		// poll_count = 1; //Listener
-
-		// Run through the existing connections looking for data to read
-		// size_t	i = 0;
-		for (_i = 0; _i < _pollfds.size(); _i++)
-		{
-			// Check if someone's ready to read
-			//TODO: Eher in handle Input verschieben bzw in den jeweiligen Klassen
-
-			if (_pollfds[_i].revents & (POLLIN | POLLHUP)) // We got one!!
-			{
-				// If listener_fd is ready to read, handle new connection
-				if (_pollfds[_i].fd == listener_fd)
-					new_connection_handler();
-				else
-				{
-					//TODO: Input Handler
-					printer::debug_putstr("PRE handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
-					//TODO: Work with fd + iterator
-					// _connections.at(_pollfds.at(_i).fd)->handle_input(int fd, int i);
-
-					// _connections.at(_pollfds.at(i).fd)->handle_input(_pollfds.at(i).fd);
-					_connections.at(_pollfds.at(_i).fd)->handle_input(_pollfds.at(_i).fd);
-					printer::debug_putstr("POST handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
-					// std::cout << "Var. i PRE regular Client Handler " << _i <<"\n";
-					// regular_Client_handler(_i);
-					// std::cout << "Var. i POST regular Client Handler " << _i <<"\n";
-				}
-			} // END got ready-to-read from poll()
-
-			//Data Ready to be Send
-			//Backup: 06.03.2025 15:00
-			// if (_pollfds[_i].revents & POLL_OUT)
-			// {
-			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
-			// }
-
-			// if (_pollfds[_i].revents & POLL_OUT)
-			// {
-			// 	// _connections.at(_pollfds.at(_i).fd)->handle_output();
-			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
-			// }
-
-		} // END looping through file descriptors
-
-		// std::cout << "iter : " << iter << "\n";
-		// iter++;
-
-	} // END for(;;)--and you thought it would never end!
+		execute(); //Kuenftiger Refactor wird einen Loop haben, der durch die Server durchiteriert
+	}
 }
+
+void	Server::execute(void)
+{
+	/*
+		Ich muss mir irgendwie die Postion des listener_socket des jeweiligen
+		Servers merken
+		(Alternativ auch mit fd value direkt gehen, aber ineffizient weil O(n)
+		statt indexbasiert mit O(1))
+		im pollfd-Array
+		speichern und wenn dessen revents auf POLLIN getriggert wird, muss
+		ich eine neue Connection aufnehmen
+	*/
+	//range-based Loop
+	// for (const auto& [key, conn] : _connections)
+	for (const auto& [key, conn] : _connections)
+	{
+		// printer::debug_putstr("PRE execute Layer 1", __FILE__, __FUNCTION__, __LINE__);
+		conn->execute_layer2(); // Zugriff auf unique_ptr-Inhalt
+		// printer::debug_putstr("POST execute Layer 1", __FILE__, __FUNCTION__, __LINE__);
+	}
+
+	//Check for New-Connection Bewusst unten und nicht als aller erstes
+	//TODO: check in function that retuns a bool if listener_fd was triggert with revent POLLIN
+	for (auto& p : _pollfds)
+	{
+		if (p.fd == listener_fd)
+		{
+			if (p.revents & POLLIN) {
+				new_connection_handler();
+			}
+			// if (p.revents & POLLHUP) {
+			// 	//handle Connnection Hung Up;
+			// }
+			break;
+		}
+	}
+
+	// if (_pollfds[_i].revents & (POLLIN)) //Die Condition muss angepasst werden, da ich nicht mehr global mit durchiteriere
+	// {
+	// 	if (_pollfds[_i].fd == listener_fd)
+	// 		new_connection_handler();
+	// }
+}
+
+//Back-Up: 11.03.2025
+// void Server::poll_loop(void)
+// {
+// 	// static int iter = 1;
+// 	for(;;)
+// 	{
+// 		int poll_count = poll(&_pollfds[0], (nfds_t)_pollfds.size(), 0); //TODO: check difference
+
+
+// 		if (poll_count == -1)
+// 		{
+// 			perror("poll");
+// 			exit(1);
+// 		}
+
+// 		// poll_count = 1; //Listener
+
+// 		// Run through the existing connections looking for data to read
+// 		// size_t	i = 0;
+// 		for (_i = 0; _i < _pollfds.size(); _i++)
+// 		{
+// 			// Check if someone's ready to read
+// 			//TODO: Eher in handle Input verschieben bzw in den jeweiligen Klassen
+
+// 			if (_pollfds[_i].revents & (POLLIN | POLLHUP)) // We got one!!
+// 			{
+// 				// If listener_fd is ready to read, handle new connection
+// 				if (_pollfds[_i].fd == listener_fd)
+// 					new_connection_handler();
+// 				else
+// 				{
+// 					//TODO: Input Handler
+// 					printer::debug_putstr("PRE handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
+// 					//TODO: Work with fd + iterator
+// 					// _connections.at(_pollfds.at(_i).fd)->handle_input(int fd, int i);
+
+// 					// _connections.at(_pollfds.at(i).fd)->handle_input(_pollfds.at(i).fd);
+// 					_connections.at(_pollfds.at(_i).fd)->handle_input(_pollfds.at(_i).fd);
+// 					printer::debug_putstr("POST handle_input in POLL_LOOP", __FILE__, __FUNCTION__, __LINE__);
+// 					// std::cout << "Var. i PRE regular Client Handler " << _i <<"\n";
+// 					// regular_Client_handler(_i);
+// 					// std::cout << "Var. i POST regular Client Handler " << _i <<"\n";
+// 				}
+// 			} // END got ready-to-read from poll()
+
+// 			//Data Ready to be Send
+// 			//Backup: 06.03.2025 15:00
+// 			// if (_pollfds[_i].revents & POLL_OUT)
+// 			// {
+// 			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
+// 			// }
+
+// 			// if (_pollfds[_i].revents & POLL_OUT)
+// 			// {
+// 			// 	// _connections.at(_pollfds.at(_i).fd)->handle_output();
+// 			// 	_connections.at(_pollfds.at(_i).fd)->handle_output();
+// 			// }
+
+// 		} // END looping through file descriptors
+
+// 		// std::cout << "iter : " << iter << "\n";
+// 		// iter++;
+
+// 	} // END for(;;)--and you thought it would never end!
+// }
+
+
 
 // //Back-Up poll_loop Stand 05.03.2025 10:20
 // void Server::poll_loop(void)
@@ -270,23 +330,6 @@ void Server::poll_loop(void)
 // 	} // END for(;;)--and you thought it would never end!
 // }
 
-pollfd	*Server::getPollFd()
-{
-	return (_pollfds.data());
-}
-
-void Server::enable_output(int fd)
-{
-	for(auto& pfd : this->_pollfds)
-	{
-		if(pfd.fd == fd)
-		{
-			pfd.events = POLLOUT;
-			break;
-		}
-	}
-}
-
 // void Server::handle_output(int fd)
 // {
 // 	auto it = _connections.find(fd);
@@ -299,6 +342,7 @@ void Server::enable_output(int fd)
 // 		ft_closeNclean(fd); // Falls nicht vorhanden, aufräumen
 // 	}
 // }
+
 void	Server::handle_output(int fd)
 {
 	printer::debug_putstr("PRE handle Output", __FILE__, __FUNCTION__, __LINE__);

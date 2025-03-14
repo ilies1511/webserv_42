@@ -183,6 +183,14 @@ void Connection::handle_input(const int &fd)
 	{
 		switch (_state)
 		{
+		case State::RECV:
+		{
+			break;
+		}
+		case State::SEND:
+		{
+			break;;
+		}
 		case State::READ_HEADER:
 		{
 			// Lies Daten in _InputBuffer --> wie Aktuell in Pollserver
@@ -420,21 +428,51 @@ void Connection::generate_error_response(Response &response)
 
 void	Connection::execute_layer2(void)
 {
-	// Prevents going in switch - cases again, if Client already hung up
-	if (_server._pollfds[_server._i].revents & POLLHUP)
+	// // Prevents going in switch - cases again, if Client already hung up
+	// if (_server._pollfds[_server._i].revents & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
+	// {
+	// 	printf("pollserver: socket %d hung up\n", this->_fdConnection);
+	// 	_server.ft_closeNclean(_fdConnection);
+	// 	return;
+	// }
+	// printer::debug_putstr("PRE execute_layer2", __FILE__, __FUNCTION__, __LINE__);
+	pollfd	*pfd = _server.getPollFdElement(_fdConnection);
+	if (pfd && pfd->revents & POLLHUP)
 	{
-		printf("pollserver: socket %d hung up\n", this->_fdConnection);
 		_server.ft_closeNclean(_fdConnection);
 		return;
 	}
+	// if ('Event der aktullen Connection im _pollfd' & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
+	// {
+	// 	printf("pollserver: socket %d hung up\n", this->_fdConnection);
+	// 	_server.ft_closeNclean(_fdConnection);
+	// 	return;
+	// }
 
 	switch (_state)
 	{
+	case State::READ_HEADER:
+	{
+		_state = State::RECV;
+		break;
+	}
+	case State::READ_BODY:
+	{
+		break;
+	}
+	case State::CLOSING:
+	{
+		break;
+	}
 	case State::RECV:
 	{
-		if (_server._pollfds[_server._i].revents & (POLLIN))
+		// if (!(_server._pollfds[_server._i].revents & (POLLIN)))
+		// 	return ;
+		pollfd	*pfd = _server.getPollFdElement(_fdConnection);
+		if (!pfd || !(pfd->revents & POLLIN)) {
+			// printer::debug_putstr("_fdConnection not POLLIN ready 'case'", __FILE__, __FUNCTION__, __LINE__);
 			return ;
-
+		}
 		//Parsing auch in diesem Schritt, koennte aber auch als eigener State abgehandelt werden
 
 		//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
@@ -461,11 +499,15 @@ void	Connection::execute_layer2(void)
 
 		std::cout << "Received Data:\n"
 					<< std::string(_InputBuffer.data(), (size_t)bytes) << "\n";
+
+		//Stand: 14.03.2025 11:50
+		// exit (1);
 		// Versuche, Header zu parsen
 		if (parser.parse_header(_InputBuffer, request)) // TODO: parse_header = parser
 		{
 			printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
-			_state = State::READ_BODY;
+			// _state = State::READ_BODY;
+			_state = State::SEND;
 		}
 		if (strlen(_InputBuffer._buffer.data()) > 10)
 		{
@@ -476,8 +518,11 @@ void	Connection::execute_layer2(void)
 			;
 		}
 
-		//Zusatz-Check um zu ueberpruefen ob die Request Datenstruktur ferig ist
-		if (request->finished) // Indikator: Parser muss Condition setzen ob fertig oder noch in Bearbeitung
+		/*
+			Zusatz-Check um zu ueberpruefen ob die Request Datenstruktur ferig ist
+			Indikator: Parser muss Condition setzen ob fertig oder noch in Bearbeitung
+		*/
+		if (this->request.is_finished)
 		{
 			_state = State::PROCESS;
 			return ;
@@ -496,12 +541,13 @@ void	Connection::execute_layer2(void)
 
 		*/
 		/*
-			// Der Process muss auf Grundlage des fertigen Requests, zu ermittlern ob eine File geoffnet werden muss
+			// Der Process muss auf Grundlage des fertigen Requests, zu
+			ermittlern ob eine File geoffnet werden muss
 			Logik fuer Faehigkeit, File zu lesen, in Buffer zu speichern, Body
 
 			Response String Stueck fuer Stueck zusammenbauen und dabei Body lesen
-			und dann Resonse generieren  --> siehe void Response::finish_up(void) Logik
-			eigenen Buffer speichern.
+			und dann Resonse generieren  --> siehe void Response::finish_up(void)
+			Logik eigenen Buffer speichern.
 
 			Z.B:
 
@@ -515,18 +561,21 @@ void	Connection::execute_layer2(void)
 
 		*/
 		// READ_FILE KOENNRE auch eine Sub-State sein.
-		if (request->read_file && !response->file_data)
+		if (request.readFile && !(this->_current_response.FileData))
 		{
+			int	nfd;
 			_state = State::READ_FILE; // Und von hier aus geht man ja wieder zuruecl zu Execution State
 
 			struct pollfd new_fd;
-			add_poll_fd(open(request->file)); //Pseudo Code
+			// add_poll_fd(open(request->file)); //Pseudo Code
 			//Sofern open nicht -1 returnt
-			new_fd.fd = open(request->file);
+			if ((nfd = open(request.filename.c_str(), O_RDONLY | O_NONBLOCK) < 0)) {
+				//TODO: ErrorHandling
+			}
+			new_fd.fd = nfd;
 			new_fd.events = POLLIN;
 			new_fd.revents = 0;
-			add_poll_fd(new_fd);
-
+			this->_server.add_to_pollfds_prefilled(new_fd);
 			return;
 		}
 		else
@@ -537,7 +586,12 @@ void	Connection::execute_layer2(void)
 				z.B innerhalb einer process() Funktionen oder Execection
 					siehe Response.cpp
 			*/
-			response->some_data = request->other_execution;
+			//TODO: 14.03
+
+			// response->some_data = request->other_execution;
+			_current_response.response_inzemaking = request.execute_and_generate_response();
+
+
 			/*
 				Ziel:
 									std::string http_response = "HTTP/1.1 200 OK\r\n"
@@ -566,21 +620,48 @@ void	Connection::execute_layer2(void)
 
 				Alternativ:
 				auch mit stat() moelgich
- 		*/
-		if !FILE_POLLIN: // Wenn file nicht ready zum Poll ist --> checken ob aus dem pollfd struct pollin ready ist
+		*/
+
+		// if !FILE_POLLIN: // Wenn file nicht ready zum Poll ist --> checken ob aus dem pollfd struct pollin ready ist
+		// {
+		// 	return ;
+		// }
+		pollfd	*temp = _server.getPollFdElement(this->_fdFile);
+		if (!temp || !(temp->revents & POLLIN))
 		{
 			return ;
 		}
-		response->file_data = read(file_fd);
-		if (finished)
+
+		// response->file_data = read(file_fd);
+		/*
+			TODO: gelesenen bytes sollen irgendwie in das response.file_data rein
+		*/
+		// char read_file_buffer[4090];
+		Buffer	read_file_buffer;
+		ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
+
+		_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
+		if (bytes_read <= 0)
 		{
-			close(file_fd);
-			// _server.ft_closeNclean(_fdFile); // --> ist das gut, hier den Clean-Up zu machen
-			_state = State::PROCESS
-			return ;
+			if (bytes_read == 0) {
+				close (_fdFile);
+				_state = State::PROCESS;
+				return ;
+				//File ist fertig gelesen
+			}
+			else if (bytes_read < 0) {
+				//ERROR occured --> to fix
+			}
 		}
-		break;
-		default:
+
+		// if (finished)
+		// {
+		// 	close(file_fd);
+		// 	// _server.ft_closeNclean(_fdFile); // --> ist das gut, hier den Clean-Up zu machen
+		// 	_state = State::PROCESS
+		// 	return ;
+		// }
+
 		break;
 	}
 	/*
@@ -670,20 +751,73 @@ void	Connection::execute_layer2(void)
 			4. Close connection
 				- close_later: nach jeder Iter cleanup
 		*/
-		if !SOCKET_POLLOUT
-		{
 
-			return
+		// if !SOCKET_POLLOUT
+		// {
+
+		// 	return
+		// }
+		printer::debug_putstr("In PRE send", __FILE__, __FUNCTION__, __LINE__);
+
+		pollfd	*alo = _server.getPollFdElement(this->_fdConnection);
+		if (!alo || !(alo->revents & POLLOUT))
+		{
+			printer::debug_putstr("In alo Case", __FILE__, __FUNCTION__, __LINE__);
+			return ;
 		}
-		send(response->data);
+		std::string	alo2 =	"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/plain\r\n"
+		"Content-Length: 13\r\n\r\n"
+		"Hello World!\n";
+		_OutputBuffer._buffer.assign(alo2.begin(), alo2.end());
+		// send(response->data);
+		ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		if (sent > 0)
+		{
+			printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
+			std::cout << "Sent Response:\n"
+					  << std::string(_OutputBuffer.data(), (size_t)sent) << "\n";
+			this->_OutputBuffer._buffer.clear();
+			if (sent == (ssize_t)_current_response.response_inzemaking.size())
+				_state = State::CLOSING; // Oder READ_HEADER für Keep-Alive damit circular ist
+		}
+		printer::debug_putstr("POST in handle_output", __FILE__, __FUNCTION__, __LINE__);
 	/*
 		response_buffer ko
 	*/
-		if !finished // Bei langer Response (1GB), viele Calls notwendih
-			return
-		close_connection() // No keep alive, since more complexety
-		return;
+		// if !finished // Bei langer Response (1GB), viele Calls notwendih
+		// 	return
+		_server.ft_closeNclean(this->_fdConnection);
+		return ;
+		// close_connection() // No keep alive, since more complexety
+		// return;
 	}
 }
+	printer::debug_putstr("PRE execute_layer2", __FILE__, __FUNCTION__, __LINE__);
 }
+
+//Utils -- BEGIN
+pollfd*	Connection::getPollFdElementRoot(int &fd)
+{
+	for (auto& p : _server._pollfds) {
+		if (p.fd == fd) {
+			return &p;
+		}
+	}
+	return (nullptr);
+}
+
+bool	Connection::check_revent(int &fd, short rrevent)
+{
+	pollfd	*pfd = getPollFdElementRoot(fd);
+
+	return (pfd && pfd->revents & rrevent);
+
+	// if (pfd && pfd->revents & rrevent) {
+	// 	return (true);
+	// }
+	// return (false);
+}
+//Utils -- END
+
 // Methodes -- END

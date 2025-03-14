@@ -12,9 +12,12 @@ class Request;
 class Response
 {
 	public:
-		std::string	status_code;
-		std::string	body;
-		std::unordered_map< std::string, std::string > headers;
+		std::string										status_code;
+		std::string										body;
+		std::unordered_map< std::string, std::string >	headers;
+		bool											FileData;
+		std::string										file_data;
+		std::string										response_inzemaking;
 	private:
 		Request	_data; //Wird eingesplegt durch Constructor
 	public:

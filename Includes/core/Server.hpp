@@ -27,6 +27,7 @@ class Server
 	private:
 		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
+		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
 		const std::string						_port;
@@ -62,7 +63,10 @@ class Server
 		void	enable_output(int fd);
 		void	ft_closeNclean(int fd);
 		void	del_from_pollfds(int fd);
+		pollfd* getPollFdElement(int fd);
+		void	add_to_pollfds_prefilled(pollfd &new_element);
 
+		void	execute();
 		//TODO:
 		// void	check_timeouts(void);
 	//Methodes -- END

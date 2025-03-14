@@ -13,17 +13,21 @@ class Request
 		std::string										_version;
 		std::unordered_map< std::string, std::string >	_headers;
 		std::string										_body;
-
+		bool											is_finished;
+		bool											readFile;
+		std::string										filename;
 	public:
 	//OCF -- BEGIN
-		Request(void);
-		~Request(void);
-		Request(const Request& other);
-		Request& operator=(const Request& other);
+	Request(void);
+	~Request(void);
+	Request(const Request& other);
+	Request& operator=(const Request& other);
 	private:
 	//OCF -- END
 
 	//Methodes -- BEGIN
+	public:
+		std::string	execute_and_generate_response(void);
 	//Methodes -- END
 };
 

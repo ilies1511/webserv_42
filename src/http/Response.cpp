@@ -6,7 +6,13 @@
 // {}
 
 Response::Response(const Request &request)
-	: status_code{}, body{}, headers{}, _data(request)
+	:	status_code{},
+		body{},
+		headers{},
+		FileData(false),
+		file_data(""),
+		response_inzemaking(""),
+		_data(request)
 {}
 
 Response::Response(const Response& other)

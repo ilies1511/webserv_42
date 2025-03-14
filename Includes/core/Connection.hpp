@@ -10,6 +10,7 @@
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
 #include <unistd.h>
+#include <poll.h>
 
 class Buffer;
 class Server;
@@ -80,9 +81,11 @@ class Connection
 		bool	process_request(void);
 
 		void	generate_error_response(Response& response);
-
-
+		void	generate_response(Response& response);
 		void	execute_layer2(void);
+		pollfd*	getPollFdElementRoot(int &fd);
+		bool	check_revent(int &fd, short rrevent);
+
 	//Methodes -- END
 };
 
