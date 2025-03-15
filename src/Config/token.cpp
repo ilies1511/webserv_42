@@ -31,9 +31,11 @@ bool check_keywords(const std::string& keyword) {
 		keyword == "error_page" ||
 		keyword == "autoindex" ||
 		keyword == "index" ||
+		keyword == "alias" ||
 		keyword == "return" ||
 		keyword == "limit_except" ||
 		keyword == "timeout" ||
+		keyword == "cgi" ||
 		keyword == "location") {
 		return true;
 		}

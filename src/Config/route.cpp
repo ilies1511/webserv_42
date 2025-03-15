@@ -33,6 +33,16 @@ std::string route::getRoot() const {
     return _root;
 }
 
+std::string route::getAlias() const {
+    return _alias;
+}
+
+std::string route::getActualPath() const {
+    return _actual_path;
+}
+
+
+
 std::pair<std::size_t, std::string> route::getRedirect() {
     return _redirect;
 }
@@ -41,7 +51,7 @@ bool route::getAutoIndex() const {
     return _autoindex;
 }
 
-std::vector<std::string> route::getIndex() const {
+std::string route::getIndex() const {
     return _index;
 }
 
@@ -75,6 +85,16 @@ void route::setRoot(const std::string &path) {
     _root = path;
 }
 
+void route::setAlias(const std::string &alias) {
+    _alias = alias;
+}
+
+void route::setActualPath(const std::string &path) {
+    _actual_path = path;
+}
+
+
+
 void route::setRedirect(const std::size_t errorNbr, const std::string &path) {
     _redirect.first = errorNbr;
     _redirect.second = path;
@@ -85,7 +105,7 @@ void route::setAutoIndex(bool option) {
 }
 
 void route::setIndex(const std::string& index) {
-    _index.push_back(index);
+    _index = index;
 }
 
 // void route::setFileUpload(const std::string &path) {
@@ -96,31 +116,32 @@ void route::setCgi(const std::string &type, const std::string &path) {
     _cgi[type] = path;
 }
 
-void route::PrintRoute() {
-    std::cout << "  Allowed Methods:";
-    for (const auto& method : _limit_except) {
-        std::cout << " " << method;
-    }
-    std::cout << std::endl;
-    std::cout << "  Root: " << _root << std::endl;
-    std::cout << "  Redirect: " << _redirect.first << " " << _redirect.second;
-    std::cout << "  Autoindex: ";
-    if (_autoindex == true) {
-        std::cout << "on";
-    } else {
-        std::cout << "off";
-    }
-    std::cout << std::endl;
-    std::cout << "  Index: ";
-    for (const auto& word : _index) {
-        std::cout << "  " << word;
-    }
-    std::cout << std::endl;
-    std::cout << "  CGI: " << std::endl;
-    for (const auto& [fst, snd] : _cgi) {
-        std::cout << "    " << fst << " " << snd << std::endl;
-    }
-}
+// void route::PrintRoute() {
+//     std::cout << "  Allowed Methods:";
+//     for (const auto& method : _limit_except) {
+//         std::cout << " " << method;
+//     }
+//     std::cout << std::endl;
+//     std::cout << "  Root: " << _root << std::endl;
+//     std::cout << " Alias: " << _alias << std::endl;
+//     std::cout << "  Redirect: " << _redirect.first << " " << _redirect.second;
+//     std::cout << "  Autoindex: ";
+//     if (_autoindex == true) {
+//         std::cout << "on";
+//     } else {
+//         std::cout << "off";
+//     }
+//     std::cout << std::endl;
+//     std::cout << "  Index: ";
+//     for (const auto& word : _index) {
+//         std::cout << "  " << word;
+//     }
+//     std::cout << std::endl;
+//     std::cout << "  CGI: " << std::endl;
+//     for (const auto& [fst, snd] : _cgi) {
+//         std::cout << "    " << fst << " " << snd << std::endl;
+//     }
+// }
 std::ostream& operator<<(std::ostream& os, const route& r) {
     os << "  Allowed Methods:";
     for (const auto& method : r._limit_except) {
@@ -128,6 +149,8 @@ std::ostream& operator<<(std::ostream& os, const route& r) {
     }
     os << std::endl;
     os << "  Root: " << r._root << std::endl;
+    os << "  Alias: " << r._alias << std::endl;
+    os << "  Actual Path: " << r._actual_path << std::endl;
     os << "  Redirect: " << r._redirect.first << " " << r._redirect.second << std::endl;
     os << "  Autoindex: ";
     if (r._autoindex == true) {
@@ -136,10 +159,10 @@ std::ostream& operator<<(std::ostream& os, const route& r) {
         os << "off";
     }
     os << std::endl;
-    os << "  Index: ";
-    for (const auto& word : r._index) {
-        os << "  " << word;
-    }
+    os << "  Index: " << r._index << std::endl;
+    // for (const auto& word : r._index) {
+        // os << "  " << word;
+    // }
     os << std::endl;
     os << "  CGI: " << std::endl;
     for (const auto& [fst, snd] : r._cgi) {

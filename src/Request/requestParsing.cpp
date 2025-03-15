@@ -36,8 +36,19 @@ std::vector<std::string> requestParser::split() {
  *	check for static file locations
  *	check METHODS and PERMISSION to EXECUTE them
  *
- *	check HTTP Version / if not supportet 505 HTTP VERSION NOT SUPPORTED
+ *	check HTTP Version / if not supported 505 HTTP VERSION NOT SUPPORTED
  */
+
+bool requestParser::hasReadPermission(const std::string &path) {
+	std::filesystem::perms p = std::filesystem::status(path).permissions();
+
+	const bool owner = (p& std::filesystem::perms::owner_read) != std::filesystem::perms::none;
+	const bool group = (p& std::filesystem::perms::group_read) != std::filesystem::perms::none;
+	const bool other = (p& std::filesystem::perms::others_read) != std::filesystem::perms::none;
+
+	return owner || group || other;
+}
+
 
 void requestParser::parseRequestLine() {
 	std::cout << "line: " << _currentLine << std::endl;
@@ -49,6 +60,51 @@ void requestParser::parseRequestLine() {
 	_requestLine.uri = slices[1];
 	_requestLine.version = slices[2];
 
+	std::string fileCheck = _serverConfigs[0].getRoot() + _requestLine.uri;
+	if (std::filesystem::exists(fileCheck)) {
+		if (std::filesystem::is_regular_file(fileCheck)) {
+			// dont need to check method
+			std::cout << fileCheck << " is a file ";
+			if (hasReadPermission(fileCheck)) {
+				std::cout << "and has read permission" << std::endl;
+			} else {
+				std::cout << "and has NO read permission" << std::endl;
+				throw std::runtime_error("403 Forbidden");
+			}
+		}
+	}
+	try {
+		std::string path;
+		if (_serverConfigs[0].getRoute(_requestLine.uri).getRoot().empty()) {
+			path = _serverConfigs[0].getRoot() + _requestLine.uri;
+			if (std::filesystem::exists(path)) {
+				std::cout << path << " is a directory " << std::endl;
+				if (hasReadPermission(path)) {
+					std::cout << "and has read permission" << std::endl;
+				} else {
+					std::cout << "and has No read permission" << std::endl;
+					throw std::runtime_error("403 Forbidden");
+				}
+			} else {
+				throw std::runtime_error("404 Not Found");
+			}
+		} else {
+			path = _serverConfigs[0].getRoute(_requestLine.uri).getRoot() + _requestLine.uri;
+			if (std::filesystem::exists(path)) {
+				std::cout << path << " is a directory " << std::endl;
+				if (hasReadPermission(path)) {
+					std::cout << "and has read permission" << std::endl;
+				} else {
+					std::cout << "and has No read permission" << std::endl;
+					throw std::runtime_error("403 Forbidden");
+				}
+			} else {
+				throw std::runtime_error("404 Not Found");
+			}
+		}
+	} catch (const std::exception& e) {
+		throw;
+	}
 };
 
 void requestParser::parseRequestFields(const std::string& line) {

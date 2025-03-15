@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 
 struct requestLine {
   std::string method;
@@ -27,6 +28,7 @@ class requestParser {
     ~requestParser();
 
     std::vector<std::string> split();
+    bool hasReadPermission(const std::string& path);
 
     void parseMessage();
     void parseHeader();
