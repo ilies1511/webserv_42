@@ -447,7 +447,9 @@ void	Connection::execute_layer2(void)
 
 	if (check_revent(_fdConnection, POLLHUP))
 	{
-		_server.ft_closeNclean(_fdConnection);
+		std::cout << coloring("INIT Check: Pre ft_closeNcleanRoot()\n", RED);
+		ft_closeNcleanRoot(_fdConnection);
+		// _server.ft_closeNclean(_fdConnection);
 		return ;
 	}
 	// if ('Event der aktullen Connection im _pollfd' & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
@@ -507,7 +509,8 @@ void	Connection::execute_layer2(void)
 				printer::debug_putstr("Pre perror Connection", __FILE__, __FUNCTION__, __LINE__);
 				perror("recv");
 			}
-			_server.ft_closeNclean(_fdConnection);//TODO: statt clean hier, erst nach der current loop interation z.B mit clean_after
+			std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);//TODO: statt clean hier, erst nach der current loop interation z.B mit clean_after
+			ft_closeNcleanRoot(_fdConnection);
 			return ;
 		}
 
@@ -521,7 +524,9 @@ void	Connection::execute_layer2(void)
 		{
 			printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
 			// _state = State::READ_BODY;
-			_state = State::SEND;
+			_state = State::READ_FILE;
+			// _state = State::SEND;
+			return ;
 		}
 		if (strlen(_InputBuffer._buffer.data()) > 10)
 		{
@@ -641,9 +646,21 @@ void	Connection::execute_layer2(void)
 		// 	return ;
 		// }
 
-		if (!check_revent(_fdConnection, POLLIN)) {
-			return ;
-		}
+		/*
+			//TODO: Imrove Handling --> File should be opened somewhere else already
+			For example in Process, where first it's checked whether File should
+			be opened
+		*/
+		// if (!check_revent(_fdFile, POLLIN)) {
+		// 	printer::debug_putstr("Event failed", __FILE__, __FUNCTION__, __LINE__);
+		// 	return ;
+		// }
+
+		// if (!check_revent(_fdConnection, POLLIN)) {
+		// 	printer::debug_putstr("Event failed", __FILE__, __FUNCTION__, __LINE__);
+		// 	return ;
+		// }
+
 
 		// pollfd	*temp = _server.getPollFdElement(this->_fdFile);
 		// if (!temp || !(temp->revents & POLLIN))
@@ -656,23 +673,50 @@ void	Connection::execute_layer2(void)
 			TODO: gelesenen bytes sollen irgendwie in das response.file_data rein
 		*/
 		// char read_file_buffer[4090];
+		_fdFile = open("html/index.html", O_RDONLY | O_NONBLOCK);
+		if (_fdFile < 0)
+		{
+			printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
+			exit (1);
+			//Error Handling
+		}
+		else {
+			printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
+			struct pollfd	new_fd;
+			new_fd.fd = _fdFile;
+			new_fd.events = POLLIN;
+			new_fd.revents = 0;
+			this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
+		}
+
 		Buffer	read_file_buffer;
 		ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
 
-		_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
 		if (bytes_read <= 0)
 		{
+			printer::debug_putstr("bytes_read <= 0 Case", __FILE__, __FUNCTION__, __LINE__);
 			if (bytes_read == 0) {
-				close (_fdFile);
-				_state = State::PROCESS;
+				_server.ft_closeNclean(_fdFile);
+				// close (_fdFile);
+				// _state = State::PROCESS;
+				_state = State::SEND;
+				_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
 				return ;
 				//File ist fertig gelesen
 			}
 			else if (bytes_read < 0) {
+				_server.ft_closeNclean(_fdFile);
+				return ;
 				//ERROR occured --> to fix
 			}
 		}
-
+		else
+		{
+			printer::debug_putstr("bytes_read > 0 Case PRE SEND", __FILE__, __FUNCTION__, __LINE__);
+			_state = State::SEND;
+			_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
+			return ;
+		}
 		// if (finished)
 		// {
 		// 	close(file_fd);
@@ -776,7 +820,8 @@ void	Connection::execute_layer2(void)
 
 		// 	return
 		// }
-		printer::debug_putstr("In PRE send", __FILE__, __FUNCTION__, __LINE__);
+		// printer::debug_putstr("In PRE send", __FILE__, __FUNCTION__, __LINE__);
+		printer::debug_putstr("In PRE send File Content", __FILE__, __FUNCTION__, __LINE__);
 
 		if (!check_revent(_fdConnection, POLLOUT))
 		{
@@ -790,13 +835,33 @@ void	Connection::execute_layer2(void)
 		// 	printer::debug_putstr("In alo Case", __FILE__, __FUNCTION__, __LINE__);
 		// 	return ;
 		// }
+		_OutputBuffer._buffer.assign(_current_response.file_data.begin(), _current_response.file_data.end());
+		ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		if (sent > 0)
+		{
+			printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
+			std::cout << "Sent Response:\n"
+					  << std::string(_OutputBuffer.data(), (size_t)sent) << "\n";
+			this->_OutputBuffer._buffer.clear();
+			if (sent == (ssize_t)_current_response.response_inzemaking.size())
+				_state = State::CLOSING; // Oder READ_HEADER für Keep-Alive damit circular ist
+		}
+		printer::debug_putstr("POST in handle_output", __FILE__, __FUNCTION__, __LINE__);
+		/*
+			response_buffer ko
+		*/
+		// if !finished // Bei langer Response (1GB), viele Calls notwendih
+		// 	return
+		_server.ft_closeNclean(this->_fdConnection);
+		return ;
+
 		std::string	alo2 =	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: text/plain\r\n"
 		"Content-Length: 13\r\n\r\n"
 		"Hello World!\n";
 		_OutputBuffer._buffer.assign(alo2.begin(), alo2.end());
 		// send(response->data);
-		ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		// ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
 		if (sent > 0)
 		{
 			printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
@@ -843,6 +908,23 @@ bool	Connection::check_revent(int &fd, short rrevent)
 	// }
 	// return (false);
 }
+
+void	Connection::ft_closeNcleanRoot(int &fd)
+{
+	// // 1. Schließe den Socket
+	// if (fd != -1)
+	// {
+	// 	std::cout << "Closing fd: " << fd << "\n";
+	// 	close(fd);
+	// }
+	// _server.del_from_map(fd);
+	// // 3. Entferne aus pollfds
+	// _server.del_from_pollfds(fd);
+	// // 4. Setze FD auf ungültigen Wert
+	// // fd = -1;
+	_server.ft_closeNclean(fd);
+}
+
 //Utils -- END
 
 // Methodes -- END

@@ -85,6 +85,7 @@ class Connection
 		void	execute_layer2(void);
 		pollfd*	getPollFdElementRoot(int &fd);
 		bool	check_revent(int &fd, short rrevent);
+		void	ft_closeNcleanRoot(int &fd);
 
 	//Methodes -- END
 };
