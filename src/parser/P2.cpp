@@ -104,7 +104,7 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Version: " << request.version << "\n";
 	output << "Headers:\n";
 	for (const auto &header : request.headers) {
-		output << "\t" << header.first << ": " << header.second << "\n";
+		output << "\t" << header.first << "== " << header.second << "\n";
 	}
 	output << "Header termination: " << request.header_term << "\n";
 	output << "Body: " << request.body << "\n";
@@ -121,21 +121,20 @@ public:
 	Request		parse(void);
 	void		parse_request_line(void);
 	void		parse_uri(void);
+	void		parse_headers(void);
 private:
 	Request		request;
 	std::string &input;
 	size_t		pos;
 	const static std::regex	request_line_pat;
 	const static std::regex	uri_pat;
-	const static std::regex	query_pat;
 
-	const static std::regex line_term_pat;
 	const static std::regex header_pat;
 };
 
 //const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE) ([.]+)(\d+\.\d+)\r$)");
 
-const char *request_line_pat_str = "(^(?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?([\\s\\S]*)?)";
+const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?)([\\s\\S]*)?)";
 const std::regex Parser::request_line_pat(request_line_pat_str);
 
 #define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"//todo: currently the path can have anything that is not space, '?' or '#'
@@ -156,6 +155,13 @@ const std::regex Parser::request_line_pat(request_line_pat_str);
 const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
 const std::regex Parser::uri_pat(uri_pat_str);
 
+#define FIELD_NAME "([^\\:\n]+)"
+#define FIELD_VALUE "(?:[ \t\f\v]+([^\r\n]+))"//todo: not robust [^\r\n]+
+#define FIELD "(?:" FIELD_NAME "\\:" FIELD_VALUE ")"
+const char *header_pat_str = "(?:(" FIELD "?\r\n)(?:[\\s\\S]*))";
+const std::regex Parser::header_pat(header_pat_str);
+
+
 
 Parser::Parser(std::string& input):
 	input(input),
@@ -167,7 +173,7 @@ Parser::~Parser(void){
 }
 
 void Parser::parse_uri(void) {
-	std::cout << uri_pat_str << std::endl;
+	//std::cout << uri_pat_str << std::endl;
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "invalid request uri\n";
@@ -197,7 +203,7 @@ void Parser::parse_uri(void) {
 
 void Parser::parse_request_line(void) {
 	std::smatch match;
-	std::cout << request_line_pat_str << std::endl;
+	//std::cout << request_line_pat_str << std::endl;
 	if (!std::regex_match(this->input, match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		return ;
@@ -205,36 +211,63 @@ void Parser::parse_request_line(void) {
 	//for (size_t i = 0; i < match.size(); i++) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
-	if (match[3].matched) {
+	if (match[4].matched) {
 		std::cout << "Invalid method\n";
 		return ;
 	}
-	if (!match[7].matched) {
-		if (match[8].matched) {
+	if (!match[8].matched) {
+		if (match[9].matched) {
 			std::cout << "invalid request (not terminated with more content)\n";
 			return ;
 		}
 		std::cout << "not terminated\n";
 		return ;
 	}
-	this->request.method = match[2].str();
+	this->request.method = match[3].str();
 	Uri uri;
-	if (!match[2].matched) {
+	if (!match[3].matched) {
 		//invalid uri, 400 (301 has to be decided later)
 		std::cout << "invalid uri\n";
 	}
-	uri.full = match.str(4);
+	uri.full = match.str(5);
 	this->request.uri = std::move(uri);
 	this->parse_uri();
-	if (!match[5].matched) {
+	if (!match[6].matched) {
 		std::cout << "invalid version, 505\n";
 		return ;
 	}
-	this->request.version = match.str(5);
+	this->request.version = match.str(6);
+
+	//todo: needs more efficient solution later
+	this->input.erase(0, static_cast<size_t>(match[2].length()));
+}
+
+void Parser::parse_headers(void) {
+	std::smatch	match;
+	std::cout << header_pat_str << std::endl;
+	while (1) {
+		if (!std::regex_match(this->input, match, this->header_pat)) {
+			std::cout << "invalid header\n";
+			return ;
+		}
+		for (size_t i = 0; i < match.size(); i++) {
+			std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+		}
+		if (match[1].length() == 2) {
+			this->request.header_term = true;
+			std::cout << "headers terminated\n";
+			return ;
+		}
+		this->request.headers[match.str(2)] = match.str(3);
+		this->input.erase(0, static_cast<size_t>(match[1].length()));
+	}
 }
 
 Request Parser::parse(void) {
 	this->parse_request_line();
+	//todo: check errors
+	this->parse_headers();
+	//todo: check errors
 	return (this->request);
 }
 
