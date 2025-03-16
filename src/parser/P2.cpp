@@ -61,6 +61,7 @@ typedef struct Uri {
 	std::string	full;
 	std::string	authority;
 	std::string	host;
+	std::string	port;
 	std::string	path;
 	std::string	query;
 } uri;
@@ -80,6 +81,7 @@ std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI.full: " << uri.full << "\n";
 	output << "\tURI.authority: " << uri.authority << "\n";
 	output << "\tURI.host: " << uri.host << "\n";
+	output << "\tURI.port: " << uri.port << "\n";
 	output << "\tURI.path: " << uri.path << "\n";
 	output << "\tURI.query: " << uri.query << "";
 	return (output);
@@ -133,11 +135,24 @@ private:
 //const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE) ([.]+)(\d+\.\d+)\r$)");
 
 const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE)? (\S+)? (HTTP/1\.1)?(\r\n)?([\s\S]+)?)");
-#define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"
-#define QUERY "(?:(?:(?:\\?)([^\\s\\#]*))"
-#define URI_TERM "(?:(?:\\#\\S*)|$)"
-const char *uri_pat_str = "(?:" PATH QUERY "?" URI_TERM "))";
-const std::regex Parser::uri_pat(uri_pat_str);//todo: currently the path can have anything that is not space, '?' or '#'
+
+#define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"//todo: currently the path can have anything that is not space, '?' or '#'
+#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
+#define URI_TERM "(?:(?:\\#\\S*)|$)" // either end of uri or # folloed by some non whitespace
+
+#define ORIGIN_FORM "(" PATH QUERY "?" URI_TERM ")"
+
+#define HOST "([\\w\\.]+)"
+#define PORT "([1-9]\\d{0,3})"
+
+#define AUTHORITY_FORM "(" HOST ":" PORT ")"
+
+#define ABSOLUTE_FORM "([a-z]+\\:\\/\\/" AUTHORITY_FORM ORIGIN_FORM ")"
+
+//ASTERISK_FORM : not implemented
+
+const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
+const std::regex Parser::uri_pat(uri_pat_str);
 
 
 Parser::Parser(std::string& input):
@@ -152,21 +167,30 @@ Parser::~Parser(void){
 void Parser::parse_uri(void) {
 	std::cout << uri_pat_str << std::endl;
 	std::smatch match;
-	if (std::regex_match(this->request.uri->full, match, this->uri_pat)) {
-		std::cout << "Origin-form\n";
-		this->request.uri->path = match[1].str();
-		this->request.uri->query = match[2].str();
-		for (size_t i = 0; i < match.size(); i++) {
-			std::cout << "match[" << i << "]: |" << match[i] << "|\n";
-		}
-		//if (std::regex_match(this->request.uri->full.begin() + match[0].str().length(), this->request.uri->full.end(), match, this->query_pat)) {
-		//	this->request.uri->query = match[1].str();
-		//} else {
-		//	std::cout << "No query\n";
-		//}
+	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
+		std::cout << "invalid request uri\n";
 		return ;
 	}
-	std::cout << "not origin-form\n";
+	for (size_t i = 0; i < match.size(); i++) {
+		std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	}
+	if (match[1].matched) {
+		// origin-form
+		request.uri->path = match[2].str();
+		request.uri->query = match[3].str();
+	} else if (match[4].matched) {
+		// authority-form
+		request.uri->authority = match[4].str();
+		request.uri->host = match[5].str();
+		request.uri->port = match[6].str();
+	} else if (match[7].matched) {
+		//absolute_form
+		request.uri->authority = match[8].str();
+		request.uri->host = match[9].str();
+		request.uri->port = match[10].str();
+		request.uri->path = match[12].str();
+		request.uri->query = match[13].str();
+	}
 }
 
 void Parser::parse_request_line(void) {
@@ -216,7 +240,7 @@ Request Parser::parse(void) {
 }
 
 const char *dummy_input =
-"DELETE /index.html/?abc#sdf HTTP/1.1\r\n"
+"DELETE example.com:443 HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
