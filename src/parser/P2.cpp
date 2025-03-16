@@ -7,6 +7,7 @@
 #include <cassert>
 
 /* for later TODO:
+ * make code efficient
 https://httpwg.org/specs/rfc9112.html#message.format
 1.: "A sender MUST NOT generate a bare CR (a CR character not immediately followed by LF) within any protocol elements other than the content. A recipient of such a bare CR MUST consider that element to be invalid or replace each bare CR with SP before processing the element or forwarding the message"
 2.: "In the interest of robustness, a server that is expecting to receive and parse a request-line SHOULD ignore at least one empty line (CRLF) received prior to the request-lin"
@@ -103,7 +104,7 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Version: " << request.version << "\n";
 	output << "Headers:\n";
 	for (const auto &header : request.headers) {
-		output << "\t" << header.first << ": " << header.second << "/n";
+		output << "\t" << header.first << ": " << header.second << "\n";
 	}
 	output << "Header termination: " << request.header_term << "\n";
 	output << "Body: " << request.body << "\n";
@@ -134,7 +135,8 @@ private:
 
 //const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE) ([.]+)(\d+\.\d+)\r$)");
 
-const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE)? (\S+)? (HTTP/1\.1)?(\r\n)?([\s\S]+)?)");
+const char *request_line_pat_str = "(^(?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?([\\s\\S]*)?)";
+const std::regex Parser::request_line_pat(request_line_pat_str);
 
 #define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"//todo: currently the path can have anything that is not space, '?' or '#'
 #define QUERY "(?:(?:\\?)([^\\s\\#]*))"
@@ -147,7 +149,7 @@ const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE)? (\S+)? (HTTP/
 
 #define AUTHORITY_FORM "(" HOST ":" PORT ")"
 
-#define ABSOLUTE_FORM "([a-z]+\\:\\/\\/" AUTHORITY_FORM ORIGIN_FORM ")"
+#define ABSOLUTE_FORM "(http\\:\\/\\/" AUTHORITY_FORM ORIGIN_FORM ")"
 
 //ASTERISK_FORM : not implemented
 
@@ -171,9 +173,9 @@ void Parser::parse_uri(void) {
 		std::cout << "invalid request uri\n";
 		return ;
 	}
-	for (size_t i = 0; i < match.size(); i++) {
-		std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-	}
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	//}
 	if (match[1].matched) {
 		// origin-form
 		request.uri->path = match[2].str();
@@ -195,52 +197,49 @@ void Parser::parse_uri(void) {
 
 void Parser::parse_request_line(void) {
 	std::smatch match;
-	if (std::regex_match(this->input, match, this->request_line_pat)) {
-		if (!match[4].matched) {
-			if (match[5].matched) {
-				std::cout << "invalid request (not terminated with more content)\n";
-				for (size_t i = 1; i < match.size(); i++) {
-					std::cout << "match[" << i << "] = |" << match[i].str() << "|\n";
-				}
-				return ;
-			}
-			std::cout << "not terminated\n";
-			return ;
-		}
-		if (!match[1].matched) {
-			std::cout << "Invalid method\n";
-			return ;
-		}
-		this->request.method = match.str(1);
-		Uri uri;
-		if (!match[2].matched) {
-			//invalid uri, 400 or 301
-			std::cout << "invalid uri\n";
-		}
-		uri.full = match.str(2);
-		this->request.uri = std::move(uri);
-		this->parse_uri();
-		if (!match[3].matched) {
-			std::cout << "invalid version, 505\n";
-			return ;
-		}
-
-		this->request.version = match.str(3);
-
-	} else {
-		std::cout << "No match (invlaid request?)\n";
+	std::cout << request_line_pat_str << std::endl;
+	if (!std::regex_match(this->input, match, this->request_line_pat)) {
+		std::cout << "No match (invlaid request line?)\n";
+		return ;
 	}
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	//}
+	if (match[3].matched) {
+		std::cout << "Invalid method\n";
+		return ;
+	}
+	if (!match[7].matched) {
+		if (match[8].matched) {
+			std::cout << "invalid request (not terminated with more content)\n";
+			return ;
+		}
+		std::cout << "not terminated\n";
+		return ;
+	}
+	this->request.method = match[2].str();
+	Uri uri;
+	if (!match[2].matched) {
+		//invalid uri, 400 (301 has to be decided later)
+		std::cout << "invalid uri\n";
+	}
+	uri.full = match.str(4);
+	this->request.uri = std::move(uri);
+	this->parse_uri();
+	if (!match[5].matched) {
+		std::cout << "invalid version, 505\n";
+		return ;
+	}
+	this->request.version = match.str(5);
 }
 
 Request Parser::parse(void) {
-
 	this->parse_request_line();
-
 	return (this->request);
 }
 
 const char *dummy_input =
-"DELETE example.com:443 HTTP/1.1\r\n"
+"GET example.com:443 HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
