@@ -104,7 +104,7 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Version: " << request.version << "\n";
 	output << "Headers:\n";
 	for (const auto &header : request.headers) {
-		output << "\t" << header.first << "== " << header.second << "\n";
+		output << "\t" << header.first << " == " << header.second << "\n";
 	}
 	output << "Header termination: " << request.header_term << "\n";
 	output << "Body: " << request.body << "\n";
@@ -173,7 +173,7 @@ Parser::~Parser(void){
 }
 
 void Parser::parse_uri(void) {
-	//std::cout << uri_pat_str << std::endl;
+	std::cout << uri_pat_str << std::endl;
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "invalid request uri\n";
@@ -203,7 +203,7 @@ void Parser::parse_uri(void) {
 
 void Parser::parse_request_line(void) {
 	std::smatch match;
-	//std::cout << request_line_pat_str << std::endl;
+	std::cout << request_line_pat_str << std::endl;
 	if (!std::regex_match(this->input, match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		return ;
@@ -250,15 +250,18 @@ void Parser::parse_headers(void) {
 			std::cout << "invalid header\n";
 			return ;
 		}
-		for (size_t i = 0; i < match.size(); i++) {
-			std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-		}
+		//for (size_t i = 0; i < match.size(); i++) {
+		//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+		//}
 		if (match[1].length() == 2) {
 			this->request.header_term = true;
 			std::cout << "headers terminated\n";
 			return ;
 		}
-		this->request.headers[match.str(2)] = match.str(3);
+		std::string key = match.str(2);
+		std::transform(key.begin(), key.end(), key.begin(), tolower);
+		this->request.headers[key] = match.str(3);
+		//todo: don't erase every iter
 		this->input.erase(0, static_cast<size_t>(match[1].length()));
 	}
 }
@@ -268,6 +271,9 @@ Request Parser::parse(void) {
 	//todo: check errors
 	this->parse_headers();
 	//todo: check errors
+	//todo: check mandetory headers
+	//todo: check body length/encoding
+	//todo: parse body
 	return (this->request);
 }
 
