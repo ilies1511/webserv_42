@@ -123,7 +123,7 @@ private:
 	std::string &input;
 	size_t		pos;
 	const static std::regex	request_line_pat;
-	const static std::regex	path_pat;
+	const static std::regex	uri_pat;
 	const static std::regex	query_pat;
 
 	const static std::regex line_term_pat;
@@ -133,11 +133,11 @@ private:
 //const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE) ([.]+)(\d+\.\d+)\r$)");
 
 const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE)? (\S+)? (HTTP/1\.1)?(\r\n)?([\s\S]+)?)");
-#define PATH_TERM "([\\?\\#]|$)"
-#define PATH "(\\/[^S\\/\\?\\#]+)+"
-const std::regex Parser::path_pat("(" PATH PATH_TERM ")");//todo: currently the path can have anything that is not space, '?' or '#'
-const std::regex Parser::query_pat(R"(\?)");
-//const std::regex Parser::line_term(R"(\r\n)");
+#define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"
+#define QUERY "(?:(?:(?:\\?)([^\\s\\#]*))"
+#define URI_TERM "(?:(?:\\#\\S*)|$)"
+const char *uri_pat_str = "(?:" PATH QUERY "?" URI_TERM "))";
+const std::regex Parser::uri_pat(uri_pat_str);//todo: currently the path can have anything that is not space, '?' or '#'
 
 
 Parser::Parser(std::string& input):
@@ -150,10 +150,15 @@ Parser::~Parser(void){
 }
 
 void Parser::parse_uri(void) {
+	std::cout << uri_pat_str << std::endl;
 	std::smatch match;
-	if (std::regex_match(this->request.uri->full, match, this->path_pat)) {
+	if (std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "Origin-form\n";
 		this->request.uri->path = match[1].str();
+		this->request.uri->query = match[2].str();
+		for (size_t i = 0; i < match.size(); i++) {
+			std::cout << "match[" << i << "]: |" << match[i] << "|\n";
+		}
 		//if (std::regex_match(this->request.uri->full.begin() + match[0].str().length(), this->request.uri->full.end(), match, this->query_pat)) {
 		//	this->request.uri->query = match[1].str();
 		//} else {
@@ -211,7 +216,7 @@ Request Parser::parse(void) {
 }
 
 const char *dummy_input =
-"DELETE /index.html HTTP/1.1\r\n"
+"DELETE /index.html/?abc#sdf HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
