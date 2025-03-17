@@ -96,6 +96,7 @@ class Connection
 		// void	assemble_response(Response &response);
 		void	assemble_response(void);
 		void	assemble_response2(void);
+		void	generate_internal_server_error_response(void);
 	//Methodes -- END
 };
 

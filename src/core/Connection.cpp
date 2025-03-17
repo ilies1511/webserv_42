@@ -184,6 +184,8 @@ void	Connection::execute_layer2(void)
 			}
 			else {
 				//TODO: Generate HardCoded Response Body
+				generate_internal_server_error_response();
+				assemble_response();
 				_state = State::SEND; //Nach wie READ_FILE State allerings mit anderem Status Code, sprich ERROR - RESPONse
 			}
 			// Extern File -- END

@@ -220,6 +220,28 @@ void Connection::assemble_response()
 	// FF - FInohed Fusion
 	_current_response.response_inzemaking = assembled_response;
 }
+
+void	Connection::generate_internal_server_error_response(void)
+{
+	_current_response.http_version = "HTTP/1.1";
+	_current_response.status_code = "500";
+	_current_response.headers["Content-Type"] = "text/html";
+	_current_response.headers["Connection"] = "close";
+	_current_response.file_data = \
+		R"(<!doctype html>
+		<html lang="en">
+		<head>
+		  <title>500 Internal Server Error</title>
+		</head>
+		<body>
+		  <h1>Internal Server Error</h1>
+		  <p>The server was unable to complete your request. Please try again later.</p>
+		</body>
+		</html>)";
+	_current_response.headers["Content-Length"] = \
+		std::to_string(_current_response.file_data.size());
+	return ;
+}
 //Utils -- END
 
 
