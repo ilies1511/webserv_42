@@ -178,8 +178,18 @@ void Connection::assemble_response2(void)
 void Connection::assemble_response()
 {
 	std::string reason = _current_response.reason_phrase;
+
+	//Add hardcoded Headers
+	_current_response.http_version = "HTTP/1.1";
+	_current_response.status_code = "200";
+	_current_response.headers["Connection"] = "close";
+	_current_response.headers["Content-Type"] = "text/html";
+	_current_response.headers["Content-Length"] = \
+		std::to_string(this->_current_response.file_data.size());
+
 	if (reason.empty()) {
 		const std::map<std::string, std::string> default_status_texts = {
+			{"200", "OK"},
 			{"400", "Bad Request"},
 			{"403", "Forbidden"},
 			{"404", "Not Found"},
@@ -209,7 +219,7 @@ void Connection::assemble_response()
 
 	// FF - FInohed Fusion
 	_current_response.response_inzemaking = assembled_response;
-	}
+}
 //Utils -- END
 
 

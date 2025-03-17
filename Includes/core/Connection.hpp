@@ -23,7 +23,8 @@ class Response;
 class Connection
 {
 	public:
-		enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
+		// enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
+		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND};
 		State				_state;
 		Server&				_server;
 		Request				request;
@@ -32,10 +33,15 @@ class Connection
 	private:
 		int					_fdConnection;
 		int					_fdFile;
+		ssize_t				sent_bytes;
+		bool				finished_sending;
+	public:
+		Buffer				_InputBuffer; // Dieser Buffer wird fuer read() bzw. recv() verwendet
+		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
-	private:
+
 	// Request				_request;
 	// Response			_response;
 	// HTTP_Parser			_parser; //vielleicht schlauer, wenn in request gecallt wird.
@@ -52,9 +58,7 @@ class Connection
 		Connection& operator=(const Connection& other) = delete;
 	//OCF -- END
 
-	public:
-		Buffer				_InputBuffer; // Dieser Buffer wird fuer read() bzw. recv() verwendet
-		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
+
 
 		//Utils -- BEGIN
 		//Utils -- END
