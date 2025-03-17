@@ -66,7 +66,7 @@ TEST := $(addprefix Tests/, $(TEST_FILES))
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
-CORE_REPO_FILES := Server.cpp Connection.cpp
+CORE_REPO_FILES := Server.cpp Connection.cpp utils_Connection.cpp
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
 UTILS_REPO_FILES := utils_pollserver.cpp Buffer.cpp

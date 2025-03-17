@@ -11,7 +11,7 @@ Connection::Connection(int fd, Server &server)
 	:	_state{State::READ_HEADER},
 		_server(server),
 		request{},
-		_current_response(request),
+		_current_response{},
 		_fdConnection(fd),
 		_fdFile(-1),
 		_InputBuffer{},
@@ -47,7 +47,7 @@ int Connection::getFdConnection(void)
 bool Connection::process_request(const Request &request)
 {
 	// Initial response setup
-	Response response(request);
+	Response response;
 
 	if (request._method == "GET")
 	{
@@ -501,22 +501,35 @@ void	Connection::execute_layer2(void)
 		//Stand: 14.03.2025 11:50
 		// exit (1);
 		// Versuche, Header zu parsen
-		if (parser.parse_header(_InputBuffer, request)) // TODO: parse_header = parser
-		{
-			printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
-			// _state = State::READ_BODY;
-			_state = State::READ_FILE;
-			// _state = State::SEND;
-			return ;
-		}
-		if (strlen(_InputBuffer._buffer.data()) > 10)
-		{
-			/*TODO:
-			// open and read text.txt with polling the read calls on the text.txt fd
-			// set content as data to send to connection fd
-			*/
-			;
-		}
+
+		// this->request = parser.entry_parse(this->_InputBuffer, this);
+		parser.entry_parse(this->_InputBuffer, request);
+		printer::debug_putstr("In RECV State - Parser finished", __FILE__, __FUNCTION__, __LINE__);
+		std::cout << " Method: " \
+					<< request._method << " URI:" \
+					<< request._uri \
+					<< " Version: " << request._version \
+					<< " Finished: " << request.is_finished \
+					<< "\n";
+
+		// request.is_finished = true;
+		std::cout << " Finished: " << request.is_finished << "\n";
+		// if (parser.parse_header(_InputBuffer, request)) // TODO: parse_header = parser
+		// {
+		// 	printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
+		// 	// _state = State::READ_BODY;
+		// 	_state = State::READ_FILE;
+		// 	// _state = State::SEND;
+		// 	return ;
+		// }
+		// if (strlen(_InputBuffer._buffer.data()) > 10)
+		// {
+		// 	/*TODO:
+		// 	// open and read text.txt with polling the read calls on the text.txt fd
+		// 	// set content as data to send to connection fd
+		// 	*/
+		// 	;
+		// }
 
 		/*
 			Zusatz-Check um zu ueberpruefen ob die Request Datenstruktur ferig ist
@@ -524,15 +537,21 @@ void	Connection::execute_layer2(void)
 		*/
 		if (this->request.is_finished)
 		{
+			printer::debug_putstr("Aloo In RECV State - request finished", __FILE__, __FUNCTION__, __LINE__);
 			_state = State::PROCESS;
 			return ;
 		}
-		else
+		else {
+			std::cout << "Enough, Request finished\n";
+			//Staying in the parse state, until request.is_finished == true
 			return ;
+		}
 		break;
 	}
 	case State::PROCESS:
 	{
+		std::cout << "Straight outta RECV\n";
+
 		/*
 			Dieser Block verstehe ich noch nicht gut genug
 			 - Alles von CGI muss in Pipe geschrieben und dann auch davon gelesen werden
@@ -561,25 +580,72 @@ void	Connection::execute_layer2(void)
 
 		*/
 		// READ_FILE KOENNRE auch eine Sub-State sein.
+		printer::debug_putstr("In Process State", __FILE__, __FUNCTION__, __LINE__);
+
 		if (request.readFile && !(this->_current_response.FileData))
 		{
-			int	nfd;
+			_current_response.process_request(this->request);
+			//TODO: Check if Request Reference same we worked with previouly
+			std::cout << "PROCESS: In Conditional Block \n";
+			// exit (1);
+			// int	nfd;
 			_state = State::READ_FILE; // Und von hier aus geht man ja wieder zuruecl zu Execution State
 
-			struct pollfd new_fd;
-			// add_poll_fd(open(request->file)); //Pseudo Code
-			//Sofern open nicht -1 returnt
-			if ((nfd = open(request.filename.c_str(), O_RDONLY | O_NONBLOCK) < 0)) {
-				//TODO: ErrorHandling
+			//TODO: checken ob ich im Code hier weiterkomme
+			printer::Header("PROCESS - Post _state = State::READ_FILE Assigment ");
+			/*
+				Der folgende Block muss im READ_FILE State gemacht werden oder
+				im kommenden else Block
+					this->_server.add_to_pollfds_prefilled(new_fd);
+			*/
+			// exit (1);
+
+			//Extern File Handling in function --> generate_response_body()
+			if (prepare_fdFile()) {
+				_state = State::READ_FILE; // Und von hier aus geht man ja wieder zuruecl zu Execution State
+				return ;
 			}
-			new_fd.fd = nfd;
-			new_fd.events = POLLIN;
-			new_fd.revents = 0;
-			this->_server.add_to_pollfds_prefilled(new_fd);
+			else if (prepare_ErrorFile()) {
+				printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
+				_state = State::READ_FILE; //Nach wie READ_FILE State allerings mit anderem Status Code, sprich ERROR - RESPONse
+				//TODO: ERROR HANDLING --> Standard Error Msg
+			}
+			else {
+				//TODO: Generate HardCoded Response Body
+				_state = State::SEND; //Nach wie READ_FILE State allerings mit anderem Status Code, sprich ERROR - RESPONse
+			}
+			printer::Header("PROCESS - Post _server.add_to_pollfds_prefilled(new_fd)");
+			// exit (1);
+
+			/* TODO: bevor man direkt in SEND geht, nochmal final Checken, ob
+					response ready zum senden ist. Auch z.B mit
+					this->ready2send(_current_response)
+							bool ready2send(Response &response)
+
+				if (_current_response.ready2send) // oder if (this->ready2send(_current_response))
+				{
+					_state = State::SEND;
+				}
+			*/
+			 // Und von hier aus geht man ja wieder zuruecl zu Execution State
 			return;
 		}
 		else
 		{
+			/*
+				TODO: Extra Check before going to SEND State
+				if (_current_response.ready2send) // oder if (this->ready2send(_current_response))
+				{
+					_state = State::SEND;
+				}
+			*/
+
+			//TODO: 17.03.2025 _current_response ==> eine Richtig Formartierte Response zusammenbauen --> CHROME TEST
+
+			printer::Header("PROCESS - In else Block pre SEND State");
+			assemble_response();
+			_state = State::SEND;
+
 			/*
 				Hier baut man den Response String zusammen. Man liest nur den File
 				sondern
@@ -589,7 +655,7 @@ void	Connection::execute_layer2(void)
 			//TODO: 14.03
 
 			// response->some_data = request->other_execution;
-			_current_response.response_inzemaking = request.execute_and_generate_response();
+			// _current_response.response_inzemaking = request.execute_and_generate_response();
 
 
 			/*
@@ -606,6 +672,7 @@ void	Connection::execute_layer2(void)
 			*/
 
 		}
+		return ;
 		break;
 	}
 	case State::READ_FILE:
@@ -637,10 +704,10 @@ void	Connection::execute_layer2(void)
 		// 	return ;
 		// }
 
-		// if (!check_revent(_fdConnection, POLLIN)) {
-		// 	printer::debug_putstr("Event failed", __FILE__, __FUNCTION__, __LINE__);
-		// 	return ;
-		// }
+		if (!check_revent(_fdFile, POLLIN)) {
+			printer::debug_putstr("Event failed", __FILE__, __FUNCTION__, __LINE__);
+			return ;
+		}
 
 
 		// pollfd	*temp = _server.getPollFdElement(this->_fdFile);
@@ -654,21 +721,7 @@ void	Connection::execute_layer2(void)
 			TODO: gelesenen bytes sollen irgendwie in das response.file_data rein
 		*/
 		// char read_file_buffer[4090];
-		_fdFile = open("html/index.html", O_RDONLY | O_NONBLOCK);
-		if (_fdFile < 0)
-		{
-			printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
-			exit (1);
-			//Error Handling
-		}
-		else {
-			printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
-			struct pollfd	new_fd;
-			new_fd.fd = _fdFile;
-			new_fd.events = POLLIN;
-			new_fd.revents = 0;
-			this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
-		}
+		printer::Header("In READ_FILE");
 
 		Buffer	read_file_buffer;
 		ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
@@ -678,9 +731,12 @@ void	Connection::execute_layer2(void)
 			printer::debug_putstr("bytes_read <= 0 Case", __FILE__, __FUNCTION__, __LINE__);
 			if (bytes_read == 0) {
 				_server.ft_closeNclean(_fdFile);
+				std::cout << "Set _fdFile: " << _fdFile << " to -1\n";
+				_fdFile = -1;
 				// close (_fdFile);
-				// _state = State::PROCESS;
-				_state = State::SEND;
+				_state = State::PROCESS;
+				_current_response.FileData = true;
+				// _state = State::SEND;
 				_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
 				return ;
 				//File ist fertig gelesen
@@ -688,14 +744,20 @@ void	Connection::execute_layer2(void)
 			else if (bytes_read < 0) {
 				_server.ft_closeNclean(_fdFile);
 				return ;
-				//ERROR occured --> to fix
+				//TODO: Improve & understand propor ERROR behavior when occures --> to fix
 			}
 		}
 		else
-		{
+{
 			printer::debug_putstr("bytes_read > 0 Case PRE SEND", __FILE__, __FUNCTION__, __LINE__);
-			_state = State::SEND;
+			// _state = State::SEND;
+			_state = State::PROCESS;
 			_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
+			//TODO: improve Case is not fully read --> go Back to process and reread again until end of file
+			_current_response.FileData = true;
+			_server.ft_closeNclean(_fdFile);
+			std::cout << "Set _fdFile: " << _fdFile << " to -1\n";
+			_fdFile = -1;
 			return ;
 		}
 		// if (finished)
@@ -810,6 +872,30 @@ void	Connection::execute_layer2(void)
 			return ;
 		}
 
+		_OutputBuffer._buffer.assign(_current_response.response_inzemaking.begin(), _current_response.response_inzemaking.end());
+		ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		if (sent > 0)
+		{
+			printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
+			std::cout << "Sent Response:\n"
+					  << std::string(_OutputBuffer.data(), (size_t)sent) << "\n";
+			this->_OutputBuffer._buffer.clear();
+			if (sent == (ssize_t)_current_response.response_inzemaking.size())
+				_state = State::CLOSING; // Oder READ_HEADER für Keep-Alive damit circular ist
+		}
+		printer::debug_putstr("POST in handle_output", __FILE__, __FUNCTION__, __LINE__);
+		/*
+			response_buffer ko
+		*/
+		// if !finished // Bei langer Response (1GB), viele Calls notwendih
+		// 	return
+		_server.ft_closeNclean(this->_fdFile);
+		_server.ft_closeNclean(this->_fdConnection);
+		return ;
+
+
+
+
 		// pollfd	*alo = _server.getPollFdElement(this->_fdConnection);
 		// if (!alo || !(alo->revents & POLLOUT))
 		// {
@@ -817,7 +903,7 @@ void	Connection::execute_layer2(void)
 		// 	return ;
 		// }
 		_OutputBuffer._buffer.assign(_current_response.file_data.begin(), _current_response.file_data.end());
-		ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		// ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
 		if (sent > 0)
 		{
 			printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);

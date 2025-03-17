@@ -22,11 +22,14 @@ Request& Request::operator=(const Request& other)
 {
 	if (this != &other)
 	{
-		this->_method = other._method;
-		this->_uri = other._uri;
-		this->_version = other._version;
-		this->_headers = other._headers;
-		this->_body = other._body;
+		this->_method		= other._method;
+		this->_uri			= other._uri;
+		this->_version		= other._version;
+		this->_headers		= other._headers;
+		this->_body			= other._body;
+		this->is_finished	= other.is_finished;
+		this->readFile		= other.readFile;
+		this->filename		= other.filename;
 	}
 	return (*this);
 }

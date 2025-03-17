@@ -27,7 +27,7 @@ class Connection
 		State				_state;
 		Server&				_server;
 		Request				request;
-		HTTP_Parser			parser;
+		Parser				parser;
 		Response			_current_response;
 	private:
 		int					_fdConnection;
@@ -86,7 +86,12 @@ class Connection
 		pollfd*	getPollFdElementRoot(int &fd);
 		bool	check_revent(int &fd, short rrevent);
 		void	ft_closeNcleanRoot(int &fd);
-
+		void	print_request_data(Request &request);
+		bool	prepare_fdFile(void);
+		bool	prepare_ErrorFile(void);
+		// void	assemble_response(Response &response);
+		void	assemble_response(void);
+		void	assemble_response2(void);
 	//Methodes -- END
 };
 
