@@ -98,6 +98,8 @@ void Server::add_to_pollfds(int new_fd)
 
 void Server::add_to_pollfds_prefilled(pollfd &new_element)
 {
+	printer::Header("[STATUS]: Add new pollfd prefilled element to pollfd with fd: " \
+			+ std::to_string(new_element.fd));
 	this->_pollfds.emplace_back(new_element);
 }
 
