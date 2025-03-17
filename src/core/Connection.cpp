@@ -31,37 +31,20 @@ int Connection::getFdConnection(void)
 
 void	Connection::execute_layer2(void)
 {
-	// // Prevents going in switch - cases again, if Client already hung up
-	// if (_server._pollfds[_server._i].revents & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
-	// {
-	// 	printf("pollserver: socket %d hung up\n", this->_fdConnection);
-	// 	_server.ft_closeNclean(_fdConnection);
-	// 	return;
-	// }
-	// printer::debug_putstr("PRE execute_layer2", __FILE__, __FUNCTION__, __LINE__);
-
-
-	// pollfd	*pfd = _server.getPollFdElement(_fdConnection);
-	// if (pfd && pfd->revents & POLLHUP)
-	// {
-	// 	_server.ft_closeNclean(_fdConnection);
-	// 	return;
-	// }
-
+	// Prevents going in switch - cases again, if Client already hung up
 	if (check_revent(_fdConnection, POLLHUP))
 	{
+		printf("pollserver: socket %d hung up\n", this->_fdConnection);
 		std::cout << coloring("INIT Check: Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
 		// _server.ft_closeNclean(_fdConnection);
 		return ;
 	}
-	// if ('Event der aktullen Connection im _pollfd' & POLLHUP) //Hier muss ich durch meine Clients durchitetieren des einen Servers
-	// {
-	// 	printf("pollserver: socket %d hung up\n", this->_fdConnection);
-	// 	_server.ft_closeNclean(_fdConnection);
-	// 	return;
-	// }
 
+	/*
+		State-Machnine -- BEGIN
+		Manages the Request->Respone cycle
+	*/
 	switch (_state)
 	{
 	case State::READ_HEADER:
@@ -112,6 +95,10 @@ void	Connection::execute_layer2(void)
 		//Stand: 14.03.2025 11:50
 		// exit (1);
 		// Versuche, Header zu parsen
+
+		/*
+			ENTRY-Point Parser --> fills Request Instance (Instance belongs to Connection)
+		*/
 		parser.entry_parse(this->_InputBuffer, request);
 		printer::debug_putstr("In RECV State - Parser finished", __FILE__, __FUNCTION__, __LINE__);
 		std::cout << " Method: " \
@@ -120,9 +107,6 @@ void	Connection::execute_layer2(void)
 					<< " Version: " << request._version \
 					<< " Finished: " << request.is_finished \
 					<< "\n";
-
-		// request.is_finished = true;
-		std::cout << " Finished: " << request.is_finished << "\n";
 		// if (parser.parse_header(_InputBuffer, request)) // TODO: parse_header = parser
 		// {
 		// 	printer::debug_putstr("Pre recv", __FILE__, __FUNCTION__, __LINE__);
@@ -243,6 +227,15 @@ void	Connection::execute_layer2(void)
 
 			printer::Header("PROCESS - In else Block pre SEND State");
 			assemble_response();
+			/* TODO: bevor man direkt in SEND geht, nochmal final Checken, ob
+					response ready zum senden ist. Auch z.B mit
+					this->ready2send(_current_response)
+							bool ready2send(Response &response)
+				// if (_current_response.ready2send) // oder if (this->ready2send(_current_response))
+				// {
+				// 	_state = State::SEND;
+				// }
+			*/
 			_state = State::SEND;
 
 			/*
