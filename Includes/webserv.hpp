@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
 
 //Includes -- BEGIN
 #include "serverConfig.hpp"
@@ -34,9 +36,12 @@
 
 //Headers -- BEGIN
 #include "playground.hpp"
+#include "Server.hpp"
 //Headers -- END
 
 //FNC-Prototypes -- BEGIN
 void	dummy_function(void);
 void	src_function(void);
 //FNC-Prototypes -- END
+
+#endif

@@ -9,13 +9,24 @@ RM := rm -rf
 ################################################################################
 
 OBJ_DIR := _obj
-# INC_DIRS := .
-#INC_DIRS := Includes Includes/Extra Includes/Tests Includes/Config
-# SRC_DIRS := .
-#SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
-INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests Includes/Config Includes/StatusCodes)
-SRC_DIRS := $(abspath src src/Extra src/Tests src/playground src/Config)
+INC_DIRS := $(abspath	Includes \
+			Includes/Extra \
+			Includes/Tests \
+			Includes/core \
+			Includes/http \
+			Includes/handler \
+			Includes/utils Includes/Config \
+			Includes/StatusCodes)
+SRC_DIRS := $(abspath	src \
+			src/Extra \
+			src/Tests \
+			src/playground \
+			src/Config) \
+			src/core \
+			src/http \
+			src/handler \
+			src/utils
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -29,7 +40,12 @@ HEADERS :=	Log.hpp \
 			printer.hpp \
 			test.hpp \
 			playground.hpp \
-			webserv.hpp
+			webserv.hpp \
+			Request.hpp \
+			Response.hpp \
+			Connection.hpp \
+			HTTP_Parser.hpp \
+			Buffer.hpp
 
 HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))
 # there for preproc. -- END
@@ -49,11 +65,20 @@ EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 TEST_FILES := test.cpp
 TEST := $(addprefix Tests/, $(TEST_FILES))
 
-DUMMY_REPO_FILES := dummy_file.cpp
-DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
-
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
+
+CORE_REPO_FILES := Server.cpp Connection.cpp utils_Connection.cpp
+CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
+
+UTILS_REPO_FILES := utils_pollserver.cpp Buffer.cpp
+UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
+
+HTTP_REPO_FILES := Request.cpp Response.cpp HTTP_Parser.cpp
+HTTP_REPO := $(addprefix http/, $(HTTP_REPO_FILES))
+
+HANDLER_REPO_FILES := StaticFileHandler.cpp
+HANDLER_REPO := $(addprefix handler/, $(HANDLER_REPO_FILES))
 
 CONFIG_DIR_FILES := serverConfig.cpp \
 					route.cpp \
@@ -67,7 +92,17 @@ SRC := src_file.cpp
 
 
 #Combines all
-SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(DUMMY_REPO) $(PLAYGROUND_REPO) $(CONFIG_DIR))
+MELTING_POT :=	$(SRC) \
+				$(EXTRA) \
+				$(TEST) \
+				$(PLAYGROUND_REPO) \
+				$(CORE_REPO) \
+				$(UTILS_REPO) \
+				$(HTTP_REPO) \
+				$(HANDLER_REPO)
+
+# SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
+SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 
@@ -95,7 +130,8 @@ NAME_TEST=tests.out
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(HDR_CHECK)
+# $(NAME): $(OBJS) $(HDR_CHECK)
+$(NAME): $(OBJS)
 #$(AR) $(ARFLAGS) $(NAME) $(OBJS)
 	$(CPP) $(LDFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(GREEN)$(BOLD)Successful Compilation$(NC)"
@@ -117,7 +153,7 @@ clean:
 	$(RM) $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_TEST) server client poll
+	$(RM) $(NAME) $(NAME_TEST) server client poll pollserver
 	@echo "$(MAGENTA)$(BOLD)Executable + Object Files cleaned$(NC)"
 
 re: fclean submodule_update all

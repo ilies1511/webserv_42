@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef LOG_HPP
+#define LOG_HPP
 
 //Includes
 #include <iostream>
@@ -53,3 +55,4 @@ class Log
 	public:
 		void complain( std::string level, const std::string msg = NULL, const char* file = NULL, const char* function = NULL, int line = 0);
 };
+#endif

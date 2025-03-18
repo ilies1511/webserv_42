@@ -1,0 +1,48 @@
+Config File:
+
+# https://nginx.org/en/docs/http/ngx_http_core_module.html#http
+
+events{}
+
+http {
+	access_log /dev/stderr;
+	error_log /dev/stderr notice;
+	server {
+		listen 127.0.0.1:8081;
+		server_name webserv.com;
+
+		location / {
+			root html/;
+			index index.html;
+		}
+
+		# error_page 404 /404.html;
+
+		# location /404.html {
+    	# 	internal;
+		# }
+
+		client_body_buffer_size 16k;
+	}
+	server {
+		listen 127.0.0.1:8080;
+		server_name webserv.com;
+
+		location / {
+
+		}
+
+	}
+}
+
+0. ifninstalled, install nginx: brew install nginx
+1. <in seperate Terminal>
+	nginx -c $PWD/configFiles/default.conf -p $PWD -g "daemon off;"
+
+2. <in another seperate Terminal>
+	- telnet localhost 8081 --> port that was specified in Config File
+	- Send Request: GET /test/ HTTP/1.1\nhost: acdf
+		GET /test/ HTTP/1.1
+		host: asdv
+	- voila
+
