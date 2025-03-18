@@ -259,6 +259,42 @@ void update_routes(std::vector<serverConfig>& server_configs) {
    }
 }
 
+void addDefaultErrorPages(std::vector<serverConfig>& server_configs) {
+    std::string errDir = "errorPages/";
+    if (errDir.back() != '/') {
+        errDir.push_back('/');
+    }
+    std::filesystem::path dir{errDir};
+    if (!std::filesystem::is_directory(dir)) {
+        std::cout << "Cannot load default error pages" << std::endl;
+        return ;
+    }
+    for (auto& config : server_configs) {
+        for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+            if (entry.is_regular_file()) {
+                std::string fileName = entry.path().filename().string();
+                std::regex pattern(R"((\d{3})\.html)");
+                std::smatch match;
+                if (std::regex_match(fileName, match, pattern)) {
+                    std::string numberStr = match[1].str();
+                    std::size_t number = std::stoul(numberStr);
+                    std::string path = errDir + fileName;
+                    // std::cout << number << ": " << path << std::endl;
+                    config.setErrorPages(number, path);
+                } else {
+                    std::cout <<  "An Error occurred during loading the default error pages" << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void printServerConfig(std::vector<serverConfig>& servers) {
+    for (auto& instance : servers) {
+        instance.printData();
+    }
+}
+
 std::vector<serverConfig> parsing(const std::vector<TOKEN>& tokenList) {
     std::vector<serverConfig> server_configs;
 
@@ -312,5 +348,8 @@ std::vector<serverConfig> parsing(const std::vector<TOKEN>& tokenList) {
         }
     }
     update_routes(server_configs);
+	printServerConfig(server_configs);
+    addDefaultErrorPages(server_configs);
+	// printServerConfig(server_configs);
     return server_configs;
 }

@@ -92,7 +92,9 @@ void serverConfig::setServerName(const std::string& serverName) {
 }
 
 void serverConfig::setErrorPages(const std::size_t errorNbr, const std::string &path) {
-    _error_pages[errorNbr] = path;
+    if (_error_pages.find(errorNbr) == _error_pages.end()) {
+        _error_pages[errorNbr] = path;
+    }
 }
 
 void serverConfig::setClientMaxBodySize(std::size_t size) {
