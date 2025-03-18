@@ -187,6 +187,7 @@ void	Connection::execute_layer2(void)
 				generate_internal_server_error_response();
 				assemble_response();
 				_state = State::SEND; //Nach wie READ_FILE State allerings mit anderem Status Code, sprich ERROR - RESPONse
+				return ;
 			}
 			// Extern File -- END
 			printer::Header("PROCESS - Post _server.add_to_pollfds_prefilled(new_fd)");

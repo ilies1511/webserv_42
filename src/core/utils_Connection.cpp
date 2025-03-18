@@ -180,12 +180,15 @@ void Connection::assemble_response()
 	std::string reason = _current_response.reason_phrase;
 
 	//Add hardcoded Headers
-	_current_response.http_version = "HTTP/1.1";
-	_current_response.status_code = "200";
-	_current_response.headers["Connection"] = "close";
-	_current_response.headers["Content-Type"] = "text/html";
-	_current_response.headers["Content-Length"] = \
+	if (_current_response.status_code != "500") // condition nur temporaer da um zu 500 Case zu testen
+	{
+		_current_response.http_version = "HTTP/1.1";
+		_current_response.status_code = "200";
+		_current_response.headers["Connection"] = "close";
+		_current_response.headers["Content-Type"] = "text/html";
+		_current_response.headers["Content-Length"] = \
 		std::to_string(this->_current_response.file_data.size());
+	}
 
 	if (reason.empty()) {
 		const std::map<std::string, std::string> default_status_texts = {
@@ -234,7 +237,7 @@ void	Connection::generate_internal_server_error_response(void)
 		  <title>500 Internal Server Error</title>
 		</head>
 		<body>
-		  <h1>Internal Server Error</h1>
+		  <h1>ALOOOOOOOOO</h1>
 		  <p>The server was unable to complete your request. Please try again later.</p>
 		</body>
 		</html>)";

@@ -31,8 +31,8 @@ Connection::execute_layer2() {
 		case(RECV): // Fuer Sockets
 			if !SOCKET_POLLIN: aka if (_server._pollfds[_server._i].revents & (SOCKET_POLLIN))
 				return
-			request = parse(input_data);
 			input_data = recv();
+			request = parse(input_data);
 			if request->finished:
 				state = EXECUTE
 				return
@@ -60,7 +60,11 @@ Connection::execute_layer2() {
 			if !SOCKET_POLLOUT
 				return
 			send(response->data);
-			if !finished
+			/*
+				response_buffer ko
+			*/
+			if !finished // Bei langer Response (1GB), viele Calls notwendih
+
 				return
 			close_connection() // No keep alive, since more complexety
 			return
