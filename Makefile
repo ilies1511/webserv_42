@@ -20,18 +20,20 @@ INC_DIRS := $(abspath	Includes \
 			Includes/core \
 			Includes/http \
 			Includes/handler \
-			Includes/utils Includes/Config \
-			Includes/StatusCodes)
+			Includes/utils \
+			Includes/Config \
+			Includes/StatusCodes \
+			Includes/Request)
 SRC_DIRS := $(abspath	src \
 			src/Extra \
 			src/Tests \
 			src/playground \
-			src/Config) \
+			src/Config \
 			src/core \
 			src/http \
 			src/handler \
 			src/utils \
-			src/Request
+			src/Request)
 
 
 
@@ -53,7 +55,7 @@ HEADERS :=	Log.hpp \
 			serverConfig.hpp \
 			token.hpp \
 			validation.hpp \
-			requestParsing.hpp
+			requestParsing.hpp \
 			webserv.hpp \
 			Request.hpp \
 			Response.hpp \
@@ -119,7 +121,9 @@ MELTING_POT :=	$(SRC) \
 				$(CORE_REPO) \
 				$(UTILS_REPO) \
 				$(HTTP_REPO) \
-				$(HANDLER_REPO)
+				$(HANDLER_REPO) \
+				$(REQUEST_DIR) \
+				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))

@@ -18,9 +18,9 @@ int	main(void)
 
 	std::vector<serverConfig> servers;
 	try {
-		Server alo("9034");
-		alo.poll_loop(); //MAIN LOOP
 		servers = parsing(tokenList);
+		// Server alo("9034");
+		// alo.poll_loop(); //MAIN LOOP
 	} catch (const std::exception& e) {
 		std::cout << coloring("Error: " + std::string(e.what()), RED) << std::endl;
 		return 1;
@@ -30,12 +30,6 @@ int	main(void)
 	// request_parser.parseMessage();
 
 
-	printer::Header("main");
-	std::cout << "ALO aus main.cpp\n";
-	printer::Header("dummy func Call");
-	dummy_function();
-	printer::Header("src func Call");
-	src_function();
 	// Log	log("webserv");
 
 	// log.complain("INFO", "Willkommen", __FILE__, __FUNCTION__, __LINE__);
