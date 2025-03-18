@@ -121,10 +121,10 @@ public:
 				Parser(void) = delete;
 				Parser(std::string &input);
 				~Parser();
-	Request		&parse(void);
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
+	Request		&&getRequest(void);
 
 	Request		request;
 	std::string &input;
@@ -138,11 +138,11 @@ private:
 	size_t		pos;
 	const static std::regex	request_line_pat;
 	const static std::regex	uri_pat;
-
-	const static std::regex header_pat;
+	const static std::regex	header_name_pat;
+	const static std::regex	header_value_pat;
 };
 
-
+//todo: add some hexdump of input since \r makes it hard to understand
 bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond, const char *file, const int line, const char *fn_str) {
 	if (cond) {
 		return (cond);
@@ -224,11 +224,11 @@ const std::regex Parser::request_line_pat(request_line_pat_str);
 const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
 const std::regex Parser::uri_pat(uri_pat_str);
 
-#define FIELD_NAME "([^\\:\n]+)"
-#define FIELD_VALUE "(?:[ \t\f\v]+([^\r\n]+))"//todo: not robust [^\r\n]+
-#define FIELD "(?:" FIELD_NAME "\\:" FIELD_VALUE ")"
-const char *header_pat_str = "(?:(" FIELD "?\r\n)(?:[\\s\\S]*))";
-const std::regex Parser::header_pat(header_pat_str);
+// field name: either a valid or an unfinished name
+#define FIELD_NAME "(?:(?:([^\\:\n]+)\\:(?:[\\s\\S]*))|([^\\:\n]*$))"
+#define FIELD_VALUE "(?:(?:([ \t\f\v]*([^\r\n]+)\r\n)[\\s\\S]*)|([ \t\f\v]*[^\r\n]*\r?$))"
+const std::regex Parser::header_name_pat(FIELD_NAME);
+const std::regex Parser::header_value_pat(FIELD_VALUE);
 
 void Parser::setStatus(int status) {
 	this->finished_request_line = true;
@@ -333,40 +333,56 @@ bool Parser::parse_request_line(void) {
 
 bool Parser::parse_headers(void) {
 	std::smatch	match;
-	std::cout << header_pat_str << std::endl;
+	//std::cout << header_pat_str << std::endl;
 	while (1) {
-		if (!std::regex_match(this->input, match, this->header_pat)) {
-			//todo: partial headers
-			std::cout << "invalid header\n";
-			this->setStatus(400);//todo: which code
-			return (true);
-		}
-		//for (size_t i = 0; i < match.size(); i++) {
-		//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-		//}
-		if (match[1].length() == 2) {
-			//todo: some asserts would be nice
+		if (this->input[0] == '\r' && this->input[1] == '\n') {
 			this->finished_headers = true;
+			this->input.erase(0, 2);
 			std::cout << "headers terminated\n";
 			return (true);
 		}
-		std::string key = match.str(2);
-		std::transform(key.begin(), key.end(), key.begin(), tolower);
-		this->request.headers[key] = match.str(3);
-		//todo: don't erase every iter
-		this->input.erase(0, static_cast<size_t>(match[1].length()));
+		if (!std::regex_match(this->input, match, this->header_name_pat)) {
+			std::cout << "invalid header name\n";
+			this->setStatus(400);
+			return (true);
+		}
+
+		//for (size_t i = 0; i < match.size(); i++) {
+		//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
+		//}
+		std::string key;
+		std::string value;
+		if (match[1].matched) {
+			key = match.str(1);
+			//todo: only advance if value is finished
+			this->input.erase(0, match[1].length() + 1);
+		} else {
+			PARSE_ASSERT(match[2].matched);
+			std::cout << "unfinished request header\n";
+			return (false);
+		}
+		if (!std::regex_match(this->input, match, this->header_value_pat)) {
+			std::cout << "invalid header value\n";
+			this->setStatus(400);
+			return (true);
+		}
+		//for (size_t i = 0; i < match.size(); i++) {
+		//	std::cout << "value[" << i << "]: |" << match[i].str() << "|\n";
+		//}
+		if (match[2].matched) {
+			value = match.str(2);
+			this->input.erase(0, match[1].length());
+		} else {
+			PARSE_ASSERT(match[3].matched);
+			std::cout << "unfinished request header\n";
+			return (false);
+		}
+		this->request.headers[key] = value;
 	}
 }
 
-Request &Parser::parse(void) {
-	this->parse_request_line();
-	//todo: check errors
-	this->parse_headers();
-	//todo: check errors
-	//todo: check mandetory headers
-	//todo: check body length/encoding
-	//todo: parse body
-	return (this->request);
+Request &&Parser::getRequest(void) {
+	return (std::move(this->request));
 }
 
 const char *dummy_input =
@@ -382,7 +398,14 @@ const char *dummy_input =
 int main(void) {
 	std::string input(dummy_input);
 	Parser p(input);
-	Request re = p.parse();
-	
+	Request re;
+	if (p.parse_request_line()) {
+		if (p.parse_headers()) {
+			// save to get request here
+			//re = p.getRequest();
+		}
+	}
+	//only for debugging: always get request
+	re = p.getRequest();
 	std::cout << re;
 }

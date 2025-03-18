@@ -8,7 +8,7 @@ a.out
 server.dSYM/Contents/Resources/DWARF/server
 client
 server
-server.dSYM
+*.dSYM
 poll
 .idea
 pollserver
