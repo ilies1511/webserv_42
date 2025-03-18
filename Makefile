@@ -22,11 +22,11 @@ SRC_DIRS := $(abspath	src \
 			src/Extra \
 			src/Tests \
 			src/playground \
-			src/Config) \
+			src/Config \
 			src/core \
 			src/http \
 			src/handler \
-			src/utils
+			src/utils)
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -89,8 +89,6 @@ CONFIG_DIR := $(addprefix config/, $(CONFIG_DIR_FILES))
 
 SRC := src_file.cpp
 
-
-
 #Combines all
 MELTING_POT :=	$(SRC) \
 				$(EXTRA) \
@@ -99,7 +97,8 @@ MELTING_POT :=	$(SRC) \
 				$(CORE_REPO) \
 				$(UTILS_REPO) \
 				$(HTTP_REPO) \
-				$(HANDLER_REPO)
+				$(HANDLER_REPO) \
+				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
