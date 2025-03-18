@@ -77,11 +77,10 @@ typedef struct Request {
 	std::optional<Uri>								uri = std::nullopt;
 	std::optional<std::string>						version = std::nullopt;
 	std::unordered_map<std::string, std::string>	headers;
-	bool											header_term = false;
 	std::string										body;
 	std::optional<int>								status_code = std::nullopt;
-	bool											finished = false;
 } Request;
+
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI.full: " << uri.full << "\n";
@@ -111,10 +110,9 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	for (const auto &header : request.headers) {
 		output << "\t" << header.first << " == " << header.second << "\n";
 	}
-	output << "Header termination: " << request.header_term << "\n";
 	output << "Body: " << request.body << "\n";
 	output << "Stutus code: " << request.status_code << "\n";
-	output << "Finished: " << request.finished << "\n";
+
 	return (output);
 }
 
@@ -123,14 +121,19 @@ public:
 				Parser(void) = delete;
 				Parser(std::string &input);
 				~Parser();
-	Request		parse(void);
-	void		parse_request_line(void);
-	void		parse_uri(void);
-	void		parse_headers(void);
+	Request		&parse(void);
+	bool		parse_request_line(void);
+	bool		parse_uri(void);
+	bool		parse_headers(void);
 
 	Request		request;
 	std::string &input;
 private:
+
+	void	setStatus(int status);
+	bool	finished_request_line = false;
+	bool	finished_headers = false;
+	bool	finished = false;
 
 	size_t		pos;
 	const static std::regex	request_line_pat;
@@ -138,6 +141,7 @@ private:
 
 	const static std::regex header_pat;
 };
+
 
 bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond, const char *file, const int line, const char *fn_str) {
 	if (cond) {
@@ -189,7 +193,7 @@ bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond,
 
 	out_log_stream.write(log_msg.data(), static_cast<long>(log_msg.length()));
 	out_log_stream.close();
-
+	exit(1);
 	return (cond);
 }
 
@@ -226,7 +230,12 @@ const std::regex Parser::uri_pat(uri_pat_str);
 const char *header_pat_str = "(?:(" FIELD "?\r\n)(?:[\\s\\S]*))";
 const std::regex Parser::header_pat(header_pat_str);
 
-
+void Parser::setStatus(int status) {
+	this->finished_request_line = true;
+	this->finished_headers = true;
+	this->finished = true;
+	this->request.status_code = status;
+}
 
 Parser::Parser(std::string& input):
 	input(input),
@@ -237,91 +246,109 @@ Parser::Parser(std::string& input):
 Parser::~Parser(void){
 }
 
-void Parser::parse_uri(void) {
-	std::cout << uri_pat_str << std::endl;
+bool Parser::parse_uri(void) {
+	//std::cout << uri_pat_str << std::endl;
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "invalid request uri\n";
-		return ;
+		this->setStatus(400); //todo: is 400 correct?
+		return (true);
 	}
 	//for (size_t i = 0; i < match.size(); i++) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
 	if (match[1].matched) {
 		// origin-form
+		PARSE_ASSERT(!match[4].matched);
+		PARSE_ASSERT(!match[7].matched);
 		request.uri->path = match[2].str();
 		request.uri->query = match[3].str();
 	} else if (match[4].matched) {
 		// authority-form
+		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[7].matched);
 		request.uri->authority = match[4].str();
 		request.uri->host = match[5].str();
 		request.uri->port = match[6].str();
 	} else if (match[7].matched) {
 		//absolute_form
+		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[4].matched);
 		request.uri->authority = match[8].str();
 		request.uri->host = match[9].str();
 		request.uri->port = match[10].str();
 		request.uri->path = match[12].str();
 		request.uri->query = match[13].str();
 	}
+	return (true);
 }
 
-void Parser::parse_request_line(void) {
+bool Parser::parse_request_line(void) {
 	std::smatch match;
-	std::cout << request_line_pat_str << std::endl;
+	//std::cout << request_line_pat_str << std::endl;
 	if (!std::regex_match(this->input, match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
-		return ;
+		this->setStatus(400);
+		return (true);
 	}
 	//for (size_t i = 0; i < match.size(); i++) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
 	if (match[4].matched) {
+		PARSE_ASSERT(!match[3].matched);
 		std::cout << "Invalid method\n";
-		return ;
+		this->setStatus(501);
+		return (true);
 	}
 	if (!match[8].matched) {
 		if (match[9].matched) {
 			std::cout << "invalid request (not terminated with more content)\n";
-			return ;
+			return (true);
 		}
 		std::cout << "not terminated\n";
-		return ;
+		return (false);
 	}
 	this->request.method = match[3].str();
 	Uri uri;
 	if (!match[3].matched) {
-		//invalid uri, 400 (301 has to be decided later)
 		std::cout << "invalid uri\n";
+		this->setStatus(400);
+		return (true);
 	}
 	uri.full = match.str(5);
 	this->request.uri = std::move(uri);
 	this->parse_uri();
 	if (!match[6].matched) {
 		std::cout << "invalid version, 505\n";
-		return ;
+		this->setStatus(505);
+		return (true);
 	}
 	this->request.version = match.str(6);
 
 	//todo: needs more efficient solution later
 	this->input.erase(0, static_cast<size_t>(match[2].length()));
+
+	return (true);
 }
 
-void Parser::parse_headers(void) {
+bool Parser::parse_headers(void) {
 	std::smatch	match;
 	std::cout << header_pat_str << std::endl;
 	while (1) {
 		if (!std::regex_match(this->input, match, this->header_pat)) {
+			//todo: partial headers
 			std::cout << "invalid header\n";
-			return ;
+			this->setStatus(400);//todo: which code
+			return (true);
 		}
 		//for (size_t i = 0; i < match.size(); i++) {
 		//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 		//}
 		if (match[1].length() == 2) {
-			this->request.header_term = true;
+			//todo: some asserts would be nice
+			this->finished_headers = true;
 			std::cout << "headers terminated\n";
-			return ;
+			return (true);
 		}
 		std::string key = match.str(2);
 		std::transform(key.begin(), key.end(), key.begin(), tolower);
@@ -331,7 +358,7 @@ void Parser::parse_headers(void) {
 	}
 }
 
-Request Parser::parse(void) {
+Request &Parser::parse(void) {
 	this->parse_request_line();
 	//todo: check errors
 	this->parse_headers();
