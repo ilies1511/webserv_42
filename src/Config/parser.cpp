@@ -2,28 +2,43 @@
 
 void validateLocationParams(route& current_route, const std::string& keyword, const std::vector<std::string>& params) {
     if (keyword == "index") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing index and return is not allowed");
+        }
         if (params.size() != 1) {
             throw std::runtime_error(" index: invalid arguments");
         }
         current_route.setIndex(params[0]);
-    } if (keyword == "limit_except") {
+    } else if (keyword == "allowed_methods") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing allowed_methods and return is not allowed");
+        }
         if (params.empty()) {
-            throw std::runtime_error(" limit_except: invalid arguments");
+            throw std::runtime_error(" allowed_methods: invalid arguments");
         }
         for (const auto & param : params) {
            if (param == "POST" || param == "GET" || param == "DELETE") {
-               current_route.setLimitsExcept(param);
+               current_route.setAllowedMethods(param);
            } else {
-               throw std::runtime_error(" limit_except: invalid arguments");
+               throw std::runtime_error(" allowed_methods: invalid arguments");
            }
         }
-    } if (keyword == "return") {
+    } else if (keyword == "return") {
         // should be validated first
+        if (!current_route.getAllowedMethods().empty() || !current_route.getAlias().empty()
+            || !current_route.getRoot().empty() || current_route.getAutoIndex() == true
+            || !current_route.getCgi().empty() || !current_route.getIndex().empty()) {
+            throw std::runtime_error(" return: can't be mixed up with other keywords");
+        }
         if (params.size() != 2) {
             throw std::runtime_error(" return: invalid arguments");
         }
+        current_route.setRouteIsRedirect(true);
         current_route.setRedirect(stoul(params[0]), params[1]);
-    } if (keyword == "autoindex") {
+    } else if (keyword == "autoindex") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing autoindex and return is not allowed");
+        }
         if (params.size() != 1) {
             throw std::runtime_error(" autoindex: invalid arguments");
         } if (params[0] == "on") {
@@ -33,7 +48,10 @@ void validateLocationParams(route& current_route, const std::string& keyword, co
         } else {
             throw std::runtime_error(" autoindex: invalid arguments");
         }
-    } if (keyword == "root") {
+    } else if (keyword == "root") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing root and return is not allowed");
+        }
         // should be validated first
         if (params.size() != 1) {
             throw std::runtime_error(" root: invalid arguments");
@@ -42,25 +60,39 @@ void validateLocationParams(route& current_route, const std::string& keyword, co
             throw std::runtime_error(" root: mixing root and alias not allowed");
         }
         current_route.setRoot(params[0]);
-    } if (keyword == "cgi") {
+    } else if (keyword == "cgi") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing cgi and return is not allowed");
+        }
         // should be validated first
         if (params.size() != 2) {
             throw std::runtime_error(" cgi: invalid arguments");
         }
         current_route.setCgi(params[0], params[1]);
-    } if (keyword == "alias") {
+    } else if (keyword == "alias") {
+        if (current_route.getRouteIsRedirect() == true) {
+            throw std::runtime_error(" index: mixing alias and return is not allowed");
+        }
         if (params.size() != 1) {
             throw std::runtime_error(" alias: invalid arguments");
         }
         if (!current_route.getRoot().empty()) {
             throw std::runtime_error(" alias: mixing root and alias not allowed");
         }
+        // if (params[0].back() == '/') {
+        //     throw std::runtime_error(" alias: no trailing slash allowed");
+        // }
         current_route.setAlias(params[0]);
+    } else {
+        throw std::runtime_error(" " + keyword + " not allowed in location block");
     }
 }
 
 std::size_t locationPrint(serverConfig& server_config, const std::vector<TOKEN>& tokenList, std::size_t i) {
     if (i < tokenList.size() && tokenList[i].type == PARAM ) {
+        if (tokenList[i].content.front() != '/') {
+            throw std::runtime_error("line: " + std::to_string(tokenList[i].line) + " " + tokenList[i].content + " is not a valid URI pattern for a location");
+        }
         // should be a valid location path
     } else {
         throw std::runtime_error("line: " + std::to_string(tokenList[i].line) + " " + tokenList[i].content + " is not a valid URI pattern for a location");
@@ -127,7 +159,7 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
         }
         server_config.setIP(ip);
         server_config.setPort(std::stoul(port));
-    } if (keyword == "server_name") {
+    } else if (keyword == "server_name") {
         for (const auto& param : params) {
             if (isValidServerName(param)) {
                 server_config.setServerName(param);
@@ -135,7 +167,7 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
                 throw std::runtime_error(" server_name: invalid arguments");
             }
         }
-    } if (keyword == "client_max_body_size") {
+    } else if (keyword == "client_max_body_size") {
         if (params.size() != 1) {
             throw std::runtime_error(" client_max_body_size: invalid arguments");
         }
@@ -144,13 +176,13 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
             throw std::runtime_error(" client_max_body_size: invalid arguments");
         }
         server_config.setClientMaxBodySize(result);
-    } if (keyword == "root") {
+    } else if (keyword == "root") {
         if (params.size() != 1) {
             throw std::runtime_error(" root: invalid arguments");
         }
         // should be validated first
         server_config.setRoot(params[0]);
-    } if (keyword == "error_page") {
+    } else if (keyword == "error_page") {
         if (params.size() < 2) {
             throw std::runtime_error(" error_page: invalid arguments");
         }
@@ -162,7 +194,7 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
             }
             server_config.setErrorPages(errorNbr, params.back());
         }
-    } if (keyword == "timeout") {
+    } else if (keyword == "timeout") {
          if (params.size() != 1) {
              throw std::runtime_error(" timeout: invalid arguments");
          }
@@ -171,56 +203,58 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
              throw std::runtime_error(" timeout: invalid arguments");
          }
          server_config.setTimeout(result);
-    // } if (keyword == "limit_except") {
-    //     for (const auto& option : params) {
-    //         if (option == "GET" || option == "POST" || option == "DELETE") {
-    //             server_config.setLimitsExcept(option);
-    //         } else {
-    //             throw std::runtime_error(" limit_except: invalid arguments");
-    //         }
-    //     }
-    } if (keyword == "index") {
+    } else if (keyword == "index") {
         if (params.size() != 1) {
             throw std::runtime_error(" index: invalid arguments");
         }
         server_config.setIndex(params[0]);
+    } else {
+        throw std::runtime_error(" " + keyword + " not allowed in server block");
     }
 }
+
 
 void update_routes(std::vector<serverConfig>& server_configs) {
    for (auto& server_config : server_configs) {
        auto locations = server_config.getLocation();
        for (auto& [uri, Route] : locations) {
            route& temp = server_config.getRoute(uri);
+           std::string raw_actual_path;
+           if (temp.getRouteIsRedirect() == true) continue;
+           // route without root and alias
            if (server_config.getRoute(uri).getRoot().empty() && server_config.getRoute(uri).getAlias().empty()) {
                std::string serverRoot = server_config.getRoot();
-               // temp.setRoot(server_config.getRoot());
+               if (serverRoot.back() == '/') {
+                   serverRoot.pop_back();
+               }
                temp.setRoot(serverRoot);
-               temp.setActualPath(serverRoot + uri);
+               raw_actual_path = serverRoot + uri;
+               // temp.setActualPath(serverRoot + uri);
+               // route with alias
            } else if (!server_config.getRoute(uri).getAlias().empty()) {
-               temp.setActualPath(server_config.getRoute(uri).getAlias());
+               std::string aliasPath = server_config.getRoute(uri).getAlias();
+               if (aliasPath.back() == '/') {
+                   aliasPath.pop_back();
+               }
+               raw_actual_path = aliasPath;
+               // temp.setActualPath(aliasPath);
+               // route with root
+           } else if(!server_config.getRoute(uri).getRoot().empty()) {
+               std::string routeRoot = server_config.getRoute(uri).getRoot();
+               if (routeRoot.back() == '/') {
+                   routeRoot.pop_back();
+               }
+               raw_actual_path = routeRoot + uri;
+               // temp.setActualPath(routeRoot + uri);
            }
+           if (raw_actual_path.back() != '/') {
+                raw_actual_path.push_back('/');
+           }
+           temp.setActualPath(raw_actual_path);
+           //  route without index - try to get index from server block
            if (server_config.getRoute(uri).getIndex().empty()) {
               temp.setIndex(server_config.getIndex());
            }
-           if (!server_config.getRoute(uri).getRoot().empty()) {
-               temp.setActualPath(server_config.getRoute(uri).getRoot() + uri);
-           }
-           // if (Route.getRoot().empty()) {
-           //    if (!server_config.getRoot().empty()) {
-           //        std::cout << "test root" << std::endl;
-           //        Route.setRoot(server_config.getRoot());
-           //        std::cout << "updated Root: " << Route.getRoot() << std::endl;
-           //    }
-           // }
-           // if (Route.getLimitsExcept().empty()) {
-           //    if (!server_config.getLimitsExcept().empty()) {
-           //        std::vector<std::string> methods = server_config.getLimitsExcept();
-           //        for (const auto& singleMethod : methods) {
-           //          Route.setLimitsExcept(singleMethod);
-           //        }
-           //    }
-           // }
        }
    }
 }
