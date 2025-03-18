@@ -10,7 +10,8 @@
 //     _POSTOption = false;
 //     _root = "configFiles";
 // };
-serverConfig::serverConfig() : _timeout(75) {};
+serverConfig::serverConfig() : _client_max_body_size(10485760),
+                               _timeout(75) {};
 
 serverConfig::~serverConfig() = default;
 
@@ -39,14 +40,19 @@ std::size_t serverConfig::getClientMaxBodySize() const {
 }
 
 
-std::vector<std::string> serverConfig::getLimitsExcept() const {
-    return _limit_except;
-}
+// std::vector<std::string> serverConfig::getLimitsExcept() const {
+//     return _limit_except;
+// }
 
 
 std::string serverConfig::getRoot() const {
     return _root;
 }
+
+std::string serverConfig::getIndex() const {
+    return _index;
+}
+
 
 double serverConfig::getTimeout() const {
     return _timeout;
@@ -59,6 +65,13 @@ double serverConfig::getTimeout() const {
 
 std::unordered_map<std::string, route> serverConfig::getLocation() const {
    return _location;
+}
+route& serverConfig::getRoute(const std::string& Route) {
+    if (_location.find(Route) == _location.end()) {
+        throw std::runtime_error("404 Not Found");
+    }
+    return _location.at(Route);
+   // return it->second;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +92,9 @@ void serverConfig::setServerName(const std::string& serverName) {
 }
 
 void serverConfig::setErrorPages(const std::size_t errorNbr, const std::string &path) {
-    _error_pages[errorNbr] = path;
+    if (_error_pages.find(errorNbr) == _error_pages.end()) {
+        _error_pages[errorNbr] = path;
+    }
 }
 
 void serverConfig::setClientMaxBodySize(std::size_t size) {
@@ -87,13 +102,18 @@ void serverConfig::setClientMaxBodySize(std::size_t size) {
 }
 
 
-void serverConfig::setLimitsExcept(const std::string& option) {
-    _limit_except.push_back(option);
-}
+// void serverConfig::setLimitsExcept(const std::string& option) {
+//     _limit_except.push_back(option);
+// }
 
-void serverConfig::setRoot(const std::string &path) {
+void serverConfig::setRoot(const std::string& path) {
     _root = path;
 }
+
+void serverConfig::setIndex(const std::string& index) {
+    _index = index;
+}
+
 
 void serverConfig::setTimeout(const double value) {
     _timeout = value;
@@ -111,18 +131,25 @@ void serverConfig::printData() {
         std::cout << " " << name;
     }
     std::cout << std::endl;
-    std::cout << "Error Pages:" << std::endl;;
-    for (const auto&[fst, snd] : _error_pages) {
-        std::cout << "  " << fst << " " << snd << std::endl;
+    if (!_error_pages.empty()) {
+        std::cout << "Error Pages:" << std::endl;;
+        for (const auto&[fst, snd] : _error_pages) {
+            std::cout << "  " << fst << " " << snd << std::endl;
+        }
+
     }
+    // std::cout << "Error Pages:" << std::endl;;
+    // for (const auto&[fst, snd] : _error_pages) {
+        // std::cout << "  " << fst << " " << snd << std::endl;
+    // }
     std::cout << "Client max body size: " << _client_max_body_size << " bytes" << std::endl;
     std::cout << "Timeout: " << _timeout << " seconds" <<std::endl;
-    std::cout << "Allowed methods: ";
-    for (const auto& method : _limit_except) {
-        std::cout << " " << method;
+    if (!_root.empty()) {
+        std::cout << "Root: " << _root << std::endl;
     }
-    std::cout << std::endl;
-    std::cout << "Root: " << _root << std::endl;
+    if (!_index.empty()) {
+        std::cout << "Index: " << _index << std::endl;
+    }
     for (const auto& [fst, snd] : _location) {
         std::cout << "Location: " << fst << std::endl;
         std::cout << snd << std::endl;

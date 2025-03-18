@@ -9,6 +9,10 @@ RM := rm -rf
 ################################################################################
 
 OBJ_DIR := _obj
+# INC_DIRS := .
+#INC_DIRS := Includes Includes/Extra Includes/Tests Includes/Config
+# SRC_DIRS := .
+#SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
 INC_DIRS := $(abspath	Includes \
 			Includes/Extra \
@@ -26,7 +30,10 @@ SRC_DIRS := $(abspath	src \
 			src/core \
 			src/http \
 			src/handler \
-			src/utils
+			src/utils \
+			src/Request
+
+
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -40,6 +47,13 @@ HEADERS :=	Log.hpp \
 			printer.hpp \
 			test.hpp \
 			playground.hpp \
+			webserv.hpp \
+			parser.hpp \
+			route.hpp \
+			serverConfig.hpp \
+			token.hpp \
+			validation.hpp \
+			requestParsing.hpp
 			webserv.hpp \
 			Request.hpp \
 			Response.hpp \
@@ -65,6 +79,9 @@ EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 TEST_FILES := test.cpp
 TEST := $(addprefix Tests/, $(TEST_FILES))
 
+DUMMY_REPO_FILES := dummy_file.cpp
+DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
+
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
@@ -85,7 +102,10 @@ CONFIG_DIR_FILES := serverConfig.cpp \
 					token.cpp \
 					parser.cpp \
 					validation.cpp
-CONFIG_DIR := $(addprefix config/, $(CONFIG_DIR_FILES))
+CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
+
+REQUEST_DIR_FILES := requestParsing.cpp
+REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 
 SRC := src_file.cpp
 

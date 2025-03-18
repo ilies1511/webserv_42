@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Welcome to Webserv</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 50px;
+            color: #2ecc71;
+        }
+        p {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            background-color: #3498db;
+            color: #fff;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 60%;
+            margin: 0 auto;
+        }
+        .cta {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Webserv!</h1>
+
+    <div class="cta">
+        <a href="/">homepage</a>
+    </div>
+
+    <div class="cta">
+        <a href="/invalid">invalid</a>
+    </div>
+
+    <div class="cta">
+        <a href="/upload-file">forbidden</a>
+    </div>
+
+    <div class="cta">
+        <a href="/upload">file upload</a>
+    </div>
+
+    <div class="cta">
+        <a href="/old">redirect</a>
+    </div>
+
+</body>
+</html>

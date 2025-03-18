@@ -18,7 +18,7 @@ std::string typeToString(TYPE type) {
 }
 
 std::ostream& operator<<(std::ostream& os, const TOKEN& t) {
-	os << "[" << typeToString(t.type) << ", " << t.content << "]";
+	os << "[" << "line: " << t.line << " " << typeToString(t.type) << ", " << t.content << "]";
     return os;
 }
 
@@ -31,30 +31,32 @@ bool check_keywords(const std::string& keyword) {
 		keyword == "error_page" ||
 		keyword == "autoindex" ||
 		keyword == "index" ||
+		keyword == "alias" ||
 		keyword == "return" ||
-		keyword == "limit_except" ||
+		keyword == "allowed_methods" ||
 		keyword == "timeout" ||
+		keyword == "cgi" ||
 		keyword == "location") {
 		return true;
 		}
 	return false;
 }
 
-void tokenizer(const std::string& word, std::vector<TOKEN>& tokenList) {
+void tokenizer(const std::string& word, std::vector<TOKEN>& tokenList, std::size_t current_line) {
 
 	if (word == ";") {
-		tokenList.push_back({SEMICOLON, word});
+		tokenList.push_back({SEMICOLON, word, current_line});
 	} else if (word == "{") {
-		tokenList.push_back({LBRACE, word});
+		tokenList.push_back({LBRACE, word, current_line});
 	} else  if (word == "}") {
-		tokenList.push_back({RBRACE, word});
+		tokenList.push_back({RBRACE, word, current_line});
 	} else if (check_keywords(word)) {
-		tokenList.push_back({KEYWORD, word});
+		tokenList.push_back({KEYWORD, word, current_line});
 	} else if (word[0] == '#') {
         return ;
 		// std::cout << "COMMENT";
 	} else {
-		tokenList.push_back({PARAM, word});
+		tokenList.push_back({PARAM, word, current_line});
 	}
 }
 
@@ -65,6 +67,7 @@ void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
 		return ;
 	}
 	std::string line;
+	std::size_t	current_line = 1;
 	while (std::getline(file, line)) {
 		std::istringstream stream(line);
 		std::string word;
@@ -75,12 +78,13 @@ void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
 			if (!word.empty() && word.back() == ';') {
 				std::string baseWord = word.substr(0, word.size() - 1);
 				if (word.length() > 1) {
-					tokenizer(baseWord, tokenList);
+					tokenizer(baseWord, tokenList, current_line);
 				}
-				tokenizer(";", tokenList);
+				tokenizer(";", tokenList, current_line);
 			} else {
-				tokenizer(word, tokenList);
+				tokenizer(word, tokenList, current_line);
 			}
 		}
+		current_line++;
 	}
 };
