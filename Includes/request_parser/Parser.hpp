@@ -39,6 +39,7 @@ public:
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
+	bool		parse_body();
 	Request		&&getRequest(void);
 
 	Request		request;

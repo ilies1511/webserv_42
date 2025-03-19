@@ -218,4 +218,19 @@ pollserver:
 
 -include $(OBJS:%.o=%.d)
 
-.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client
+.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client compile_commands.json
+
+
+PWD = $(shell pwd)
+compile_commands.json:
+	@echo '[' > compile_commands.json
+	@$(foreach src, $(SRCS), \
+		echo "\t{" >> compile_commands.json; \
+		echo "\t\t\"directory\": \"$(PWD)\"," >> compile_commands.json; \
+		echo "\t\t\"command\": \"$(CPP) $(CFLAGS) -o $(OBJ_DIR)$$(basename $(src) .cpp).o $(src)\"," >> compile_commands.json; \
+		echo "\t\t\"file\": \"$(src)\"" >> compile_commands.json; \
+		echo "\t}," >> compile_commands.json;)
+	@sed -i '' -e '$$ d' compile_commands.json
+	@echo "\t}" >> compile_commands.json
+	@echo ']' >> compile_commands.json
+	@echo "$(YELLOW) Pseudo compile_commands.json generated $(CLEAR)"
