@@ -8,3 +8,5 @@ src/core/stash_Server.cpp
 webserv
 .idea
 .vscode
+.idea/editor.xml
+.idea/webserv2.iml

@@ -35,8 +35,6 @@ SRC_DIRS := src \
 			src/utils \
 			src/Request
 
-)
-
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
 # Tell the Makefile where headers and source files are
@@ -121,7 +119,6 @@ MELTING_POT :=	$(SRC) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
 				$(REQUEST_DIR) \
-				$(CONFIG_DIR) \
 				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
