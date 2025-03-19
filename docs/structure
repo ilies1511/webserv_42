@@ -32,13 +32,31 @@ Connection::execute_layer2() {
 			if !SOCKET_POLLIN: aka if (_server._pollfds[_server._i].revents & (SOCKET_POLLIN))
 				return
 			input_data = recv();
-			request = parse(input_data);
+			if (!parse_headers) {
+				return
+			}
+			select_configs(); //stand jetzt: halber request fertig, fehlt noch der body -->
+			if (!parse_body(configs)) {
+				return ;
+			}
+			request = parser.get_request();
 			if request->finished:
 				state = EXECUTE
 				return
 			else
 				return;
 		case (EXECUTE): //aka Process
+			process();
+			// in process:
+				// siehe 0, 1
+				if (methode == get)
+					handle_get();
+				else if (methode == POST)
+					handle_post();
+				else if (methode == DELETE)
+					handle_delete();
+
+			//read_fd(Buffer InputBuffer)
 			if request->read_file and !response->file_data: // Kontext: Parsed bzw. fertig eingepflegeter Request z.B bei GET
 				state=READ
 				add_poll_fd(open(request->file))

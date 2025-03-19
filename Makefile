@@ -14,7 +14,7 @@ OBJ_DIR := _obj
 # SRC_DIRS := .
 #SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
-INC_DIRS := $(abspath	Includes \
+INC_DIRS := Includes \
 			Includes/Extra \
 			Includes/Tests \
 			Includes/core \
@@ -23,8 +23,8 @@ INC_DIRS := $(abspath	Includes \
 			Includes/utils \
 			Includes/Config \
 			Includes/StatusCodes \
-			Includes/Request)
-SRC_DIRS := $(abspath	src \
+			Includes/Request
+SRC_DIRS := src \
 			src/Extra \
 			src/Tests \
 			src/playground \
@@ -33,9 +33,9 @@ SRC_DIRS := $(abspath	src \
 			src/http \
 			src/handler \
 			src/utils \
-			src/Request)
+			src/Request
 
-
+)
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -111,8 +111,6 @@ REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 
 SRC := src_file.cpp
 
-
-
 #Combines all
 MELTING_POT :=	$(SRC) \
 				$(EXTRA) \
@@ -123,6 +121,7 @@ MELTING_POT :=	$(SRC) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
 				$(REQUEST_DIR) \
+				$(CONFIG_DIR) \
 				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))

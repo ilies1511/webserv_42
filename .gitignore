@@ -2,3 +2,9 @@
 _obj/
 webserv
 .vscode
+_obj
+src/core/stash_Connection.cpp
+src/core/stash_Server.cpp
+webserv
+.idea
+.vscode

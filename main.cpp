@@ -49,9 +49,6 @@ int	main(void)
 	// 	Server alo("9034");
 	// 	alo.poll_loop(); //MAIN LOOP
 	// }
-	// catch(const std::exception& e)
-	// {
-	// 	printer::LogException(e, __FILE__, __FUNCTION__, __LINE__);
-	// }
+	// printServerConfig(servers);
 	return (0);
 }
