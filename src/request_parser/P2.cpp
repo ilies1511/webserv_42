@@ -194,7 +194,7 @@ bool RequestParser::parse_request_line(void) {
 	}
 	std::smatch match;
 	//std::cout << request_line_pat_str << std::endl;
-	if (!std::regex_search(this->input, match, this->request_line_pat)) {
+	if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		this->setStatus(400);
 		return (true);
@@ -233,8 +233,8 @@ bool RequestParser::parse_request_line(void) {
 	}
 	this->request.version = match.str(6);
 
-	//todo: needs more efficient solution later
-	this->input.erase(0, static_cast<size_t>(match[2].length()));
+	this->pos += match[2].length();
+	//this->input.erase(0, static_cast<size_t>(match[2].length()));
 
 	return (true);
 }
@@ -243,13 +243,14 @@ bool RequestParser::parse_headers(void) {
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
-		if (this->input[0] == '\r' && this->input[1] == '\n') {
+		if (this->input[this-> pos + 0] == '\r' && this->input[this->pos + 1] == '\n') {
 			this->finished_headers = true;
-			this->input.erase(0, 2);
+			this->pos += 2;
+			//this->input.erase(0, 2);
 			//std::cout << "headers terminated\n";
 			return (true);
 		}
-		if (!std::regex_search(this->input, match, this->header_name_pat)) {
+		if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->header_name_pat)) {
 			std::cout << "invalid header name\n";
 			this->setStatus(400);
 			return (true);
@@ -268,13 +269,14 @@ bool RequestParser::parse_headers(void) {
 				return (true);
 			}
 			//todo: only advance if value is finished
-			this->input.erase(0, match[1].length() + 1);
+			this->pos += match[1].length() + 1;
+			//this->input.erase(0, match[1].length() + 1);
 		} else {
 			PARSE_ASSERT(match[2].matched);
 			std::cout << "unfinished request header\n";
 			return (false);
 		}
-		if (!std::regex_search(this->input, match, this->header_value_pat)) {
+		if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->header_value_pat)) {
 			std::cout << "invalid header value\n";
 			this->setStatus(400);
 			return (true);
@@ -284,7 +286,8 @@ bool RequestParser::parse_headers(void) {
 		//}
 		if (match[2].matched) {
 			value = match.str(2);
-			this->input.erase(0, match[1].length());
+			this->pos += match[1].length();
+			//this->input.erase(0, match[1].length());
 		} else {
 			PARSE_ASSERT(match[3].matched);
 			std::cout << "unfinished request header\n";
