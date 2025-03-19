@@ -10,3 +10,14 @@ webserv
 .vscode
 .idea/editor.xml
 .idea/webserv2.iml
+tests.out
+a.out
+server.dSYM/Contents/Resources/DWARF/server
+client
+server
+*.dSYM
+poll
+.idea
+pollserver
+.cache
+compile_commands.json
