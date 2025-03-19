@@ -32,7 +32,7 @@ class Connection
 		Response			_current_response;
 	private:
 		int					_fdConnection;
-		int					_fdFile;
+		int					_fdFile; //TODO: add error_fd
 		ssize_t				sent_bytes;
 		bool				finished_sending;
 	public:

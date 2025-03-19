@@ -164,6 +164,52 @@ void	Connection::execute_layer2(void)
 		// READ_FILE KOENNRE auch eine Sub-State sein.
 		printer::debug_putstr("In Process State", __FILE__, __FUNCTION__, __LINE__);
 
+		/*
+			0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
+			1. Allgemeine Schritte:
+				- Path Variable zusammenbauen --> Config + Request = FilePath
+				- if location is a redirect
+					--> just send 30x + specific Header
+				- Verifizierung ob Methode fuer directory valide, if inavlid assemble_response with appropriate response
+			2. Method Handler:
+				if (request._method  == GET)
+				{
+					handle_get();
+				}
+				- GET-Handler: handle_get();
+					if (dir)
+						if (indexfile_here)
+						{
+							setpath2indexfile();
+						}
+						else if (autoindex_here) {
+
+						}
+						else {
+							error (404);
+						}
+					here: execute_file()
+					if (cgi) {
+						do_cgi
+					}
+					else {
+						do_normalFile //vielleicht damit anfangen
+							if () {
+								_fdFile = open();
+								if (_fdFile)
+									generate_error_response
+							}
+							check if file here (open)
+						READ_FILE STATE
+						return ;
+					}
+
+				- POST-Handler: handle_POST();
+
+		*/
+
+		_current_response.process_request(this->request);
+
 		if (request.readFile && !(this->_current_response.FileData))
 		{
 			_current_response.process_request(this->request);
