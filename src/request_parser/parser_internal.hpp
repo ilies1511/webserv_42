@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Parser.hpp"
+#include "../../Includes/request_parser/RequestParser.hpp"
 
 #define PARSE_ASSERT(cond) parse_assertion_exec(cond, #cond, __FILE__, __LINE__, __FUNCTION__)
 

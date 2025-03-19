@@ -1,4 +1,4 @@
-#include <RequestParser.hpp>
+#include "../../Includes/request_parser/RequestParser.hpp"
 #include "parser_internal.hpp"
 
 /* for later TODO:
@@ -187,6 +187,9 @@ bool RequestParser::parse_uri(void) {
 }
 
 bool RequestParser::parse_request_line(void) {
+	if (this->request.version.has_value()) {
+		return (true);
+	}
 	std::smatch match;
 	//std::cout << request_line_pat_str << std::endl;
 	if (!std::regex_match(this->input, match, this->request_line_pat)) {
@@ -257,6 +260,11 @@ bool RequestParser::parse_headers(void) {
 		std::string value;
 		if (match[1].matched) {
 			key = match.str(1);
+			if (std::isspace(key.back())) {
+				std::cout << "Header name can not end with whitespace!\n";
+				this->setStatus(400);
+				return (true);
+			}
 			//todo: only advance if value is finished
 			this->input.erase(0, match[1].length() + 1);
 		} else {
@@ -284,12 +292,16 @@ bool RequestParser::parse_headers(void) {
 	}
 }
 
+//bool parse_body(const serverConfig &config) {
+//	return (true);
+//}
+
 Request &&RequestParser::getRequest(void) {
 	return (std::move(this->request));
 }
-/*
+
 const char *dummy_input =
-"GET example.com:443 HTTP/1.1\r\n"
+"POST example.com:443 HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
@@ -312,4 +324,3 @@ int main(void) {
 	re = p.getRequest();
 	std::cout << re;
 }
-*/
