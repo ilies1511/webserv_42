@@ -1,15 +1,5 @@
-#include <istream>
-#include <string>
-#include <optional>
-#include <unordered_map>
-#include <regex>
-#include <iostream>
-#include <cassert>
-#include <sstream>
-#include <fstream>
-#include <sys/stat.h>
-#include <ctime>
-
+#include "Parser.hpp"
+#include "parser_internal.hpp"
 
 /* for later TODO:
  * make code efficient
@@ -52,35 +42,6 @@ section 3.2: "A client MUST send a Host header field (Section 7.2 of [HTTP]) in 
 A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field line or a Host header field with an invalid field value."
 
 */
-#ifndef REQUEST_LINE_MAX
-//https://httpwg.org/specs/rfc9112.html#message.format '3. Request Line':
-//'It is RECOMMENDED that all HTTP senders and recipients support, at a
-//minimum, request-line lengths of 8000 octets'
-# define REQUEST_LINE_MAX 8000 //if it's longer than this give a 501
-#endif // REQUEST_LINE_MAX
-
-#ifndef URI_MAX
-# define URI_MAX //give a 414
-#endif // URI_MAX
-
-typedef struct Uri {
-	std::string	full;
-	std::string	authority;
-	std::string	host;
-	std::string	port;
-	std::string	path;
-	std::string	query;
-} uri;
-
-typedef struct Request {
-	std::optional<std::string>						method = std::nullopt;
-	std::optional<Uri>								uri = std::nullopt;
-	std::optional<std::string>						version = std::nullopt;
-	std::unordered_map<std::string, std::string>	headers;
-	std::string										body;
-	std::optional<int>								status_code = std::nullopt;
-} Request;
-
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI.full: " << uri.full << "\n";
@@ -92,16 +53,6 @@ std::ostream& operator<<(std::ostream& output, Uri uri) {
 	return (output);
 };
 
-template<class T>
-static std::ostream& operator<<(std::ostream& output, std::optional<T> val) {
-	if (val.has_value()) {
-		output << *val;
-	} else {
-		output << "No value";
-	}
-	return (output);
-}
-
 std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Method: " << request.method << "\n";
 	output << "URI: " << request.uri << "\n";
@@ -112,38 +63,12 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	}
 	output << "Body: " << request.body << "\n";
 	output << "Stutus code: " << request.status_code << "\n";
-
 	return (output);
 }
 
-class Parser {
-public:
-				Parser(void) = delete;
-				Parser(std::string &input);
-				~Parser();
-	bool		parse_request_line(void);
-	bool		parse_uri(void);
-	bool		parse_headers(void);
-	Request		&&getRequest(void);
-
-	Request		request;
-	std::string &input;
-private:
-
-	void	setStatus(int status);
-	bool	finished_request_line = false;
-	bool	finished_headers = false;
-	bool	finished = false;
-
-	size_t		pos;
-	const static std::regex	request_line_pat;
-	const static std::regex	uri_pat;
-	const static std::regex	header_name_pat;
-	const static std::regex	header_value_pat;
-};
-
+// only called via macro PARSE_ASSERT
 //todo: add some hexdump of input since \r makes it hard to understand
-bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond, const char *file, const int line, const char *fn_str) {
+bool Parser::parse_assertion_exec(bool cond, const char *str_cond, const char *file, const int line, const char *fn_str) {
 	if (cond) {
 		return (cond);
 	}
@@ -166,9 +91,9 @@ bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond,
 	time_stamp.resize(time_len);
 	time_stamp += "\n";
 
-	std::string cur_input = parser.input;
+	std::string cur_input = this->input;
 	std::stringstream request_stream;
-	request_stream << parser.request;
+	request_stream << this->request;
 	std::string cur_request = request_stream.str();
 	std::string log_body;
 	log_body += "Parser assertion in file " + std::string(file) + " line "
@@ -197,36 +122,14 @@ bool parse_assertion_exec(bool cond, const Parser &parser, const char *str_cond,
 	return (cond);
 }
 
-// only use within parser class
-#define PARSE_ASSERT(cond) parse_assertion_exec(cond, *this, #cond, __FILE__, __LINE__, __FUNCTION__)
-
-
-//const std::regex Parser::request_line_pat(R"((^GET|^POST|^DELETE) ([.]+)(\d+\.\d+)\r$)");
-
 const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?)([\\s\\S]*)?)";
 const std::regex Parser::request_line_pat(request_line_pat_str);
-
-#define PATH "(\\/(?:[^S\\/\\?\\#]+\\/?)+)"//todo: currently the path can have anything that is not space, '?' or '#'
-#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
-#define URI_TERM "(?:(?:\\#\\S*)|$)" // either end of uri or # folloed by some non whitespace
-
-#define ORIGIN_FORM "(" PATH QUERY "?" URI_TERM ")"
-
-#define HOST "([\\w\\.]+)"
-#define PORT "([1-9]\\d{0,3})"
-
-#define AUTHORITY_FORM "(" HOST ":" PORT ")"
-
-#define ABSOLUTE_FORM "(http\\:\\/\\/" AUTHORITY_FORM ORIGIN_FORM ")"
-
-//ASTERISK_FORM : not implemented
 
 const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
 const std::regex Parser::uri_pat(uri_pat_str);
 
 // field name: either a valid or an unfinished name
-#define FIELD_NAME "(?:(?:([^\\:\n]+)\\:(?:[\\s\\S]*))|([^\\:\n]*$))"
-#define FIELD_VALUE "(?:(?:([ \t\f\v]*([^\r\n]+)\r\n)[\\s\\S]*)|([ \t\f\v]*[^\r\n]*\r?$))"
+
 const std::regex Parser::header_name_pat(FIELD_NAME);
 const std::regex Parser::header_value_pat(FIELD_VALUE);
 
@@ -338,7 +241,7 @@ bool Parser::parse_headers(void) {
 		if (this->input[0] == '\r' && this->input[1] == '\n') {
 			this->finished_headers = true;
 			this->input.erase(0, 2);
-			std::cout << "headers terminated\n";
+			//std::cout << "headers terminated\n";
 			return (true);
 		}
 		if (!std::regex_match(this->input, match, this->header_name_pat)) {
@@ -385,6 +288,7 @@ Request &&Parser::getRequest(void) {
 	return (std::move(this->request));
 }
 
+/*
 const char *dummy_input =
 "GET example.com:443 HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
@@ -409,3 +313,4 @@ int main(void) {
 	re = p.getRequest();
 	std::cout << re;
 }
+*/
