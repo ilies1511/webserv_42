@@ -1,4 +1,4 @@
-#include <Parser.hpp>
+#include <RequestParser.hpp>
 #include "parser_internal.hpp"
 
 /* for later TODO:
@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 
 // only called via macro PARSE_ASSERT
 //todo: add some hexdump of input since \r makes it hard to understand
-bool Parser::parse_assertion_exec(bool cond, const char *str_cond, const char *file, const int line, const char *fn_str) {
+bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const char *file, const int line, const char *fn_str) {
 	if (cond) {
 		return (cond);
 	}
@@ -96,7 +96,7 @@ bool Parser::parse_assertion_exec(bool cond, const char *str_cond, const char *f
 	request_stream << this->request;
 	std::string cur_request = request_stream.str();
 	std::string log_body;
-	log_body += "Parser assertion in file " + std::string(file) + " line "
+	log_body += "RequestParser assertion in file " + std::string(file) + " line "
 		+ std::to_string(line) + "(function '" + fn_str + "')!\n";
 	log_body += std::string("Assert condion: '(") + std::string(str_cond) + ")'\n";
 	log_body += "------------";
@@ -123,33 +123,33 @@ bool Parser::parse_assertion_exec(bool cond, const char *str_cond, const char *f
 }
 
 const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?)([\\s\\S]*)?)";
-const std::regex Parser::request_line_pat(request_line_pat_str);
+const std::regex RequestParser::request_line_pat(request_line_pat_str);
 
 const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
-const std::regex Parser::uri_pat(uri_pat_str);
+const std::regex RequestParser::uri_pat(uri_pat_str);
 
 // field name: either a valid or an unfinished name
 
-const std::regex Parser::header_name_pat(FIELD_NAME);
-const std::regex Parser::header_value_pat(FIELD_VALUE);
+const std::regex RequestParser::header_name_pat(FIELD_NAME);
+const std::regex RequestParser::header_value_pat(FIELD_VALUE);
 
-void Parser::setStatus(int status) {
+void RequestParser::setStatus(int status) {
 	this->finished_request_line = true;
 	this->finished_headers = true;
 	this->finished = true;
 	this->request.status_code = status;
 }
 
-Parser::Parser(std::string& input):
+RequestParser::RequestParser(std::string& input):
 	input(input),
 	pos(0)
 {
 }
 
-Parser::~Parser(void){
+RequestParser::~RequestParser(void){
 }
 
-bool Parser::parse_uri(void) {
+bool RequestParser::parse_uri(void) {
 	//std::cout << uri_pat_str << std::endl;
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
@@ -186,7 +186,7 @@ bool Parser::parse_uri(void) {
 	return (true);
 }
 
-bool Parser::parse_request_line(void) {
+bool RequestParser::parse_request_line(void) {
 	std::smatch match;
 	//std::cout << request_line_pat_str << std::endl;
 	if (!std::regex_match(this->input, match, this->request_line_pat)) {
@@ -234,7 +234,7 @@ bool Parser::parse_request_line(void) {
 	return (true);
 }
 
-bool Parser::parse_headers(void) {
+bool RequestParser::parse_headers(void) {
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
@@ -284,7 +284,7 @@ bool Parser::parse_headers(void) {
 	}
 }
 
-Request &&Parser::getRequest(void) {
+Request &&RequestParser::getRequest(void) {
 	return (std::move(this->request));
 }
 /*
@@ -300,7 +300,7 @@ const char *dummy_input =
 
 int main(void) {
 	std::string input(dummy_input);
-	Parser p(input);
+	RequestParser p(input);
 	Request re;
 	if (p.parse_request_line()) {
 		if (p.parse_headers()) {

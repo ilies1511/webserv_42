@@ -23,7 +23,9 @@ INC_DIRS := Includes \
 			Includes/utils \
 			Includes/Config \
 			Includes/StatusCodes \
-			Includes/Request
+			Includes/Request \
+			Includes/request_parser
+
 SRC_DIRS := src \
 			src/Extra \
 			src/Tests \
@@ -33,7 +35,8 @@ SRC_DIRS := src \
 			src/http \
 			src/handler \
 			src/utils \
-			src/Request
+			src/Request \
+			src/request_parser
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -59,6 +62,7 @@ HEADERS :=	Log.hpp \
 			Response.hpp \
 			Connection.hpp \
 			HTTP_Parser.hpp \
+			RequestParser.hpp \
 			Buffer.hpp
 
 HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))

@@ -31,11 +31,11 @@ typedef struct Request {
 	std::optional<int>								status_code = std::nullopt;
 } Request;
 
-class Parser {
+class RequestParser {
 public:
-				Parser(void) = delete;
-				Parser(std::string &input);
-				~Parser();
+				RequestParser(void) = delete;
+				RequestParser(std::string &input);
+				~RequestParser();
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
