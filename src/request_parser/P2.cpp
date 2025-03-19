@@ -122,7 +122,9 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 	return (cond);
 }
 
-const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?)([\\s\\S]*)?)";
+//todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
+//example: "GET /abc"
+const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?))";
 const std::regex RequestParser::request_line_pat(request_line_pat_str);
 
 const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
@@ -192,14 +194,14 @@ bool RequestParser::parse_request_line(void) {
 	}
 	std::smatch match;
 	//std::cout << request_line_pat_str << std::endl;
-	if (!std::regex_match(this->input, match, this->request_line_pat)) {
+	if (!std::regex_search(this->input, match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		this->setStatus(400);
 		return (true);
 	}
-	//for (size_t i = 0; i < match.size(); i++) {
-	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-	//}
+	for (size_t i = 0; i < match.size(); i++) {
+		std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	}
 	if (match[4].matched) {
 		PARSE_ASSERT(!match[3].matched);
 		std::cout << "Invalid method\n";
@@ -247,7 +249,7 @@ bool RequestParser::parse_headers(void) {
 			//std::cout << "headers terminated\n";
 			return (true);
 		}
-		if (!std::regex_match(this->input, match, this->header_name_pat)) {
+		if (!std::regex_search(this->input, match, this->header_name_pat)) {
 			std::cout << "invalid header name\n";
 			this->setStatus(400);
 			return (true);
@@ -272,7 +274,7 @@ bool RequestParser::parse_headers(void) {
 			std::cout << "unfinished request header\n";
 			return (false);
 		}
-		if (!std::regex_match(this->input, match, this->header_value_pat)) {
+		if (!std::regex_search(this->input, match, this->header_value_pat)) {
 			std::cout << "invalid header value\n";
 			this->setStatus(400);
 			return (true);
@@ -301,7 +303,7 @@ Request &&RequestParser::getRequest(void) {
 }
 
 const char *dummy_input =
-"POST example.com:443 HTTP/1.1\r\n"
+"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n"
 "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"

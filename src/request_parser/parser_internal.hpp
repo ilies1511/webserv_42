@@ -31,8 +31,8 @@
 #define ABSOLUTE_FORM "(http\\:\\/\\/" AUTHORITY_FORM ORIGIN_FORM ")"
 
 // header patterns
-#define FIELD_NAME "(?:(?:([^\\:\n]+)\\:(?:[\\s\\S]*))|([^\\:\n]*$))"
-#define FIELD_VALUE "(?:(?:([ \t\f\v]*([^\r\n]+)\r\n)[\\s\\S]*)|([ \t\f\v]*[^\r\n]*\r?$))"
+#define FIELD_NAME "(?:^(?:([^\\:\\s][^\\:\n]+)\\:)|^([^\\:\n]*$))"
+#define FIELD_VALUE "(?:^(?:([ \t\f\v]*([^\r\n]+)\r\n))|^([ \t\f\v]*[^\r\n]*\r?$))"
 
 //ASTERISK_FORM : not implemented
 
