@@ -4,7 +4,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-#include "StaticFileHandler.hpp"
+// #include "StaticFileHandler.hpp"
 #include <map>
 
 Connection::Connection(int fd, Server &server)
@@ -164,6 +164,7 @@ void	Connection::execute_layer2(void)
 		// READ_FILE KOENNRE auch eine Sub-State sein.
 		printer::debug_putstr("In Process State", __FILE__, __FUNCTION__, __LINE__);
 
+		entry_process();
 		/*
 			0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
 			1. Allgemeine Schritte:
@@ -193,7 +194,7 @@ void	Connection::execute_layer2(void)
 						do_cgi
 					}
 					else {
-						do_normalFile //vielleicht damit anfangen
+						do_normalFile //vielleicht damit anfangen --> 	if (request.readFile && !(this->_current_response.FileData))
 							if () {
 								_fdFile = open();
 								if (_fdFile)

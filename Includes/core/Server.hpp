@@ -20,6 +20,14 @@
 
 #define TIMEOUT 1000
 
+/*
+	TODO: IServer {
+			fromServer
+			fromENV
+		}
+		builderPattern --> server with port, with config, server with parser, server with middleware
+*/
+
 class Server
 {
 	public:
