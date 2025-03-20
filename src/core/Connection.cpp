@@ -41,7 +41,6 @@ void	Connection::execute_layer2(void)
 		printf("pollserver: socket %d hung up\n", this->_fdConnection);
 		std::cout << coloring("INIT Check: Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
-		// _server.ft_closeNclean(_fdConnection);
 		return ;
 	}
 

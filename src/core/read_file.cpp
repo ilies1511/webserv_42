@@ -65,7 +65,6 @@ void	Connection::read_file(void)
 	{
 		//TODO: file not fully read
 		printer::debug_putstr("bytes_read > 0 Case PRE SEND", __FILE__, __FUNCTION__, __LINE__);
-		// _state = State::SEND;
 		_state = _next_state;
 		_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
 		//TODO: improve Case is not fully read --> go Back to process and reread again until end of file

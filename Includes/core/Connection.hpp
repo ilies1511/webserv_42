@@ -104,8 +104,8 @@ class Connection
 		bool	check_revent(int &fd, short rrevent);
 		void	ft_closeNcleanRoot(int &fd);
 		void	print_request_data(Request &request);
-		bool	prepare_fdFile(void);
-		bool	prepare_ErrorFile(void);
+		void	prepare_fdFile(void);
+		void	prepare_ErrorFile(void);
 		// void	assemble_response(Response &response);
 		void	assemble_response(void);
 		void	assemble_response2(void);
@@ -120,7 +120,6 @@ class Connection
 		void	send_data(void);
 		void	connection_process(void);
 		void	recv_data(void);
-		void	get_file(void);
 	//Methodes -- END
 };
 

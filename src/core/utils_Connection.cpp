@@ -75,16 +75,14 @@ void	Connection::print_request_data(Request &request)
 					<< "\n";
 }
 
-bool	Connection::prepare_fdFile(void)
+void	Connection::prepare_fdFile(void)
 {
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
+		prepare_ErrorFile();
 		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
-		// exit (1);
-		//TODO: Error Handling
-		assert (0);
-		return (false);
+		return ;
 	}
 	else {
 		_state = State::READ_FILE;
@@ -95,32 +93,14 @@ bool	Connection::prepare_fdFile(void)
 		new_fd.events = POLLIN;
 		new_fd.revents = 0;
 		this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
-		return (true);
+		return ;
 	}
-
-	//Davor war folgender Block im READ_FILE State
-	// _fdFile = open("html/index.html", O_RDONLY | O_NONBLOCK);
-	// if (_fdFile < 0)
-	// {
-	// 	printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
-	// 	exit (1);
-	// 	//Error Handling
-	// }
-	// else {
-	// 	printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
-	// 	struct pollfd	new_fd;
-	// 	new_fd.fd = _fdFile;
-	// 	new_fd.events = POLLIN;
-	// 	new_fd.revents = 0;
-	// 	this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
-	// }
-
 }
 
 /*
 	TODO: take as param error Code
 */
-bool	Connection::prepare_ErrorFile(void)
+void	Connection::prepare_ErrorFile(void)
 {
 	_fdFile = open("html/error.html", O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
@@ -128,7 +108,7 @@ bool	Connection::prepare_ErrorFile(void)
 		// TODO: spaeter
 		printer::debug_putstr("In open error.html failed", __FILE__, __FUNCTION__, __LINE__);
 		generate_internal_server_error_response();
-		return (false);
+		return ;
 	}
 	printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
 	struct pollfd	new_fd;
@@ -141,7 +121,7 @@ bool	Connection::prepare_ErrorFile(void)
 	_current_response.headers["Connection"] = "close";
 	_state = State::READ_FILE;
 	_next_state = State::ASSEMBLE;
-	return (true);
+	return ;
 }
 
 // void	Connection::assemble_response2(Response &response)
@@ -187,6 +167,7 @@ void Connection::assemble_response2(void)
 
 void	Connection::generate_internal_server_error_response(void)
 {
+	_current_response.headers.clear();
 	_current_response.http_version = "HTTP/1.1";
 	_current_response.status_code = "500";
 	_current_response.headers["Content-Type"] = "text/html";

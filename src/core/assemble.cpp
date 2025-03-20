@@ -21,7 +21,6 @@ void Connection::assemble_response()
 		_current_response.headers["Content-Length"] = \
 		std::to_string(this->_current_response.file_data.size());
 	}
-
 	if (reason.empty()) {
 		const std::map<std::string, std::string> default_status_texts = {
 			{"200", "OK"},
@@ -35,27 +34,20 @@ void Connection::assemble_response()
 			reason = it->second;
 		}
 	}
-
 	// Assemble status line (HTTP-Version, Statuscode, Reason-Phrase)
 	std::string assembled_response =	_current_response.http_version + " " +
 										_current_response.status_code + " " +
 										reason + "\r\n";
-
 	// Alle Header durchlaufen und hinzufügen
 	for (const auto &header : _current_response.headers) {
 		assembled_response += header.first + ": " + header.second + "\r\n";
 	}
-
 	//Add line
 	assembled_response += "\r\n";
-
 	//Append file_data
 	assembled_response += _current_response.file_data;
-
 	// FF - FInohed Fusion
 	_current_response.response_inzemaking = assembled_response;
-
-
 	//Change State to send, since by now, the reponse should be done here
 	_state = State::SEND;
 }
