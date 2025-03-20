@@ -36,7 +36,7 @@ class Connection
 		ssize_t				sent_bytes;
 		bool				finished_sending;
 	public:
-		Buffer				_InputBuffer; // Dieser Buffer wird fuer read() bzw. recv() verwendet
+		Buffer				_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
 		//TODO:
 		// int					_fdWrite;
@@ -97,6 +97,11 @@ class Connection
 		void	assemble_response(void);
 		void	assemble_response2(void);
 		void	generate_internal_server_error_response(void);
+		void	entry_process(void);
+		void	methode_handler(void);
+		void	handle_get(void);
+		void	handle_post(void);
+		void	handle_delete(void);
 	//Methodes -- END
 };
 
