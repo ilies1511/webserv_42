@@ -102,6 +102,11 @@ class Connection
 		void	handle_get(void);
 		void	handle_post(void);
 		void	handle_delete(void);
+		void	read_file(void);
+		void	write_file(void);
+		void	send_data(void);
+		void	connection_process(void);
+		void	recv_data(void);
 	//Methodes -- END
 };
 

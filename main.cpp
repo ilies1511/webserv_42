@@ -8,7 +8,6 @@
 // 	return test;
 // }
 
-
 int	main(void)
 {
 
