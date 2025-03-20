@@ -9,9 +9,11 @@
 
 Connection::Connection(int fd, Server &server)
 	:	_state{State::RECV},
+		_next_state{State::RECV},
 		_server(server),
 		request{},
 		_current_response{},
+		_system_path("html/index.html"),
 		_fdConnection(fd),
 		_fdFile(-1),
 		sent_bytes(0),
@@ -56,7 +58,13 @@ void	Connection::execute_layer2(void)
 		}
 		case State::PROCESS:
 		{
-			connection_process();
+			// connection_process();
+			entry_process();
+			return ;
+		}
+		case State::ASSEMBLE:
+		{
+			assemble_response();
 			return ;
 		}
 		case State::READ_FILE:

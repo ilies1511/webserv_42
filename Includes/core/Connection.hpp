@@ -24,12 +24,25 @@ class Connection
 {
 	public:
 		// enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
-		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND};
+		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND, ASSEMBLE};
+		static std::string to_string(State state) {
+			switch (state) {
+				case State::RECV: return "RECV";
+				case State::PROCESS: return "PROCESS";
+				case State::READ_FILE: return "READ_FILE";
+				case State::WRITE: return "WRITE";
+				case State::SEND: return "SEND";
+				case State::ASSEMBLE: return "ASSEMBLE";
+				default: return "UNKNOWN";
+			}
+		}
 		State				_state;
+		State				_next_state;
 		Server&				_server;
 		Request				request;
 		Parser				parser;
 		Response			_current_response;
+		std::string			_system_path;
 	private:
 		int					_fdConnection;
 		int					_fdFile; //TODO: add error_fd
@@ -107,6 +120,7 @@ class Connection
 		void	send_data(void);
 		void	connection_process(void);
 		void	recv_data(void);
+		void	get_file(void);
 	//Methodes -- END
 };
 

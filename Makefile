@@ -83,9 +83,6 @@ EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 TEST_FILES := test.cpp
 TEST := $(addprefix Tests/, $(TEST_FILES))
 
-DUMMY_REPO_FILES := dummy_file.cpp
-DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
-
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
@@ -93,6 +90,10 @@ CORE_REPO_FILES :=	Server.cpp \
 					Connection.cpp \
 					utils_Connection.cpp \
 					process.cpp \
+					assemble.cpp \
+					read_file.cpp \
+					write_file.cpp \
+					send_data.cpp \
 					recv.cpp
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 

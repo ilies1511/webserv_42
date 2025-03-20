@@ -59,7 +59,7 @@ Request Parser::entry_parse(Buffer &InputBuffer, Request &filled_request)
 			TODO:Errro-Case for failed request_line();
 		*/
 	}
-	filled_request._method = "Aloooo";
+	filled_request._method = "GET";
 	filled_request._uri = "/index.html";
 	filled_request._version = "HTTP/1.1";
 	filled_request._body = "";
