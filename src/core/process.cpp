@@ -7,6 +7,127 @@
 #include "StaticFileHandler.hpp"
 #include <map>
 
+void	Connection::handle_delete(void)
+{}
+
+void	Connection::handle_post(void)
+{}
+
+void	Connection::handle_get(void)
+{
+	/*
+		if (dir)
+		if (indexfile_here)
+		{
+			setpath2indexfile();
+		}
+		else if (autoindex_here) {
+
+		}
+		else {
+			error (404);
+		}
+		here: execute_file()
+		if (cgi) {
+			do_cgi
+		}
+		else {
+			do_normalFile //vielleicht damit anfangen
+				if () {
+					_fdFile = open();
+					if (_fdFile)
+						generate_error_response
+				}
+				check if file here (open)
+			READ_FILE STATE
+			return ;
+		}
+	*/
+}
+
+void	Connection::methode_handler(void)
+{
+	if (this->request._method == "GET")
+	{
+		handle_get();
+	}
+	else if (this->request._method == "POST")
+	{
+		handle_post();
+	}
+	else if (this->request._method == "DELETE")
+	{
+		handle_delete();
+	}
+	else {
+		//TODO: handle error for wrong methode
+	}
+}
+
+void	Connection::entry_process(void)
+{
+	/*
+			0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
+			1. Allgemeine Schritte:
+				- Path Variable zusammenbauen --> Config + Request = FilePath
+				- if location is a redirect
+					--> just send 30x + specific Header
+				- Verifizierung ob Methode fuer directory valide, if inavlid assemble_response with appropriate response
+			2. Method Handler:
+				if (request._method  == GET)
+				{
+					handle_get();
+				}
+				- GET-Handler: handle_get();
+					if (dir)
+						if (indexfile_here)
+						{
+							setpath2indexfile();
+						}
+						else if (autoindex_here) {
+
+						}
+						else {
+							error (404);
+						}
+					here: execute_file()
+					if (cgi) {
+						do_cgi
+					}
+					else {
+						do_normalFile //vielleicht damit anfangen
+							if () {
+								_fdFile = open();
+								if (_fdFile)
+									generate_error_response
+							}
+							check if file here (open)
+						READ_FILE STATE
+						return ;
+					}
+
+				- POST-Handler: handle_POST();
+
+		*/
+
+	/*
+	TODO: PART 1
+		0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
+		1. Allgemeine Schritte:
+			- Path Variable zusammenbauen --> Config + Request = FilePath
+			- if location is a redirect
+				--> just send 30x + specific Header
+			- Verifizierung ob Meth
+	*/
+
+	/*
+		PART 2:
+			methode_handler()
+	*/
+	this->methode_handler();
+	return ;
+}
+
 void	Connection::connection_process(void)
 {
 	std::cout << "Straight outta RECV\n";
