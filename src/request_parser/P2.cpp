@@ -372,7 +372,7 @@ bool RequestParser::parse_body(int max_body_len) {
 Request &&RequestParser::getRequest(void) {
 	return (std::move(this->request));
 }
-
+/*
 const char *dummy_input =
 "POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
@@ -403,3 +403,4 @@ int main(void) {
 	re = p.getRequest();
 	std::cout << re;
 }
+*/
