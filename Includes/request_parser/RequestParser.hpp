@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <ctime>
+//#include <serverConfig.hpp>
 
 
 typedef struct Uri {
@@ -27,7 +28,7 @@ typedef struct Request {
 	std::optional<Uri>								uri = std::nullopt;
 	std::optional<std::string>						version = std::nullopt;
 	std::unordered_map<std::string, std::string>	headers;
-	std::string										body;
+	std::optional<std::string>						body = std::nullopt;
 	std::optional<int>								status_code = std::nullopt;
 } Request;
 
@@ -39,7 +40,7 @@ public:
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
-	bool		parse_body();
+	bool		parse_body(int max_body_len);
 	Request		&&getRequest(void);
 
 	Request		request;
@@ -51,12 +52,14 @@ private:
 	bool	finished_headers = false;
 	bool	finished = false;
 
-	size_t		pos;
+	long					pos;
 	const static std::regex	request_line_pat;
 	const static std::regex	uri_pat;
 	const static std::regex	header_name_pat;
 	const static std::regex	header_value_pat;
 	/*only called by a macro */
+
+	bool	parse_not_encoded_body(int max_body_len);
 	bool	parse_assertion_exec(bool cond, const char *str_cond,
 						const char *file, const int line, const char *fn_str);
 };

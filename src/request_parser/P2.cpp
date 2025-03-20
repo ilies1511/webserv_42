@@ -199,9 +199,9 @@ bool RequestParser::parse_request_line(void) {
 		this->setStatus(400);
 		return (true);
 	}
-	for (size_t i = 0; i < match.size(); i++) {
-		std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-	}
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	//}
 	if (match[4].matched) {
 		PARSE_ASSERT(!match[3].matched);
 		std::cout << "Invalid method\n";
@@ -268,6 +268,9 @@ bool RequestParser::parse_headers(void) {
 				this->setStatus(400);
 				return (true);
 			}
+			// todo: https://httpwg.org/specs/rfc9112.html#message.format sectio 6.1 end:
+			// understand what to do if http version is 1.0 here
+			std::transform(key.begin(), key.end(), key.begin(), [](char c) { return (std::tolower(c));});
 			//todo: only advance if value is finished
 			this->pos += match[1].length() + 1;
 			//this->input.erase(0, match[1].length() + 1);
@@ -297,22 +300,89 @@ bool RequestParser::parse_headers(void) {
 	}
 }
 
-//bool parse_body(const serverConfig &config) {
-//	return (true);
-//}
+bool RequestParser::parse_not_encoded_body(int max_body_len) {
+	int body_len;
+	const std::string &body_len_str = this->request.headers["content-length"];
+
+	const static std::regex body_len_pat(R"(^[ \t\v\f]*\d+[ \t\v\f]*$)");
+	if (!std::regex_match(body_len_str, body_len_pat)) {
+		this->setStatus(400);
+		std::cout << "invalid body len: " << body_len_str << std::endl;
+		return (true);
+	}
+	try {
+		body_len = std::stoi(body_len_str);
+	} catch (const std::invalid_argument &e) {
+		this->setStatus(400);
+		std::cout << "invalid body len: " << body_len_str << std::endl;
+		return (true);
+	} catch (const std::out_of_range &e) {
+		this->setStatus(400);
+		std::cout << "invalid body len: " << body_len_str << std::endl;
+		return (true);
+	}
+	//if (body_len < 0) {
+	//	this->setStatus(400);
+	//	std::cout << "invalid body len: " << body_len_str << std::endl;
+	//	return (true);
+	//}
+	std::cout << "not encoded, body len: " << body_len << std::endl;
+	if (max_body_len < body_len) {
+		std::cout << "invalid body len: " << body_len_str << "max body len: " << max_body_len << std::endl;
+		this->setStatus(413);
+		return (true);
+	}
+	if (this->input.length() - static_cast<size_t>(this->pos) >= static_cast<size_t>(body_len)) {
+		this->request.body = this->input.substr(static_cast<size_t>(this->pos), static_cast<size_t>(body_len));
+		std::cout << "parsed un encoded body\n";
+		return (true);
+	}
+	return (false);
+}
+
+// call this after verifying that there is a body by this rule:
+//https://httpwg.org/specs/rfc9112.html#line.folding  section 6 (Message Body (introduction text))
+//todo: check research ifrequests with a body and a method that does not have a body should be rejected
+bool RequestParser::parse_body(int max_body_len) {
+	if (this->request.body.has_value()) {
+		return (true);
+	}
+	if (this->request.headers.find("transfer-encoding") != this->request.headers.end()) {
+		std::string encoding = this->request.headers["transfer-encoding"];
+		std::transform(encoding.begin(), encoding.end(), encoding.begin(), [](char c){return (std::tolower(c));});
+		std::cout << "encoding: " << encoding << std::endl;
+		if (this->request.headers.find("content-length") != this->request.headers.end()) {
+			std::cout << "rejecting request since content-length and encoding was found\n";
+			this->setStatus(400);
+			return (true);
+		}
+		//1. parse encodings
+		//2. check for unsupported encodings (so anything not 'chunked') and give a 501 if any unknows
+		//placeholder return(true)
+		return (true);
+	} else if (this->request.headers.find("content-length") != this->request.headers.end()) {
+		return (this->parse_not_encoded_body(max_body_len));
+	} else {
+		std::cout << "no body\n";
+		// no body
+		return (true);
+	}
+}
 
 Request &&RequestParser::getRequest(void) {
 	return (std::move(this->request));
 }
 
 const char *dummy_input =
-"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n"
-"Host: www.example.re\r\n"
+"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
 "Accept-Language: en-US, en; q=0.5\r\n"
 "Accept-Encoding: gzip, deflate\r\n"
+"content-length:   10\r\n"
+//"Transfer-Encoding: chunked\r\n"
 "\r\n"
+"1234567890"
 ;
 
 int main(void) {
@@ -321,8 +391,12 @@ int main(void) {
 	Request re;
 	if (p.parse_request_line()) {
 		if (p.parse_headers()) {
-			// save to get request here
-			//re = p.getRequest();
+			// in real webserv would select config here
+			// 100 is a placeholder for value from the config
+			if (p.parse_body(100)) {
+				// save to get request here
+				//re = p.getRequest();
+			}
 		}
 	}
 	//only for debugging: always get request
