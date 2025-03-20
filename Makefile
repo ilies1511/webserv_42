@@ -116,6 +116,9 @@ CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
 REQUEST_DIR_FILES := requestParsing.cpp
 REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 
+FABI_REQUEST_DIR_FILES := P2.cpp
+FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -128,6 +131,7 @@ MELTING_POT :=	$(SRC) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
 				$(REQUEST_DIR) \
+				$(FABI_REQUEST_DIR) \
 				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))

@@ -243,7 +243,7 @@ bool RequestParser::parse_headers(void) {
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
-		if (this->input[this-> pos + 0] == '\r' && this->input[this->pos + 1] == '\n') {
+		if (this->input[static_cast<size_t>(this->pos) + 0] == '\r' && this->input[static_cast<size_t>(this->pos) + 1] == '\n') {
 			this->finished_headers = true;
 			this->pos += 2;
 			//this->input.erase(0, 2);
