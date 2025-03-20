@@ -88,13 +88,8 @@ PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
 CORE_REPO_FILES :=	Server.cpp \
 					Connection.cpp \
-					utils_Connection.cpp \
-					process.cpp \
-					assemble.cpp \
-					read_file.cpp \
-					write_file.cpp \
-					send_data.cpp \
-					recv.cpp
+					utils_Connection.cpp
+
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
 UTILS_REPO_FILES := utils_pollserver.cpp Buffer.cpp
@@ -119,6 +114,14 @@ REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 FABI_REQUEST_DIR_FILES := P2.cpp
 FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
 
+STATE_DIR_FILES :=	state_process.cpp \
+					state_assemble.cpp \
+					state_read_file.cpp \
+					state_write_file.cpp \
+					state_send_data.cpp \
+					state_recv.cpp
+STATE_DIR_FILES_DIR := $(addprefix states/, $(STATE_DIR_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -132,6 +135,7 @@ MELTING_POT :=	$(SRC) \
 				$(HANDLER_REPO) \
 				$(REQUEST_DIR) \
 				$(FABI_REQUEST_DIR) \
+				$(STATE_DIR_FILES_DIR) \
 				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
