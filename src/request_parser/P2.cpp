@@ -44,6 +44,20 @@ A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 reque
 */
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
+	output << "\tURI type: ";
+	if (uri.is_origin_form) {
+		output << "origin-form ";
+	}
+	if (uri.is_absolute_form) {
+		output << "aboslute-form ";
+	}
+	if (uri.is_authority_form) {
+		output << "authority-form ";
+	}
+	if (uri.is_asterisk_form) {
+		output << "asterisk-form ";
+	}
+	output << "\n";
 	output << "\tURI.full: " << uri.full << "\n";
 	output << "\tURI.authority: " << uri.authority << "\n";
 	output << "\tURI.host: " << uri.host << "\n";
@@ -55,7 +69,7 @@ std::ostream& operator<<(std::ostream& output, Uri uri) {
 
 std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Method: " << request.method << "\n";
-	output << "URI: " << request.uri << "\n";
+	output << "URI: \n" << request.uri << "\n";
 	output << "Version: " << request.version << "\n";
 	output << "Headers:\n";
 	for (const auto &header : request.headers) {
@@ -124,16 +138,14 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 
 //todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
 //example: "GET /abc"
-const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?))";
-const std::regex RequestParser::request_line_pat(request_line_pat_str);
+const std::regex RequestParser::request_line_pat(REQUEST_LINE_PAT, std::regex::optimize);
 
-const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
-const std::regex RequestParser::uri_pat(uri_pat_str);
+const std::regex RequestParser::uri_pat(URI_PAT, std::regex::optimize);
 
 // field name: either a valid or an unfinished name
 
-const std::regex RequestParser::header_name_pat(FIELD_NAME);
-const std::regex RequestParser::header_value_pat(FIELD_VALUE);
+const std::regex RequestParser::header_name_pat(FIELD_NAME, std::regex::optimize);
+const std::regex RequestParser::header_value_pat(FIELD_VALUE, std::regex::optimize);
 
 void RequestParser::setStatus(int status) {
 	this->finished_request_line = true;
@@ -163,27 +175,27 @@ bool RequestParser::parse_uri(void) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
 	if (match[1].matched) {
-		// origin-form
-		PARSE_ASSERT(!match[4].matched);
-		PARSE_ASSERT(!match[7].matched);
+		request.uri->is_origin_form = 1;
 		request.uri->path = match[2].str();
 		request.uri->query = match[3].str();
-	} else if (match[4].matched) {
-		// authority-form
-		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[4].matched);
 		PARSE_ASSERT(!match[7].matched);
+	} else if (match[4].matched) {
+		request.uri->is_authority_form = 1;
 		request.uri->authority = match[4].str();
 		request.uri->host = match[5].str();
 		request.uri->port = match[6].str();
-	} else if (match[7].matched) {
-		//absolute_form
 		PARSE_ASSERT(!match[1].matched);
-		PARSE_ASSERT(!match[4].matched);
+		PARSE_ASSERT(!match[7].matched);
+	} else if (match[7].matched) {
+		request.uri->is_absolute_form = 1;
 		request.uri->authority = match[8].str();
 		request.uri->host = match[9].str();
 		request.uri->port = match[10].str();
 		request.uri->path = match[12].str();
 		request.uri->query = match[13].str();
+		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[4].matched);
 	}
 	return (true);
 }
@@ -211,9 +223,15 @@ bool RequestParser::parse_request_line(void) {
 	if (!match[8].matched) {
 		if (match[9].matched) {
 			std::cout << "invalid request (not terminated with more content)\n";
+			this->setStatus(400);
 			return (true);
 		}
-		std::cout << "not terminated\n";
+		if (static_cast<long>(this->input.length()) - this->pos > REQUEST_LINE_MAX) {
+			std::cout << "invalid request: request line too long\n";
+			this->setStatus(400);
+		} else {
+			std::cout << "not terminated\n";
+		}
 		return (false);
 	}
 	this->request.method = match[3].str();
@@ -225,7 +243,7 @@ bool RequestParser::parse_request_line(void) {
 	}
 	uri.full = match.str(5);
 	this->request.uri = std::move(uri);
-	this->parse_uri();
+	this->parse_uri();//todo: differentiate between too long request line and too long uri(414)
 	if (!match[6].matched) {
 		std::cout << "invalid version, 505\n";
 		this->setStatus(505);
@@ -240,6 +258,9 @@ bool RequestParser::parse_request_line(void) {
 }
 
 bool RequestParser::parse_headers(void) {
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
@@ -303,7 +324,6 @@ bool RequestParser::parse_headers(void) {
 bool RequestParser::parse_not_encoded_body(int max_body_len) {
 	int body_len;
 	const std::string &body_len_str = this->request.headers["content-length"];
-
 	const static std::regex body_len_pat(R"(^[ \t\v\f]*\d+[ \t\v\f]*$)");
 	if (!std::regex_match(body_len_str, body_len_pat)) {
 		this->setStatus(400);
@@ -385,10 +405,12 @@ const char *dummy_input =
 "1234567890"
 ;
 
+
 int main(void) {
 	std::string input(dummy_input);
 	RequestParser p(input);
 	Request re;
+
 	if (p.parse_request_line()) {
 		if (p.parse_headers()) {
 			// in real webserv would select config here
