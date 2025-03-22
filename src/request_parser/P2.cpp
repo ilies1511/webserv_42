@@ -45,16 +45,16 @@ A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 reque
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI type: ";
-	if (uri.is_origin_form) {
+	if (uri.form.is_origin_form) {
 		output << "origin-form ";
 	}
-	if (uri.is_absolute_form) {
+	if (uri.form.is_absolute_form) {
 		output << "aboslute-form ";
 	}
-	if (uri.is_authority_form) {
+	if (uri.form.is_authority_form) {
 		output << "authority-form ";
 	}
-	if (uri.is_asterisk_form) {
+	if (uri.form.is_asterisk_form) {
 		output << "asterisk-form ";
 	}
 	output << "\n";
@@ -175,20 +175,20 @@ bool RequestParser::parse_uri(void) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
 	if (match[1].matched) {
-		request.uri->is_origin_form = 1;
+		request.uri->form.is_origin_form = 1;
 		request.uri->path = match[2].str();
 		request.uri->query = match[3].str();
 		PARSE_ASSERT(!match[4].matched);
 		PARSE_ASSERT(!match[7].matched);
 	} else if (match[4].matched) {
-		request.uri->is_authority_form = 1;
+		request.uri->form.is_authority_form = 1;
 		request.uri->authority = match[4].str();
 		request.uri->host = match[5].str();
 		request.uri->port = match[6].str();
 		PARSE_ASSERT(!match[1].matched);
 		PARSE_ASSERT(!match[7].matched);
 	} else if (match[7].matched) {
-		request.uri->is_absolute_form = 1;
+		request.uri->form.is_absolute_form = 1;
 		request.uri->authority = match[8].str();
 		request.uri->host = match[9].str();
 		request.uri->port = match[10].str();
