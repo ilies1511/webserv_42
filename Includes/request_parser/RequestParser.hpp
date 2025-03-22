@@ -53,7 +53,7 @@ public:
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
-	bool		parse_body(int max_body_len);
+	bool		parse_body(size_t max_body_len);
 	Request		&&getRequest(void);
 
 	Request		request;
@@ -71,7 +71,9 @@ private:
 	const static std::regex	header_name_pat;
 	const static std::regex	header_value_pat;
 
-	bool	parse_not_encoded_body(int max_body_len);
+	bool	parse_not_encoded_body(size_t max_body_len);
+	bool	parse_encoded_body(size_t max_body_len);
+	bool	parse_chunked(size_t max_body_len);
 
 	/*only called by a macro */
 	bool	parse_assertion_exec(bool cond, const char *str_cond,
