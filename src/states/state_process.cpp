@@ -7,12 +7,34 @@
 // #include "StaticFileHandler.hpp"
 #include <map>
 #include <filesystem>
+#include <sstream>
 
 void	Connection::handle_delete(void)
 {}
 
 void	Connection::handle_post(void)
 {}
+
+void	Connection::generate_autoindex(const std::filesystem::path& dir)
+{
+	std::ostringstream body;
+	body << "<html><body><h1>Index of " << dir.filename() << "</h1><ul>";
+
+	for (const auto& entry : std::filesystem::directory_iterator(dir))
+	{
+		std::string name = entry.path().filename().string();
+		body << "<li><a href=\"" << name << "\">" << name << "</a></li>";
+	}
+	body << "</ul></body></html>";
+
+	_current_response.status_code = "200";
+	_current_response.reason_phrase = "OK";
+	_current_response.http_version = "HTTP/1.1";
+	_current_response.file_data = body.str();
+	_current_response.headers["Content-Type"] = "text/html";
+	_current_response.headers["Content-Length"] = std::to_string(_current_response.file_data.size());
+	_current_response.headers["Connection"] = "close";
+}
 
 bool	Connection::file_exists_and_readable(const std::filesystem::path& p)
 {
@@ -63,7 +85,7 @@ void	Connection::handle_get(void)
 	//TODO: prepare_fdFile_param(status_code)
 	bool has_trailing_slash = !request._uri.empty() && request._uri.back() == '/';
 	// bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	bool autoindex_enabled = false; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
+	bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
 
 	if (has_trailing_slash)//nginx assumes this is dir
 	{
@@ -88,6 +110,8 @@ void	Connection::handle_get(void)
 			// printer::debug_putstr("In handle_get() trailing case autoindex on", __FILE__, __FUNCTION__, __LINE__);
 			//TODO: 22.03.2025 generate_autoindex(full_path);
 			// prepare_fdFile(); // Setzt READ_FILE und next_state
+			generate_autoindex(full_path);
+			_state = State::ASSEMBLE;
 			return ;
 		}
 		else {

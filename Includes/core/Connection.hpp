@@ -122,6 +122,7 @@ class Connection
 		void	connection_process(void);
 		void	recv_data(void);
 		bool	file_exists_and_readable(const std::filesystem::path& p);
+		void	generate_autoindex(const std::filesystem::path& dir);
 	//Methodes -- END
 };
 
