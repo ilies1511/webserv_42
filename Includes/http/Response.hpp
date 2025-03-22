@@ -5,9 +5,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "Request.hpp"
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 
-class Request;
+//class Request;
 
 class Response
 {

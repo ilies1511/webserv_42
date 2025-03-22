@@ -10,7 +10,7 @@ class Buffer
 	private:
 		static constexpr size_t INITIAL_SIZE = 4096;
 	public:
-		std::vector<char> _buffer;
+		std::string _buffer;
 		Buffer(void);
 		~Buffer(void);
 	private:

@@ -5,7 +5,8 @@
 #include <string>
 #include <sys/socket.h>
 #include "Buffer.hpp"
-#include "Request.hpp"
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 #include "Response.hpp"
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
@@ -15,7 +16,7 @@
 
 class Buffer;
 class Server;
-class Request;
+// class Request;
 class Response;
 // class State;
 // class HTTP_Parser;
@@ -41,7 +42,7 @@ class Connection
 		State				_next_state;
 		Server&				_server;
 		Request				request;
-		Parser				parser;
+		// Parser				parser;
 		Response			_current_response;
 		std::string			_system_path;
 	private:
@@ -52,6 +53,7 @@ class Connection
 	public:
 		Buffer				_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
+		RequestParser		_request_parser;
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
@@ -124,6 +126,7 @@ class Connection
 		bool	file_exists_and_readable(const std::filesystem::path& p);
 		void	generate_autoindex(const std::filesystem::path& dir);
 		void	prepare_fdFile_param(const std::string status_code);
+		bool	entry_parse(void);
 	//Methodes -- END
 };
 

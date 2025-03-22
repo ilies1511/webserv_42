@@ -1,7 +1,8 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-#include "Request.hpp"
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
 #include "StaticFileHandler.hpp"
@@ -48,9 +49,9 @@ void	Connection::send_data(void)
 			// _state = State::CLOSING; // Oder READ_HEADER für Keep-Alive damit circular ist
 			printer::debug_putstr("sent == response_inzemaking.size() 'case'",\
 				__FILE__, __FUNCTION__, __LINE__);
-			if (this->request.readFile) {
-				ft_closeNcleanRoot(_fdFile);
-			}
+			// if (this->request.readFile) {
+			// }
+			ft_closeNcleanRoot(_fdFile); //TODO: 22.03.2025 add check if initial was there like before fusion
 			ft_closeNcleanRoot(this->_fdConnection);
 			return ;
 		}

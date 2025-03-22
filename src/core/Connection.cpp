@@ -19,8 +19,10 @@ Connection::Connection(int fd, Server &server)
 		sent_bytes(0),
 		finished_sending(false),
 		_InputBuffer{},
-		_OutputBuffer{}
+		_OutputBuffer{},
+		_request_parser(_InputBuffer._buffer)
 {
+
 	std::cout << "I'm Connection Constructor: cap of buffer: " << _InputBuffer._buffer.capacity() << "Output Buffer: " << _OutputBuffer._buffer.capacity() << "\n";
 }
 

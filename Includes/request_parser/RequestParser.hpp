@@ -22,11 +22,14 @@ typedef struct Uri {
 	std::string	port;
 	std::string	path;
 	std::string	query;
-	struct {
-		uint8_t	is_origin_form : 1;
-		uint8_t	is_absolute_form : 1;
-		uint8_t	is_authority_form : 1;
-		uint8_t	is_asterisk_form : 1;
+	struct {//
+		uint8_t	is_origin_form : 1;// localhost:8080/path/to/smth/?querry#useless data
+
+		//									  | ----AUTH-----|---PATH-----|QUERRY| IGNORED
+		//									  | HOST----|PORT|
+		uint8_t	is_absolute_form : 1;// http://localhost:8080/path/to/smth/?querry#useless data
+		uint8_t	is_authority_form : 1; // localhost:8080
+		uint8_t	is_asterisk_form : 1; // *
 	} form;
 	Uri(void) {
 		form.is_origin_form = 0;

@@ -1,8 +1,9 @@
 #include "Buffer.hpp"
 
+// : _buffer.reserve(INITIAL_SIZE)
 Buffer::Buffer(void)
-	: _buffer(INITIAL_SIZE)
 {
+	_buffer.reserve(INITIAL_SIZE);
 	std::cout << "Cap of _buffer: " << _buffer.capacity() << "\n";
 }
 

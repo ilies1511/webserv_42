@@ -72,14 +72,14 @@ void	Connection::handle_get(void)
 
 	// this->request._uri = "var/www/data/files/trier";
 	// this->request._uri = "var/www/data/files"; // No slash case
-	this->request._uri = "var/www/data/files"; // No slash case
+	// this->request.uri = "var/www/data/files"; // No slash case
 
-	std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + this->request._uri;
-	// std::filesystem::path full_path = std::filesystem::path("/Users/iziane/42/repo_webserv/webserv/") / this->request._uri;
+	std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + request.uri->path;
+	// std::filesystem::path full_path = std::filesystem::path("/Users/iziane/42/repo_webserv/webserv/") / this->request.uri;
 
-	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" / this->request._uri;
-	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + this->request._uri;
-	// std::filesystem::path full_path = "/Users/iziane/42/bserv/webserv/" + this->request._uri;
+	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" / this->request.uri;
+	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + this->request.uri;
+	// std::filesystem::path full_path = "/Users/iziane/42/bserv/webserv/" + this->request.uri;
 	// std::cout << "\nPRE weakly_canonical - full_path: " << full_path << "\n";
 	/*
 		Prevents crashes: with fs::canonical() --> throw exception if any part
@@ -92,9 +92,9 @@ void	Connection::handle_get(void)
 
 	//TODO: setStatusCode
 	//TODO: prepare_fdFile_param(status_code)
-	bool has_trailing_slash = !request._uri.empty() && request._uri.back() == '/';
+	bool has_trailing_slash = !request.uri->path.empty() && request.uri->path.back() == '/';
 	// bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	bool autoindex_enabled = false; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
+	bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
 
 	if (has_trailing_slash)//nginx assumes this is dir
 	{
@@ -140,6 +140,7 @@ void	Connection::handle_get(void)
 	}
 	else ////nginx assumes this is file
 	{
+
 		if (std::filesystem::exists(full_path))
 		{
 			if (std::filesystem::is_regular_file(full_path))
@@ -151,7 +152,7 @@ void	Connection::handle_get(void)
 			// 	// → nginx 301 Redirect mit `/` anhängen
 			// 	_current_response.status_code = "301";
 			// 	_current_response.reason_phrase = "Moved Permanently";
-			// 	_current_response.headers["Location"] = request._uri + "/";
+			// 	_current_response.headers["Location"] = request.uri + "/";
 			// 	_current_response.headers["Content-Length"] = "0";
 			// 	_current_response.headers["Connection"] = "close";
 			// 	_state = State::ASSEMBLE;
@@ -162,12 +163,12 @@ void	Connection::handle_get(void)
 				// _current_response.status_code = "301";
 				// _current_response.headers["Content-Length"] = "0";
 				_current_response.headers["Content-Type"] =  "text/html";
-				std::string corrected_uri = request._uri;
+				std::string corrected_uri = request.uri->path;
 				if (!corrected_uri.empty() && corrected_uri.back() != '/')
 					corrected_uri += '/';
 				_current_response.headers["Location"] = corrected_uri;
-				// _current_response.headers["Location"] = request._uri + "/";
-				// _current_response.headers["Location"] = "/" + request._uri + "/";
+				// _current_response.headers["Location"] = request.uri + "/";
+				// _current_response.headers["Location"] = "/" + request.uri + "/";
 				_current_response.headers["Connection"] = "close";
 				_system_path = "html/301.html";
 				prepare_fdFile_param("301");
@@ -283,17 +284,17 @@ void	Connection::handle_get(void)
 
 void	Connection::methode_handler(void)
 {
-	if (this->request._method == "GET")
+	if (this->request.method == "GET")
 	{
 		std::cout << coloring("in methode_handler GET", PURPLE);
 		handle_get();
 	}
-	else if (this->request._method == "POST")
+	else if (this->request.method == "POST")
 	{
 		std::cout << coloring("in methode_handler", PURPLE);
 		handle_post();
 	}
-	else if (this->request._method == "DELETE")
+	else if (this->request.method == "DELETE")
 	{
 		handle_delete();
 	}
@@ -320,15 +321,15 @@ void	Connection::entry_process(void)
 			methode_handler()
 	*/
 
-	request._method = "GET";
-	request._uri = "/index.html";
-	request._version = "HTTP/1.1";
-	request._body = "";
-	// ed_request.is_finished = true;
-	request.is_finished = true;
-	request.readFile = true;
-	// request.filename = "html/index.html";
-	// filled_request._headers = ;
+	// request.method = "GET";
+	// request.uri = "/index.html";
+	// request._version = "HTTP/1.1";
+	// request._body = "";
+	// // ed_request.is_finished = true;
+	// request.is_finished = true;
+	// request.readFile = true;
+	// // request.filename = "html/index.html";
+	// // filled_request._headers = ;
 	methode_handler();
 	return ;
 }

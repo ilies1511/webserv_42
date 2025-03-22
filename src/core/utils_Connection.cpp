@@ -1,7 +1,7 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-#include "Request.hpp"
+// #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
 #include "StaticFileHandler.hpp"
@@ -65,15 +65,15 @@ void Connection::generate_error_response(Response &response)
 					status_texts.at(response.status_code) + "</h1></body></html>";
 }
 
-void	Connection::print_request_data(Request &request)
-{
-	std::cout << " Method: " \
-					<< request._method << " URI:" \
-					<< request._uri \
-					<< " Version: " << request._version \
-					<< " Finished: " << request.is_finished \
-					<< "\n";
-}
+// void	Connection::print_request_data(Request &request)
+// {
+// 	std::cout << " Method: " \
+// 					<< request._method << " URI:" \
+// 					<< request._uri \
+// 					<< " Version: " << request._version \
+// 					<< " Finished: " << request.is_finished \
+// 					<< "\n";
+// }
 
 void	Connection::prepare_fdFile_param(const std::string status_code)
 {

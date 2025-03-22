@@ -201,6 +201,10 @@ bool RequestParser::parse_uri(void) {
 }
 
 bool RequestParser::parse_request_line(void) {
+	std::cout << "parsing input of |" << this->input << "|" << std::endl;
+	if (!this->input.size()) {
+		return (false);
+	}
 	if (this->request.version.has_value()) {
 		return (true);
 	}

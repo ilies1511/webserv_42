@@ -1,6 +1,6 @@
 #include "Response.hpp"
-#include "Request.hpp"
-
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 // Response::Response(void)
 // 	: status_code{}, body{}, headers{}, _data()
 // {}
