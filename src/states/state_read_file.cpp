@@ -36,9 +36,13 @@ void	Connection::read_file(void)
 	// char read_file_buffer[4090];
 	printer::Header("In READ_FILE + next_state" + Connection::to_string(_next_state));
 
+	//TODO: 23.03 Improve hotfix
 	Buffer	read_file_buffer;
-	ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
-
+	static char buf[10000];
+	// ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
+	ssize_t bytes_read = read(_fdFile, buf, sizeof buf);
+	std::string str(buf);
+	read_file_buffer._buffer.assign(str.begin(), str.end());
 	if (bytes_read <= 0)
 	{
 		printer::debug_putstr("bytes_read <= 0 Case", __FILE__, __FUNCTION__, __LINE__);
