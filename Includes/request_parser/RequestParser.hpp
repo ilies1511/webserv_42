@@ -27,12 +27,12 @@ typedef struct Uri {
 		uint8_t	is_absolute_form : 1;
 		uint8_t	is_authority_form : 1;
 		uint8_t	is_asterisk_form : 1;
-	};
+	} form;
 	Uri(void) {
-		is_origin_form = 0;
-		is_absolute_form = 0;
-		is_authority_form = 0;
-		is_asterisk_form = 0;
+		form.is_origin_form = 0;
+		form.is_absolute_form = 0;
+		form.is_authority_form = 0;
+		form.is_asterisk_form = 0;
 	}
 } uri;
 
