@@ -14,6 +14,7 @@
 //#include <serverConfig.hpp>
 
 
+
 typedef struct Uri {
 	std::string	full;
 	std::string	authority;
@@ -21,6 +22,18 @@ typedef struct Uri {
 	std::string	port;
 	std::string	path;
 	std::string	query;
+	struct {
+		uint8_t	is_origin_form : 1;
+		uint8_t	is_absolute_form : 1;
+		uint8_t	is_authority_form : 1;
+		uint8_t	is_asterisk_form : 1;
+	};
+	Uri(void) {
+		is_origin_form = 0;
+		is_absolute_form = 0;
+		is_authority_form = 0;
+		is_asterisk_form = 0;
+	}
 } uri;
 
 typedef struct Request {
@@ -40,7 +53,7 @@ public:
 	bool		parse_request_line(void);
 	bool		parse_uri(void);
 	bool		parse_headers(void);
-	bool		parse_body(int max_body_len);
+	bool		parse_body(size_t max_body_len);
 	Request		&&getRequest(void);
 
 	Request		request;
@@ -57,9 +70,12 @@ private:
 	const static std::regex	uri_pat;
 	const static std::regex	header_name_pat;
 	const static std::regex	header_value_pat;
-	/*only called by a macro */
 
-	bool	parse_not_encoded_body(int max_body_len);
+	bool	parse_not_encoded_body(size_t max_body_len);
+	bool	parse_encoded_body(size_t max_body_len);
+	bool	parse_chunked(size_t max_body_len);
+
+	/*only called by a macro */
 	bool	parse_assertion_exec(bool cond, const char *str_cond,
 						const char *file, const int line, const char *fn_str);
 };

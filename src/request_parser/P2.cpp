@@ -44,6 +44,20 @@ A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 reque
 */
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
+	output << "\tURI type: ";
+	if (uri.is_origin_form) {
+		output << "origin-form ";
+	}
+	if (uri.is_absolute_form) {
+		output << "aboslute-form ";
+	}
+	if (uri.is_authority_form) {
+		output << "authority-form ";
+	}
+	if (uri.is_asterisk_form) {
+		output << "asterisk-form ";
+	}
+	output << "\n";
 	output << "\tURI.full: " << uri.full << "\n";
 	output << "\tURI.authority: " << uri.authority << "\n";
 	output << "\tURI.host: " << uri.host << "\n";
@@ -55,7 +69,7 @@ std::ostream& operator<<(std::ostream& output, Uri uri) {
 
 std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Method: " << request.method << "\n";
-	output << "URI: " << request.uri << "\n";
+	output << "URI: \n" << request.uri << "\n";
 	output << "Version: " << request.version << "\n";
 	output << "Headers:\n";
 	for (const auto &header : request.headers) {
@@ -124,16 +138,14 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 
 //todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
 //example: "GET /abc"
-const char *request_line_pat_str = "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\r\n)?))";
-const std::regex RequestParser::request_line_pat(request_line_pat_str);
+const std::regex RequestParser::request_line_pat(REQUEST_LINE_PAT, std::regex::optimize);
 
-const char *uri_pat_str = "(?:" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM ")";
-const std::regex RequestParser::uri_pat(uri_pat_str);
+const std::regex RequestParser::uri_pat(URI_PAT, std::regex::optimize);
 
 // field name: either a valid or an unfinished name
 
-const std::regex RequestParser::header_name_pat(FIELD_NAME);
-const std::regex RequestParser::header_value_pat(FIELD_VALUE);
+const std::regex RequestParser::header_name_pat(FIELD_NAME, std::regex::optimize);
+const std::regex RequestParser::header_value_pat(FIELD_VALUE, std::regex::optimize);
 
 void RequestParser::setStatus(int status) {
 	this->finished_request_line = true;
@@ -163,27 +175,27 @@ bool RequestParser::parse_uri(void) {
 	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
 	//}
 	if (match[1].matched) {
-		// origin-form
-		PARSE_ASSERT(!match[4].matched);
-		PARSE_ASSERT(!match[7].matched);
+		request.uri->is_origin_form = 1;
 		request.uri->path = match[2].str();
 		request.uri->query = match[3].str();
-	} else if (match[4].matched) {
-		// authority-form
-		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[4].matched);
 		PARSE_ASSERT(!match[7].matched);
+	} else if (match[4].matched) {
+		request.uri->is_authority_form = 1;
 		request.uri->authority = match[4].str();
 		request.uri->host = match[5].str();
 		request.uri->port = match[6].str();
-	} else if (match[7].matched) {
-		//absolute_form
 		PARSE_ASSERT(!match[1].matched);
-		PARSE_ASSERT(!match[4].matched);
+		PARSE_ASSERT(!match[7].matched);
+	} else if (match[7].matched) {
+		request.uri->is_absolute_form = 1;
 		request.uri->authority = match[8].str();
 		request.uri->host = match[9].str();
 		request.uri->port = match[10].str();
 		request.uri->path = match[12].str();
 		request.uri->query = match[13].str();
+		PARSE_ASSERT(!match[1].matched);
+		PARSE_ASSERT(!match[4].matched);
 	}
 	return (true);
 }
@@ -211,9 +223,15 @@ bool RequestParser::parse_request_line(void) {
 	if (!match[8].matched) {
 		if (match[9].matched) {
 			std::cout << "invalid request (not terminated with more content)\n";
+			this->setStatus(400);
 			return (true);
 		}
-		std::cout << "not terminated\n";
+		if (static_cast<long>(this->input.length()) - this->pos > REQUEST_LINE_MAX) {
+			std::cout << "invalid request: request line too long\n";
+			this->setStatus(400);
+		} else {
+			std::cout << "not terminated\n";
+		}
 		return (false);
 	}
 	this->request.method = match[3].str();
@@ -225,7 +243,7 @@ bool RequestParser::parse_request_line(void) {
 	}
 	uri.full = match.str(5);
 	this->request.uri = std::move(uri);
-	this->parse_uri();
+	this->parse_uri();//todo: differentiate between too long request line and too long uri(414)
 	if (!match[6].matched) {
 		std::cout << "invalid version, 505\n";
 		this->setStatus(505);
@@ -234,19 +252,20 @@ bool RequestParser::parse_request_line(void) {
 	this->request.version = match.str(6);
 
 	this->pos += match[2].length();
-	//this->input.erase(0, static_cast<size_t>(match[2].length()));
-
 	return (true);
 }
 
 bool RequestParser::parse_headers(void) {
+	std::cout << REQUEST_LINE_PAT << std::endl;
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
 		if (this->input[static_cast<size_t>(this->pos) + 0] == '\r' && this->input[static_cast<size_t>(this->pos) + 1] == '\n') {
 			this->finished_headers = true;
 			this->pos += 2;
-			//this->input.erase(0, 2);
 			//std::cout << "headers terminated\n";
 			return (true);
 		}
@@ -273,7 +292,6 @@ bool RequestParser::parse_headers(void) {
 			std::transform(key.begin(), key.end(), key.begin(), [](char c) { return (std::tolower(c));});
 			//todo: only advance if value is finished
 			this->pos += match[1].length() + 1;
-			//this->input.erase(0, match[1].length() + 1);
 		} else {
 			PARSE_ASSERT(match[2].matched);
 			std::cout << "unfinished request header\n";
@@ -290,7 +308,6 @@ bool RequestParser::parse_headers(void) {
 		if (match[2].matched) {
 			value = match.str(2);
 			this->pos += match[1].length();
-			//this->input.erase(0, match[1].length());
 		} else {
 			PARSE_ASSERT(match[3].matched);
 			std::cout << "unfinished request header\n";
@@ -300,35 +317,30 @@ bool RequestParser::parse_headers(void) {
 	}
 }
 
-bool RequestParser::parse_not_encoded_body(int max_body_len) {
-	int body_len;
+bool RequestParser::parse_not_encoded_body(size_t max_body_len) {
+	size_t body_len;
 	const std::string &body_len_str = this->request.headers["content-length"];
-
-	const static std::regex body_len_pat(R"(^[ \t\v\f]*\d+[ \t\v\f]*$)");
+	const static std::regex body_len_pat(R"(^[ \t\v\f]*\d+[ \t\v\f]*$)", std::regex::optimize);
 	if (!std::regex_match(body_len_str, body_len_pat)) {
 		this->setStatus(400);
 		std::cout << "invalid body len: " << body_len_str << std::endl;
 		return (true);
 	}
 	try {
-		body_len = std::stoi(body_len_str);
+		body_len = std::stoul(body_len_str);
 	} catch (const std::invalid_argument &e) {
 		this->setStatus(400);
 		std::cout << "invalid body len: " << body_len_str << std::endl;
 		return (true);
 	} catch (const std::out_of_range &e) {
-		this->setStatus(400);
+		this->setStatus(413);
 		std::cout << "invalid body len: " << body_len_str << std::endl;
 		return (true);
 	}
-	//if (body_len < 0) {
-	//	this->setStatus(400);
-	//	std::cout << "invalid body len: " << body_len_str << std::endl;
-	//	return (true);
-	//}
 	std::cout << "not encoded, body len: " << body_len << std::endl;
 	if (max_body_len < body_len) {
-		std::cout << "invalid body len: " << body_len_str << "max body len: " << max_body_len << std::endl;
+		std::cout << "invalid body len: " << body_len_str << "max body len: "
+			<< max_body_len << std::endl;
 		this->setStatus(413);
 		return (true);
 	}
@@ -340,30 +352,138 @@ bool RequestParser::parse_not_encoded_body(int max_body_len) {
 	return (false);
 }
 
+// returns false if the body is not fullt received yet
+bool RequestParser::parse_chunked(size_t max_body_len) {
+	PARSE_ASSERT(this->pos > 0);
+	if (this->input.size() <= static_cast<size_t>(this->pos)) {
+		return (false);
+	}
+	while (1) {
+		long old_pos = this->pos;
+		auto crlf = input.find("\r\n", static_cast<size_t>(this->pos));
+		if (crlf == std::string::npos) {
+			this->pos = old_pos;
+			return (false);
+		}
+		size_t chunk_ext_start;
+		size_t chunk_size;
+		try {
+			chunk_size = std::stoul(this->input.substr(
+				static_cast<size_t>(this->pos),
+				crlf - static_cast<size_t>(this->pos)), &chunk_ext_start, 16);
+		} catch (const std::out_of_range &e) {
+			this->setStatus(413);
+			return (true);
+		} catch (const std::invalid_argument &e) {
+			this->setStatus(400);
+			return (true);
+		}
+		//todo: chunk-ext
+		PARSE_ASSERT(crlf > static_cast<size_t>(this->pos));
+		this->pos = 2 + static_cast<long>(crlf);
+		if (chunk_size == 0) {
+			break ;
+		}
+		if (this->request.body->length() + chunk_size > max_body_len) {
+			this->setStatus(413);
+			return (true);
+		}
+		if (this->input.length() < chunk_size + static_cast<size_t>(this->pos) + 2) {
+			this->pos = old_pos;
+			return (false);
+		}
+		if (this->input[static_cast<size_t>(this->pos) + chunk_size] != '\r'
+			|| this->input[static_cast<size_t>(this->pos) + chunk_size + 1] != '\n')
+		{
+			this->setStatus(400);
+			return (true);
+		}
+		if (this->request.body.has_value()) {
+			this->request.body->append(this->input,
+					static_cast<size_t>(this->pos), chunk_size);
+		} else {
+			this->request.body = this->input.substr(static_cast<size_t>(this->pos), chunk_size);
+		}
+		this->pos += chunk_size + 2;
+	}
+	size_t trailer_end = this->input.find("\r\n\r\n", static_cast<size_t>(this->pos));
+	if (trailer_end == std::string::npos) {
+		return (false);
+	}
+	//todo: trailers
+	this->pos = static_cast<long>(trailer_end) + 4;
+	return (true);
+}
+
+bool RequestParser::parse_encoded_body(size_t max_body_len) {
+	std::string encoding_str = this->request.headers["transfer-encoding"];
+	std::transform(encoding_str.begin(), encoding_str.end(), encoding_str.begin(), [](char c){return (std::tolower(c));});
+	std::cout << "encoding: " << encoding_str << std::endl;
+	if (this->request.headers.find("content-length") != this->request.headers.end()) {
+		std::cout << "rejecting request since content-length and encoding was found\n";
+		this->setStatus(400);
+		return (true);
+	}
+	//todo: comma seperated splitting, not whitespace
+	std::vector<std::string> encodings;
+	std::stringstream ss;
+	std::string encoding;
+	ss << encoding_str;
+	bool comma = true;
+	while (ss >> encoding) {
+		if (!comma) {
+			this->setStatus(400);
+			std::cout << "encodings were not comma seperated\n";
+			return (true);
+		}
+		if (encoding.back() == ',') {
+			encoding.pop_back();
+			comma = true;
+		} else {
+			comma = false;
+		}
+		encodings.push_back(encoding);
+	}
+	// could add other encodings here
+	while (encodings.size()) {
+		if (encodings[0] == "chunked") {
+			if (encodings.size() > 1) {
+				this->setStatus(400);
+				return (true);
+			}
+			if (!this->parse_chunked(max_body_len)) {
+				return (false);
+			}
+			encodings.erase(encodings.begin());
+		} else {
+			std::cout << "Unsupported encoding: " << encodings[0] << "\n";
+			this->setStatus(501);
+			return (true);
+		}
+	}
+	return (true);
+}
+
 // call this after verifying that there is a body by this rule:
 //https://httpwg.org/specs/rfc9112.html#line.folding  section 6 (Message Body (introduction text))
 //todo: check research ifrequests with a body and a method that does not have a body should be rejected
-bool RequestParser::parse_body(int max_body_len) {
+bool RequestParser::parse_body(size_t max_body_len) {
 	if (this->request.body.has_value()) {
 		return (true);
 	}
 	if (this->request.headers.find("transfer-encoding") != this->request.headers.end()) {
-		std::string encoding = this->request.headers["transfer-encoding"];
-		std::transform(encoding.begin(), encoding.end(), encoding.begin(), [](char c){return (std::tolower(c));});
-		std::cout << "encoding: " << encoding << std::endl;
-		if (this->request.headers.find("content-length") != this->request.headers.end()) {
-			std::cout << "rejecting request since content-length and encoding was found\n";
-			this->setStatus(400);
+		if (parse_encoded_body(max_body_len)) {
+			if (!this->request.body.has_value()) {
+				this->request.body = "";
+			}
 			return (true);
 		}
-		//1. parse encodings
-		//2. check for unsupported encodings (so anything not 'chunked') and give a 501 if any unknows
-		//placeholder return(true)
-		return (true);
+		return (false);
 	} else if (this->request.headers.find("content-length") != this->request.headers.end()) {
 		return (this->parse_not_encoded_body(max_body_len));
 	} else {
 		std::cout << "no body\n";
+		this->request.body = "";
 		// no body
 		return (true);
 	}
@@ -379,16 +499,24 @@ const char *dummy_input =
 "Accept: text/html\r\n"
 "Accept-Language: en-US, en; q=0.5\r\n"
 "Accept-Encoding: gzip, deflate\r\n"
-"content-length:   10\r\n"
-//"Transfer-Encoding: chunked\r\n"
+//"content-length:   10\r\n"
+"Transfer-Encoding: chunked\r\n"
 "\r\n"
-"1234567890"
+"0x5\r\n"
+"Hello\r\n"
+"0x1\r\n"
+" \r\n"
+"0x6\r\n"
+"World!\r\n"
+"0x0\r\n"
+"0xff\r\nnew message shouldn't be parsed\r\n"
 ;
 
 int main(void) {
 	std::string input(dummy_input);
 	RequestParser p(input);
 	Request re;
+
 	if (p.parse_request_line()) {
 		if (p.parse_headers()) {
 			// in real webserv would select config here
