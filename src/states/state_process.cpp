@@ -128,7 +128,48 @@ void	Connection::handle_get(void)
 	}
 	else ////nginx assumes this is file
 	{
-		;
+		if (std::filesystem::exists(full_path))
+		{
+			if (std::filesystem::is_regular_file(full_path))
+			{
+				prepare_fdFile_param("200");
+			}
+			// else if (std::filesystem::is_directory(full_path))
+			// {
+			// 	// → nginx 301 Redirect mit `/` anhängen
+			// 	_current_response.status_code = "301";
+			// 	_current_response.reason_phrase = "Moved Permanently";
+			// 	_current_response.headers["Location"] = request._uri + "/";
+			// 	_current_response.headers["Content-Length"] = "0";
+			// 	_current_response.headers["Connection"] = "close";
+			// 	_state = State::ASSEMBLE;
+			// 	return;
+			// }
+			else if (std::filesystem::is_directory(full_path))
+			{
+				// _current_response.status_code = "301";
+				// _current_response.headers["Content-Length"] = "0";
+				_current_response.headers["Content-Type"] =  "text/html";
+				std::string corrected_uri = request._uri;
+				if (!corrected_uri.empty() && corrected_uri.back() != '/')
+					corrected_uri += '/';
+				_current_response.headers["Location"] = corrected_uri;
+				// _current_response.headers["Location"] = request._uri + "/";
+				// _current_response.headers["Location"] = "/" + request._uri + "/";
+				_current_response.headers["Connection"] = "close";
+				_system_path = "html/301.html";
+				prepare_fdFile_param("301");
+				// _state = State::ASSEMBLE;
+				return ;
+				// assert (0);
+			}
+		}
+		else
+		{
+			_system_path = "errorPages/404.html";
+			prepare_fdFile_param("404");
+			return ;
+		}
 	}
 	/*
 	//Case, wenn fullpath mit slash, sprich var/www/data/files/

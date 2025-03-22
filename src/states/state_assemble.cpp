@@ -31,6 +31,7 @@ void Connection::assemble_response()
 	if (reason.empty()) {
 		const std::map<std::string, std::string> default_status_texts = {
 			{"200", "OK"},
+			{"301", "Moved Permanently"},
 			{"400", "Bad Request"},
 			{"403", "Forbidden"},
 			{"404", "Not Found"},
