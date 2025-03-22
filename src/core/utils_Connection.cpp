@@ -75,8 +75,35 @@ void	Connection::print_request_data(Request &request)
 					<< "\n";
 }
 
+void	Connection::prepare_fdFile_param(const std::string status_code)
+{
+	_current_response.status_code = status_code;
+
+	// _system_path = "errorPages/403.html";
+	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
+	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
+	if (_fdFile < 0)
+	{
+		prepare_ErrorFile();
+		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
+		return ;
+	}
+	else {
+		_state = State::READ_FILE;
+		_next_state = State::ASSEMBLE;
+		printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
+		struct pollfd	new_fd;
+		new_fd.fd = _fdFile;
+		new_fd.events = POLLIN;
+		new_fd.revents = 0;
+		this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
+		return ;
+	}
+}
+
 void	Connection::prepare_fdFile(void)
 {
+	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{

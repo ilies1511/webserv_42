@@ -11,6 +11,7 @@
 // #include "Server.hpp"
 #include <unistd.h>
 #include <poll.h>
+#include <filesystem>
 
 class Buffer;
 class Server;
@@ -120,6 +121,9 @@ class Connection
 		void	send_data(void);
 		void	connection_process(void);
 		void	recv_data(void);
+		bool	file_exists_and_readable(const std::filesystem::path& p);
+		void	generate_autoindex(const std::filesystem::path& dir);
+		void	prepare_fdFile_param(const std::string status_code);
 	//Methodes -- END
 };
 
