@@ -53,6 +53,10 @@ bool	Connection::file_exists_and_readable(const std::filesystem::path& p)
 	filled_request.readFile = true;
 	filled_request.filename = "html/index.html";
 */
+
+/*
+	// TODO: 22.03.2025 status_code - *.html Mapping --> dynamic and no hardcode
+*/
 void	Connection::handle_get(void)
 {
 	std::cout << "\nALLOOOO aus handle_get entry\n";
@@ -66,9 +70,14 @@ void	Connection::handle_get(void)
 	// 	std::cout << coloring("\nNot dir!\n", RED);
 	// }
 
-	this->request._uri = "var/www/data/files/";
+	// this->request._uri = "var/www/data/files/trier";
+	// this->request._uri = "var/www/data/files"; // No slash case
+	this->request._uri = "var/www/data/files"; // No slash case
 
 	std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + this->request._uri;
+	// std::filesystem::path full_path = std::filesystem::path("/Users/iziane/42/repo_webserv/webserv/") / this->request._uri;
+
+	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" / this->request._uri;
 	// std::filesystem::path full_path = "/Users/iziane/42/repo_webserv/webserv/" + this->request._uri;
 	// std::filesystem::path full_path = "/Users/iziane/42/bserv/webserv/" + this->request._uri;
 	// std::cout << "\nPRE weakly_canonical - full_path: " << full_path << "\n";
@@ -85,7 +94,7 @@ void	Connection::handle_get(void)
 	//TODO: prepare_fdFile_param(status_code)
 	bool has_trailing_slash = !request._uri.empty() && request._uri.back() == '/';
 	// bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
+	bool autoindex_enabled = false; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
 
 	if (has_trailing_slash)//nginx assumes this is dir
 	{
@@ -93,17 +102,19 @@ void	Connection::handle_get(void)
 		//Case tritt auf, wenn path nicht existiert
 		if (!std::filesystem::exists(full_path))
 		{
-			_current_response.status_code = "404";
+			// _current_response.status_code = "404";
 			_system_path = "errorPages/404.html";
-			prepare_fdFile(); // Setzt READ_FILE und next_state
+			// prepare_fdFile(); // Setzt READ_FILE und next_state
+			prepare_fdFile_param("404");
 			return ;
 		}
 		std::filesystem::path index_file = full_path / "index.html"; // ==> "/Users/iziane/42/repo_webserv/webserv/var/www/data/files/index.html
 		if (file_exists_and_readable(index_file)) {
 			printer::debug_putstr("file_exists_and_readable(index_file) CASE", __FILE__, __FUNCTION__, __LINE__);
-			_current_response.status_code = "200";
+			// _current_response.status_code = "200";
 			_system_path = index_file;
-			prepare_fdFile(); // Setzt READ_FILE und next_state
+			// prepare_fdFile(); // Setzt READ_FILE und next_state
+			prepare_fdFile_param("200");
 			return ;
 		}
 		else if (autoindex_enabled) {
@@ -118,10 +129,11 @@ void	Connection::handle_get(void)
 			// std::cout << coloring("In handle_get() trailing case - 403 case " \
 			// 		+ index_file.string(), CYAN);
 			printer::debug_putstr("403 CASE", __FILE__, __FUNCTION__, __LINE__);
-			_current_response.status_code = "403";
+			// _current_response.status_code = "403";
 			_system_path = "errorPages/403.html";
-			prepare_fdFile(); // Setzt READ_FILE und next_state
+			prepare_fdFile_param("403"); // Setzt READ_FILE und next_state
 			// generate_error_response(_current_response);
+			// prepare_fdFile(); // Setzt READ_FILE und next_state
 			// generate_error_response("403", "Forbidden");
 			return ;
 		}

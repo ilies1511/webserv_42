@@ -103,6 +103,7 @@ void	Connection::prepare_fdFile_param(const std::string status_code)
 
 void	Connection::prepare_fdFile(void)
 {
+	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
