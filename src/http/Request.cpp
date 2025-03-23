@@ -1,4 +1,4 @@
-// #include "Request.hpp"
+/e #include "Request.hpp"
 
 // Request::Request(void)
 // 	:	_method(""),

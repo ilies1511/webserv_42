@@ -80,11 +80,13 @@ private:
 	bool	finished = false;
 
 	long					pos;
+	const static std::regex	method_pat;
 	const static std::regex	request_line_pat;
 	const static std::regex	uri_pat;
 	const static std::regex	header_name_pat;
 	const static std::regex	header_value_pat;
 
+	bool	parse_method(void);
 	bool	parse_not_encoded_body(size_t max_body_len);
 	bool	parse_encoded_body(size_t max_body_len);
 	bool	parse_chunked(size_t max_body_len);
