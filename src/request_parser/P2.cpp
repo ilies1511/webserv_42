@@ -25,9 +25,9 @@ https://httpwg.org/specs/rfc9112.html#message.format
  - 405: not allowed (should)
  **2.tagget
  -"  request-target = origin-form
-                 / absolute-form
-                 / authority-form
-                 / asterisk-form -- asterisk-form: won't implement
+				 / absolute-form
+				 / authority-form
+				 / asterisk-form -- asterisk-form: won't implement
 	"
  - no whitespace allowed
  - SHOULD: on invalid target either 400(Bad Request) or 301(Moved Permanently) to redir to the valid one
@@ -42,6 +42,84 @@ section 3.2: "A client MUST send a Host header field (Section 7.2 of [HTTP]) in 
 A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field line or a Host header field with an invalid field value."
 
 */
+
+bool Uri::operator==(const struct Uri &other) const {
+	bool ret = true;
+	
+	if (!(this->full == other.full)) {
+		std::cout << "Uri.full does not match!\n"; ret = false;
+	}
+	if (!(this->authority == other.authority)) {
+		std::cout << "Uri.authority does not match!\n";
+		ret = false;
+	}
+	if (!(this->host == other.host)) {
+		std::cout << "Uri.host does not match!\n";
+		ret = false;
+	}
+	if (!(this->port == other.port)) {
+		std::cout << "Uri.port does not match!\n";
+		ret = false;
+	}
+	if (!(this->path == other.path)) {
+		std::cout << "Uri.path does not match!\n";
+		ret = false;
+	}
+	if (!(this->query == other.query)) {
+		std::cout << "Uri.query does not match!\n";
+		ret = false;
+	}
+	if (!(this->form.is_origin_form == other.form.is_origin_form)) {
+		std::cout << "Uri.form.is_origin_form does not match!\n";
+		ret = false;
+	}
+	if (!(this->form.is_absolute_form == other.form.is_absolute_form)) {
+		std::cout << "Uri.form.is_absolute_form does not match!\n";
+		ret = false;
+	}
+	if (!(this->form.is_authority_form == other.form.is_authority_form)) {
+		std::cout << "Uri.form.is_authority_form does not match!\n";
+		ret = false;
+	}
+	if (!(this->form.is_asterisk_form == other.form.is_asterisk_form)) {
+		std::cout << "Uri.form.is_asterisk_form does not match!\n";
+		ret = false;
+	}
+	return (ret);
+}
+
+bool Request::operator==(const Request &other) const {
+	bool ret = true;
+
+	if (!(this->status_code == other.status_code)) {
+		std::cout << "Request.status_code does not match!\n";
+		ret = false;
+	}
+	if (this->status_code.has_value() && other.status_code.has_value()) {
+		return (this->status_code == other.status_code);
+	}
+	if (!(this->method == other.method)) {
+		std::cout << "Request.method does not match!\n";
+		ret = false;
+	}
+	if (!(this->uri == other.uri)) {
+		std::cout << "Request.uri does not match!\n";
+		ret = false;
+	}
+	if (!(this->version == other.version)) {
+		std::cout << "Request.version does not match!\n";
+		ret = false;
+	}
+	if (!(this->headers == other.headers)) {
+		std::cout << "Request.headers does not match!\n";
+		ret = false;
+	}
+	if (!(this->body == other.body)) {
+		std::cout << "Request.body does not match!\n";
+		ret = false;
+	}
+	return (ret);
+}
 
 std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI type: ";
@@ -201,7 +279,7 @@ bool RequestParser::parse_uri(void) {
 }
 
 bool RequestParser::parse_request_line(void) {
-	std::cout << "parsing input of |" << this->input << "|" << std::endl;
+	//std::cout << "parsing input of |" << this->input << "|" << std::endl;
 	if (!this->input.size()) {
 		return (false);
 	}
@@ -215,9 +293,7 @@ bool RequestParser::parse_request_line(void) {
 		this->setStatus(400);
 		return (true);
 	}
-	//for (size_t i = 0; i < match.size(); i++) {
-	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
-	//}
+
 	if (match[4].matched) {
 		PARSE_ASSERT(!match[3].matched);
 		std::cout << "Invalid method\n";
@@ -260,7 +336,6 @@ bool RequestParser::parse_request_line(void) {
 }
 
 bool RequestParser::parse_headers(void) {
-	std::cout << REQUEST_LINE_PAT << std::endl;
 	if (this->request.status_code.has_value()) {
 		return (true);
 	}
@@ -476,24 +551,19 @@ bool RequestParser::parse_body(size_t max_body_len) {
 		return (true);
 	}
 	if (this->request.headers.find("transfer-encoding") != this->request.headers.end()) {
-		if (parse_encoded_body(max_body_len)) {
-			if (!this->request.body.has_value()) {
-				this->request.body = "";
-			}
-			return (true);
-		}
-		return (false);
+		return (parse_encoded_body(max_body_len));
 	} else if (this->request.headers.find("content-length") != this->request.headers.end()) {
 		return (this->parse_not_encoded_body(max_body_len));
 	} else {
 		std::cout << "no body\n";
-		this->request.body = "";
-		// no body
 		return (true);
 	}
 }
 
 Request &&RequestParser::getRequest(void) {
+	if (!this->request.body.has_value()) {
+		this->request.body = "";
+	}
 	return (std::move(this->request));
 }
 /*

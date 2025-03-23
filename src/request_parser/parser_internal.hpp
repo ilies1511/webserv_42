@@ -12,7 +12,7 @@
 # define REQUEST_LINE_MAX 8000 //if it's longer than this give a 501
 #endif // REQUEST_LINE_MAX
 
-#define REQUEST_LINE_PAT "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(HTTP\\/1\\.1)|(\\w+\\/\\d+\\.\\d+))(\\r\\n)?))"
+#define REQUEST_LINE_PAT "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?))"
 
 #ifndef URI_MAX
 //todo

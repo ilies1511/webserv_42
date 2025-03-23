@@ -13,7 +13,9 @@
 #include <ctime>
 //#include <serverConfig.hpp>
 
-
+#ifndef DEFAULT_MAX_REQ_BODY_SIZE
+# define DEFAULT_MAX_REQ_BODY_SIZE 10000000000
+#endif // DEFAULT_MAX_REQ_BODY_SIZE
 
 typedef struct Uri {
 	std::string	full;
@@ -37,15 +39,24 @@ typedef struct Uri {
 		form.is_authority_form = 0;
 		form.is_asterisk_form = 0;
 	}
+	bool operator==(const struct Uri &other) const;
 } uri;
 
 typedef struct Request {
-	std::optional<std::string>						method = std::nullopt;
-	std::optional<Uri>								uri = std::nullopt;
-	std::optional<std::string>						version = std::nullopt;
+	std::optional<std::string>						method;
+	std::optional<Uri>								uri;
+	std::optional<std::string>						version;
 	std::unordered_map<std::string, std::string>	headers;
-	std::optional<std::string>						body = std::nullopt;
-	std::optional<int>								status_code = std::nullopt;
+	std::optional<std::string>						body;
+	std::optional<int>								status_code;
+	bool operator==(const Request &other) const;
+	Request(void):
+		method(std::nullopt),
+		uri(std::nullopt),
+		version(std::nullopt),
+		body(std::nullopt),
+		status_code(std::nullopt)
+	{}
 } Request;
 
 class RequestParser {
