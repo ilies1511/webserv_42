@@ -9,10 +9,6 @@ RM := rm -rf
 ################################################################################
 
 OBJ_DIR := _obj
-# INC_DIRS := .
-#INC_DIRS := Includes Includes/Extra Includes/Tests Includes/Config
-# SRC_DIRS := .
-#SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
 INC_DIRS := Includes \
 			Includes/Extra \
@@ -40,8 +36,8 @@ SRC_DIRS := src \
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
-# Tell the Makefile where headers and source files are
 
+# Tell the Makefile where headers and source files are
 vpath %.hpp $(INC_DIRS)
 vpath %.cpp $(SRC_DIRS)
 
@@ -56,7 +52,6 @@ HEADERS :=	Log.hpp \
 			serverConfig.hpp \
 			token.hpp \
 			validation.hpp \
-			requestParsing.hpp \
 			webserv.hpp \
 			Request.hpp \
 			Response.hpp \
@@ -108,9 +103,6 @@ CONFIG_DIR_FILES := serverConfig.cpp \
 					validation.cpp
 CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
 
-REQUEST_DIR_FILES := requestParsing.cpp
-REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
-
 FABI_REQUEST_DIR_FILES := P2.cpp
 FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
 
@@ -120,7 +112,7 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_write_file.cpp \
 					state_send_data.cpp \
 					state_recv.cpp
-STATE_DIR_FILES_DIR := $(addprefix states/, $(STATE_DIR_FILES))
+STATE_DIR := $(addprefix states/, $(STATE_DIR_FILES))
 
 SRC := src_file.cpp
 
@@ -133,12 +125,10 @@ MELTING_POT :=	$(SRC) \
 				$(UTILS_REPO) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
-				$(REQUEST_DIR) \
 				$(FABI_REQUEST_DIR) \
-				$(STATE_DIR_FILES_DIR) \
+				$(STATE_DIR) \
 				$(CONFIG_DIR)
 
-# SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))

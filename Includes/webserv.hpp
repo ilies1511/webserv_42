@@ -3,7 +3,7 @@
 #define WEBSERV_HPP
 
 //Includes -- BEGIN
-#include "requestParsing.hpp"
+// #include "requestParsing.hpp"
 #include "serverConfig.hpp"
 #include "token.hpp"
 #include "parser.hpp"
@@ -41,7 +41,6 @@
 //Headers -- END
 
 //FNC-Prototypes -- BEGIN
-void	dummy_function(void);
 void	src_function(void);
 //FNC-Prototypes -- END
 
