@@ -1,7 +1,7 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-#include "Request.hpp"
+// #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
 #include "StaticFileHandler.hpp"
@@ -65,62 +65,77 @@ void Connection::generate_error_response(Response &response)
 					status_texts.at(response.status_code) + "</h1></body></html>";
 }
 
-void	Connection::print_request_data(Request &request)
-{
-	std::cout << " Method: " \
-					<< request._method << " URI:" \
-					<< request._uri \
-					<< " Version: " << request._version \
-					<< " Finished: " << request.is_finished \
-					<< "\n";
-}
+// void	Connection::print_request_data(Request &request)
+// {
+// 	std::cout << " Method: " \
+// 					<< request._method << " URI:" \
+// 					<< request._uri \
+// 					<< " Version: " << request._version \
+// 					<< " Finished: " << request.is_finished \
+// 					<< "\n";
+// }
 
-bool	Connection::prepare_fdFile(void)
+void	Connection::prepare_fdFile_param(const std::string status_code)
 {
-	_fdFile = open("html/index.html", O_RDONLY | O_NONBLOCK);
+	_current_response.status_code = status_code;
+
+	// _system_path = "errorPages/403.html";
+	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
+	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
+		prepare_ErrorFile();
 		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
-		// exit (1);
-		//TODO: Error Handling
-		return (false);
+		return ;
 	}
 	else {
+		_state = State::READ_FILE;
+		_next_state = State::ASSEMBLE;
 		printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
 		struct pollfd	new_fd;
 		new_fd.fd = _fdFile;
 		new_fd.events = POLLIN;
 		new_fd.revents = 0;
 		this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
-		return (true);
+		return ;
 	}
-
-	//Davor war folgender Block im READ_FILE State
-	// _fdFile = open("html/index.html", O_RDONLY | O_NONBLOCK);
-	// if (_fdFile < 0)
-	// {
-	// 	printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
-	// 	exit (1);
-	// 	//Error Handling
-	// }
-	// else {
-	// 	printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
-	// 	struct pollfd	new_fd;
-	// 	new_fd.fd = _fdFile;
-	// 	new_fd.events = POLLIN;
-	// 	new_fd.revents = 0;
-	// 	this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
-	// }
-
 }
 
-bool	Connection::prepare_ErrorFile(void)
+void	Connection::prepare_fdFile(void)
+{
+	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
+	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
+	if (_fdFile < 0)
+	{
+		prepare_ErrorFile();
+		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
+		return ;
+	}
+	else {
+		_state = State::READ_FILE;
+		_next_state = State::ASSEMBLE;
+		printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
+		struct pollfd	new_fd;
+		new_fd.fd = _fdFile;
+		new_fd.events = POLLIN;
+		new_fd.revents = 0;
+		this->_server.add_to_pollfds_prefilled(new_fd); // TODO: add_to_pollfds_prefilledRoot()
+		return ;
+	}
+}
+
+/*
+	TODO: take as param error Code
+*/
+void	Connection::prepare_ErrorFile(void)
 {
 	_fdFile = open("html/error.html", O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
+		// TODO: spaeter
 		printer::debug_putstr("In open error.html failed", __FILE__, __FUNCTION__, __LINE__);
-		return (false);
+		generate_internal_server_error_response();
+		return ;
 	}
 	printer::debug_putstr("In open index.html success", __FILE__, __FUNCTION__, __LINE__);
 	struct pollfd	new_fd;
@@ -131,7 +146,9 @@ bool	Connection::prepare_ErrorFile(void)
 
 	_current_response.status_code = "404";
 	_current_response.headers["Connection"] = "close";
-	return (true);
+	_state = State::READ_FILE;
+	_next_state = State::ASSEMBLE;
+	return ;
 }
 
 // void	Connection::assemble_response2(Response &response)
@@ -175,57 +192,9 @@ void Connection::assemble_response2(void)
 								status_texts.at(_current_response.status_code) + "</h1></body></html>";
 }
 
-void Connection::assemble_response()
-{
-	std::string reason = _current_response.reason_phrase;
-
-	//Add hardcoded Headers
-	if (_current_response.status_code != "500") // condition nur temporaer da um zu 500 Case zu testen
-	{
-		_current_response.http_version = "HTTP/1.1";
-		_current_response.status_code = "200";
-		_current_response.headers["Connection"] = "close";
-		_current_response.headers["Content-Type"] = "text/html";
-		_current_response.headers["Content-Length"] = \
-		std::to_string(this->_current_response.file_data.size());
-	}
-
-	if (reason.empty()) {
-		const std::map<std::string, std::string> default_status_texts = {
-			{"200", "OK"},
-			{"400", "Bad Request"},
-			{"403", "Forbidden"},
-			{"404", "Not Found"},
-			{"500", "Internal Server Error"}
-		};
-		auto it = default_status_texts.find(_current_response.status_code);
-		if (it != default_status_texts.end()) {
-			reason = it->second;
-		}
-	}
-
-	// Assemble status line (HTTP-Version, Statuscode, Reason-Phrase)
-	std::string assembled_response =	_current_response.http_version + " " +
-										_current_response.status_code + " " +
-										reason + "\r\n";
-
-	// Alle Header durchlaufen und hinzufügen
-	for (const auto &header : _current_response.headers) {
-		assembled_response += header.first + ": " + header.second + "\r\n";
-	}
-
-	//Add line
-	assembled_response += "\r\n";
-
-	//Append file_data
-	assembled_response += _current_response.file_data;
-
-	// FF - FInohed Fusion
-	_current_response.response_inzemaking = assembled_response;
-}
-
 void	Connection::generate_internal_server_error_response(void)
 {
+	_current_response.headers.clear();
 	_current_response.http_version = "HTTP/1.1";
 	_current_response.status_code = "500";
 	_current_response.headers["Content-Type"] = "text/html";
@@ -237,14 +206,16 @@ void	Connection::generate_internal_server_error_response(void)
 		  <title>500 Internal Server Error</title>
 		</head>
 		<body>
-		  <h1>ALOOOOOOOOO</h1>
+		  <h1>Last ALOOOOOOOOO</h1>
 		  <p>The server was unable to complete your request. Please try again later.</p>
 		</body>
 		</html>)";
 	_current_response.headers["Content-Length"] = \
 		std::to_string(_current_response.file_data.size());
+	_state = State::ASSEMBLE;
 	return ;
 }
+
 //Utils -- END
 
 

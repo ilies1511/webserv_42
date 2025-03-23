@@ -1,6 +1,6 @@
 #include "Response.hpp"
-#include "Request.hpp"
-
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 // Response::Response(void)
 // 	: status_code{}, body{}, headers{}, _data()
 // {}
@@ -58,6 +58,23 @@ Response& Response::operator=(const Response& other)
 	return (*this);
 }
 
+// std::string	Response::process_request(Request &request, Resonse &response)
+// {
+// 	if (request._method == "GET") {
+// 		handle_get;
+// 	}
+
+// 	if (request._method == "POST") {
+// 		handle_get;
+// 	}
+
+// 	if (request._method == "DELETE") {
+// 		handle_get;
+// 	}
+
+// 	(void)request;
+// 	return "Alo";
+// }
 std::string	Response::process_request(Request &request)
 {
 	(void)request;

@@ -5,16 +5,18 @@
 #include <string>
 #include <sys/socket.h>
 #include "Buffer.hpp"
-#include "Request.hpp"
+// #include "Request.hpp"
+#include "RequestParser.hpp"
 #include "Response.hpp"
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
 #include <unistd.h>
 #include <poll.h>
+#include <filesystem>
 
 class Buffer;
 class Server;
-class Request;
+// class Request;
 class Response;
 // class State;
 // class HTTP_Parser;
@@ -24,20 +26,34 @@ class Connection
 {
 	public:
 		// enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
-		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND};
+		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND, ASSEMBLE};
+		static std::string to_string(State state) {
+			switch (state) {
+				case State::RECV: return "RECV";
+				case State::PROCESS: return "PROCESS";
+				case State::READ_FILE: return "READ_FILE";
+				case State::WRITE: return "WRITE";
+				case State::SEND: return "SEND";
+				case State::ASSEMBLE: return "ASSEMBLE";
+				default: return "UNKNOWN";
+			}
+		}
 		State				_state;
+		State				_next_state;
 		Server&				_server;
 		Request				request;
-		Parser				parser;
+		// Parser				parser;
 		Response			_current_response;
+		std::string			_system_path;
 	private:
 		int					_fdConnection;
-		int					_fdFile;
+		int					_fdFile; //TODO: add error_fd
 		ssize_t				sent_bytes;
 		bool				finished_sending;
 	public:
-		Buffer				_InputBuffer; // Dieser Buffer wird fuer read() bzw. recv() verwendet
+		Buffer				_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
+		RequestParser		_request_parser;
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
@@ -91,12 +107,26 @@ class Connection
 		bool	check_revent(int &fd, short rrevent);
 		void	ft_closeNcleanRoot(int &fd);
 		void	print_request_data(Request &request);
-		bool	prepare_fdFile(void);
-		bool	prepare_ErrorFile(void);
+		void	prepare_fdFile(void);
+		void	prepare_ErrorFile(void);
 		// void	assemble_response(Response &response);
 		void	assemble_response(void);
 		void	assemble_response2(void);
 		void	generate_internal_server_error_response(void);
+		void	entry_process(void);
+		void	methode_handler(void);
+		void	handle_get(void);
+		void	handle_post(void);
+		void	handle_delete(void);
+		void	read_file(void);
+		void	write_file(void);
+		void	send_data(void);
+		void	connection_process(void);
+		void	recv_data(void);
+		bool	file_exists_and_readable(const std::filesystem::path& p);
+		void	generate_autoindex(const std::filesystem::path& dir);
+		void	prepare_fdFile_param(const std::string status_code);
+		bool	entry_parse(void);
 	//Methodes -- END
 };
 

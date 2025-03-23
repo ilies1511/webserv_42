@@ -14,7 +14,7 @@ OBJ_DIR := _obj
 # SRC_DIRS := .
 #SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
-INC_DIRS := $(abspath	Includes \
+INC_DIRS := Includes \
 			Includes/Extra \
 			Includes/Tests \
 			Includes/core \
@@ -23,8 +23,10 @@ INC_DIRS := $(abspath	Includes \
 			Includes/utils \
 			Includes/Config \
 			Includes/StatusCodes \
-			Includes/Request)
-SRC_DIRS := $(abspath	src \
+			Includes/Request \
+			Includes/request_parser
+
+SRC_DIRS := src \
 			src/Extra \
 			src/Tests \
 			src/playground \
@@ -33,9 +35,8 @@ SRC_DIRS := $(abspath	src \
 			src/http \
 			src/handler \
 			src/utils \
-			src/Request)
-
-
+			src/Request \
+			src/request_parser
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -61,6 +62,7 @@ HEADERS :=	Log.hpp \
 			Response.hpp \
 			Connection.hpp \
 			HTTP_Parser.hpp \
+			RequestParser.hpp \
 			Buffer.hpp
 
 HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))
@@ -81,13 +83,13 @@ EXTRA := $(addprefix Extra/, $(EXTRA_FILES))
 TEST_FILES := test.cpp
 TEST := $(addprefix Tests/, $(TEST_FILES))
 
-DUMMY_REPO_FILES := dummy_file.cpp
-DUMMY_REPO := $(addprefix dummy_repo/, $(DUMMY_REPO_FILES))
-
 PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
-CORE_REPO_FILES := Server.cpp Connection.cpp utils_Connection.cpp
+CORE_REPO_FILES :=	Server.cpp \
+					Connection.cpp \
+					utils_Connection.cpp
+
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
 UTILS_REPO_FILES := utils_pollserver.cpp Buffer.cpp
@@ -109,9 +111,18 @@ CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
 REQUEST_DIR_FILES := requestParsing.cpp
 REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
 
+FABI_REQUEST_DIR_FILES := P2.cpp
+FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
+
+STATE_DIR_FILES :=	state_process.cpp \
+					state_assemble.cpp \
+					state_read_file.cpp \
+					state_write_file.cpp \
+					state_send_data.cpp \
+					state_recv.cpp
+STATE_DIR_FILES_DIR := $(addprefix states/, $(STATE_DIR_FILES))
+
 SRC := src_file.cpp
-
-
 
 #Combines all
 MELTING_POT :=	$(SRC) \
@@ -123,6 +134,8 @@ MELTING_POT :=	$(SRC) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
 				$(REQUEST_DIR) \
+				$(FABI_REQUEST_DIR) \
+				$(STATE_DIR_FILES_DIR) \
 				$(CONFIG_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
@@ -222,4 +235,19 @@ pollserver:
 
 -include $(OBJS:%.o=%.d)
 
-.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client
+.PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client compile_commands.json
+
+
+PWD = $(shell pwd)
+compile_commands.json:
+	@echo '[' > compile_commands.json
+	@$(foreach src, $(SRCS), \
+		echo "\t{" >> compile_commands.json; \
+		echo "\t\t\"directory\": \"$(PWD)\"," >> compile_commands.json; \
+		echo "\t\t\"command\": \"$(CPP) $(CFLAGS) -o $(OBJ_DIR)$$(basename $(src) .cpp).o $(src)\"," >> compile_commands.json; \
+		echo "\t\t\"file\": \"$(src)\"" >> compile_commands.json; \
+		echo "\t}," >> compile_commands.json;)
+	@sed -i '' -e '$$ d' compile_commands.json
+	@echo "\t}" >> compile_commands.json
+	@echo ']' >> compile_commands.json
+	@echo "$(YELLOW) Pseudo compile_commands.json generated $(CLEAR)"
