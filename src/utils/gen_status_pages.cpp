@@ -2,8 +2,11 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <assert.h>
+#include <iostream>
+#include <errno.h>
 
-std::vector<std::pair<int, std::basic_string<char>>> all = 
+std::vector<std::pair<int, std::basic_string<char>>> all =
 {
 	{100, "Continue"},
 	{101, "Switching Protocols"},
@@ -93,9 +96,16 @@ int main (void) {
 	"</html>\n"
 	;
 	for (auto &v : all) {
-		int fd = open(std::string(std::string("./testfiles/") + std::to_string(v.first) + ".html").c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		int fd = open(std::string(std::string("./errorPages/") + std::to_string(v.first) + ".html").c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd < 0) {
+			std::cerr << strerror(errno) << std::endl;
+			exit(1);
+		}
 		std::string data = s1 + std::to_string(v.first) + " " + v.second + s2 + std::to_string(v.first) + " - " + v.second + s3;
-		write(fd, data.c_str(), data.length());
+		if (write(fd, data.c_str(), data.length()) <= 0) {
+			std::cerr << strerror(errno) << std::endl;
+			exit(1);
+		}
 		close(fd);
 	}
 }

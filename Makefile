@@ -233,6 +233,9 @@ poll:
 pollserver:
 	$(CPP) -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
 
+gen_status_pages:
+	c++ -std=c++17 src/utils/gen_status_pages.cpp -o gen_page && ./gen_page && rm gen_page
+
 -include $(OBJS:%.o=%.d)
 
 .PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client compile_commands.json
