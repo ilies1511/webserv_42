@@ -53,6 +53,9 @@ void	Connection::redirect(size_t input_status_code, std::string New_Location)
 	_current_response.headers["Location"] = New_Location;
 	_current_response.headers["Connection"] = "close";
 	_system_path = _server._config.getErrorPages()[input_status_code];
+	// for (auto v : _server._config.getErrorPages()) {
+	// 	std::cout << v.second << std::endl;
+	// }
 	prepare_fdFile_param(std::to_string(input_status_code));
 }
 

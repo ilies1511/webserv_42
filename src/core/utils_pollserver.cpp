@@ -207,11 +207,11 @@ void	Server::del_from_map(int fd)
 // Obsoletes (new: ft_closeNclean(int fd))
 void Server::ft_closeNclean(int fd)
 {
-	if (fd >= 0)
-	{
-		std::cout << "Closing fd: " << fd << "\n";
-		close(fd);
-	}
+	// if (fd >= 0)
+	// {
+	// 	std::cout << "Flagged Closing fd: " << fd << "\n";
+	// 	close(fd);
+	// }
 	// Markiere den fd zur späteren Entfernung aus _pollfds und _connections
 	_deferred_close_fds.push_back(fd);
 }
@@ -316,10 +316,22 @@ void Server::cleanup_deferred(void)
 	_pollfds.erase(
 		std::remove_if(_pollfds.begin(), _pollfds.end(),
 			[&to_close](const pollfd& pfd) {
-				return to_close.count(pfd.fd) > 0;
+				if (to_close.count(pfd.fd) > 0) {
+					close(pfd.fd);
+					return (true);
+				} else {
+					return (false);
+				}
 			}),
 		_pollfds.end()
 	);
+	// _pollfds.erase(
+	// 	std::remove_if(_pollfds.begin(), _pollfds.end(),
+	// 		[&to_close](const pollfd& pfd) {
+	// 			return to_close.count(pfd.fd) > 0;
+	// 		}),
+	// 	_pollfds.end()
+	// );
 	// Entferne alle Einträge aus der Connection-Map, deren Key in to_close ist
 	for (auto it = _connections.begin(); it != _connections.end(); ) {
 		if (to_close.count(it->first) > 0) {

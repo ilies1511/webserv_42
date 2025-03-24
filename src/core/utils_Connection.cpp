@@ -84,6 +84,7 @@ void	Connection::prepare_fdFile_param(const std::string status_code)
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
+		//std::cout << _system_path << std::endl;
 		prepare_ErrorFile();
 		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
 		return ;
@@ -129,6 +130,9 @@ void	Connection::prepare_fdFile(void)
 */
 void	Connection::prepare_ErrorFile(void)
 {
+	// volatile int *p = NULL;
+
+	// *p = 123;
 	_fdFile = open("html/error.html", O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
