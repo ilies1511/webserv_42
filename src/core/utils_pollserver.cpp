@@ -310,45 +310,44 @@ pollfd* Server::getPollFdElement(int fd)
 
 void Server::cleanup_deferred(void)
 {
-	for (int fd : _deferred_close_fds)
-	{
-		// dell from _pollfds:
-		auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
-			[fd](const pollfd& pfd) { return pfd.fd == fd; });
-		if (it != _pollfds.end())
-		{
-			_pollfds.erase(it, _pollfds.end());
-			std::cout << "Removed fd: " << fd << " from pollfds\n";
+	// Baue eine Hash-Set aus den FDs, die geschlossen werden sollen
+	std::unordered_set<int> to_close(_deferred_close_fds.begin(), _deferred_close_fds.end());
+	// Entferne alle pollfd-Einträge, deren fd in to_close enthalten ist
+	_pollfds.erase(
+		std::remove_if(_pollfds.begin(), _pollfds.end(),
+			[&to_close](const pollfd& pfd) {
+				return to_close.count(pfd.fd) > 0;
+			}),
+		_pollfds.end()
+	);
+	// Entferne alle Einträge aus der Connection-Map, deren Key in to_close ist
+	for (auto it = _connections.begin(); it != _connections.end(); ) {
+		if (to_close.count(it->first) > 0) {
+			std::cout << "Removed fd: " << it->first << " from connections\n";
+			it = _connections.erase(it);
 		}
-		//dell form Connection-Map
-		del_from_map(fd);
+		else {
+			++it;
+		}
 	}
+	// Leere den Vektor für deferred closures
 	_deferred_close_fds.clear();
 }
 
-// // Diese Funktion wird am Ende einer Poll-Iteration aufgerufen.
-// void Server::cleanup_deferred()
+// void Server::cleanup_deferred(void)
 // {
-// 	// Baue eine Hash-Set aus den FDs, die geschlossen werden sollen.
-// 	std::unordered_set<int> to_close(_deferred_close_fds.begin(), _deferred_close_fds.end());
-// 	// Entferne alle pollfd-Einträge, deren fd in to_close enthalten ist.
-// 	_pollfds.erase(
-// 		std::remove_if(_pollfds.begin(), _pollfds.end(),
-// 			[&to_close](const pollfd& pfd) {
-// 				return to_close.count(pfd.fd) > 0;
-// 			}),
-// 		_pollfds.end()
-// 	);
-// 	// Entferne alle Einträge aus der Connection-Map, deren Key in to_close ist.
-// 	for (auto it = _connections.begin(); it != _connections.end(); ) {
-// 		if (to_close.count(it->first) > 0) {
-// 			std::cout << "Removed fd: " << it->first << " from connections\n";
-// 			it = _connections.erase(it);
+// 	for (int fd : _deferred_close_fds)
+// 	{
+// 		// dell from _pollfds:
+// 		auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
+// 			[fd](const pollfd& pfd) { return pfd.fd == fd; });
+// 		if (it != _pollfds.end())
+// 		{
+// 			_pollfds.erase(it, _pollfds.end());
+// 			std::cout << "Removed fd: " << fd << " from pollfds\n";
 // 		}
-// 		else {
-// 			++it;
-// 		}
+// 		//dell form Connection-Map
+// 		del_from_map(fd);
 // 	}
-// 	// Leere den Vektor für deferred closures.
 // 	_deferred_close_fds.clear();
 // }
