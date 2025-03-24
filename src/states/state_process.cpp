@@ -45,6 +45,11 @@ void	Connection::entry_process(void)
 	// request.readFile = true;
 	// // request.filename = "html/index.html";
 	// // filled_request._headers = ;
+	if (this->request.uri.has_value() && is_cgi(request.uri->path)) {
+		this->_state = State::CGI;
+		this->_next_state = State::SEND;
+		return ;
+	}
 	methode_handler();
 	return ;
 }

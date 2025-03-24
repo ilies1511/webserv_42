@@ -26,7 +26,7 @@ class Connection
 {
 	public:
 		// enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
-		enum class State { RECV, PROCESS, READ_FILE, WRITE, SEND, ASSEMBLE};
+		enum class State { RECV, PROCESS, READ_FILE, WRITE, CGI, SEND, ASSEMBLE};
 		static std::string to_string(State state) {
 			switch (state) {
 				case State::RECV: return "RECV";
@@ -131,6 +131,9 @@ class Connection
 		bool	entry_parse(void);
 		void	trailing_slash_case(void);
 		void	no_trailing_slash_case(void);
+		bool	is_cgi(std::string &path);
+		void	entry_cgi(void);
+		void	set_full_status_code(size_t status);
 	//Methodes -- END
 };
 

@@ -112,6 +112,7 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_read_file.cpp \
 					state_write_file.cpp \
 					state_send_data.cpp \
+					state_cgi.cpp \
 					state_recv.cpp
 STATE_DIR := $(addprefix states/, $(STATE_DIR_FILES))
 
