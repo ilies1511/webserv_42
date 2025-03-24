@@ -39,6 +39,8 @@ void	Connection::read_file(void)
 	//TODO: 23.03 Improve hotfix
 	Buffer	read_file_buffer;
 	static char buf[10000];
+
+	memset(buf, 0, sizeof(buf));
 	// ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
 	ssize_t bytes_read = read(_fdFile, buf, sizeof buf);
 	std::string str(buf);

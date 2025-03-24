@@ -1,0 +1,117 @@
+
+	/*
+		// Der Process muss auf Grundlage des fertigen Requests, zu
+		ermittlern ob eine File geoffnet werden muss
+		Logik fuer Faehigkeit, File zu lesen, in Buffer zu speichern, Body
+
+		Response String Stueck fuer Stueck zusammenbauen und dabei Body lesen
+		und dann Resonse generieren  --> siehe void Response::finish_up(void)
+		Logik eigenen Buffer speichern.
+
+		Z.B:
+
+		response_str = "HTTP/1.1 200 OK\r\n" --> Header
+				"Content-Type: text/plain\r\n"
+				"Content-Length: 13\r\n\r\n"
+				"Hello World!\n"; --> das was man aus der File liest
+
+		Ueberlegungstatt OutputBuffer, std::string zu verwenden
+			--> Gefahr: c_str am Ende nullterminiert, waehrend std::strings nicht
+
+	*/
+	// READ_FILE KOENNRE auch eine Sub-State sein.
+	/*
+		0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
+		1. Allgemeine Schritte:
+			- Path Variable zusammenbauen --> Config + Request = FilePath
+			- if location is a redirect
+				--> just send 30x + specific Header
+			- Verifizierung ob Methode fuer directory valide, if inavlid assemble_response with appropriate response
+		2. Method Handler:
+			if (request._method  == GET)
+			{
+				handle_get();
+			}
+			- GET-Handler: handle_get();
+				if (dir)
+					if (indexfile_here)
+					{
+						setpath2indexfile();
+					}
+					else if (autoindex_here) {
+
+					}
+					else {
+						error (404);
+					}
+				here: execute_file()
+				if (cgi) {
+					do_cgi
+				}
+				else {
+					do_normalFile //vielleicht damit anfangen --> 	if (request.readFile && !(this->_current_response.FileData))
+						if () {
+							_fdFile = open();
+							if (_fdFile)
+								generate_error_response
+						}
+						check if file here (open)
+					READ_FILE STATE
+					return ;
+				}
+
+			- POST-Handler: handle_POST();
+
+	*/
+
+	//_current_response.process_request(this->request);
+
+	//hier davor  --> get_file();
+
+
+
+/*
+	GET- HANDLER:
+
+			/*
+	//Case, wenn fullpath mit slash, sprich var/www/data/files/
+	if (fullpath.end() == '/') //nginx assumes it's a dir
+	{
+		if (fullpath.is_dir)
+		{
+			if (is_index.html here)
+			{
+				serve index_file;
+			}
+			else if (autoindex on)
+			{
+				serve autoindex --> dynamisch generierte Verzeichnis Liste;
+			}
+			else
+			{
+				generate_403_forbidden
+			}
+		}
+		else
+		{
+			generate_404_error;
+		}
+	}
+	else //Case, wenn fullpath ohne slash, sprich var/www/data/files
+	{
+		//nginx searches for exactly the requested file
+		if (file_exists)
+		{
+			serve_file
+		}
+		else (check if dir exists)
+		{
+			301_response
+			append '/' to full URI and send it back
+		}
+		else
+		{
+			generate_404_erroresonse
+		}
+	}
+*/

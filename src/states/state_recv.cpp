@@ -37,6 +37,7 @@ void	Connection::recv_data(void)
 	// ssize_t bytes = recv(_fdConnection, _InputBuffer._buffer.data(), \
 	// 					_InputBuffer._buffer.capacity() - 1, 0);
 	//_InputBuffer._buffer[(size_t)bytes] = 0;
+	memset(buf, 0, sizeof(buf));
 	ssize_t bytes = recv(_fdConnection, buf, \
 						sizeof buf - 1, 0);
 	buf[(size_t)bytes] = 0;

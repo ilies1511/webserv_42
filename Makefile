@@ -190,7 +190,10 @@ submodule_update:
 
 bonus: all
 
-san: fclean
+# san: fclean
+# 	make CFLAGS="$(CFLAGS_SAN)" LDFLAGS="$(LDFLAGS_SAN)"
+# 	@echo "$(GREEN)$(BOLD)Successful Compilation with fsan$(NC)"
+san:
 	make CFLAGS="$(CFLAGS_SAN)" LDFLAGS="$(LDFLAGS_SAN)"
 	@echo "$(GREEN)$(BOLD)Successful Compilation with fsan$(NC)"
 

@@ -38,22 +38,24 @@ class Connection
 				default: return "UNKNOWN";
 			}
 		}
-		State				_state;
-		State				_next_state;
-		Server&				_server;
-		Request				request;
+		State					_state;
+		State					_next_state;
+		Server&					_server;
+		Request					request;
 		// Parser				parser;
-		Response			_current_response;
-		std::string			_system_path;
+		Response				_current_response;
+		std::string				_system_path;
 	private:
-		int					_fdConnection;
-		int					_fdFile; //TODO: add error_fd
-		ssize_t				sent_bytes;
-		bool				finished_sending;
+		int						_fdConnection;
+		int						_fdFile; //TODO: add error_fd
+		ssize_t					sent_bytes;
+		bool					finished_sending;
 	public:
-		Buffer				_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
-		Buffer				_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
-		RequestParser		_request_parser;
+		Buffer					_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
+		Buffer					_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
+		RequestParser			_request_parser;
+		bool					_autoindex_enabled = false;
+		std::filesystem::path	_full_path = {};
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
@@ -127,6 +129,8 @@ class Connection
 		void	generate_autoindex(const std::filesystem::path& dir);
 		void	prepare_fdFile_param(const std::string status_code);
 		bool	entry_parse(void);
+		void	trailing_slash_case(void);
+		void	no_trailing_slash_case(void);
 	//Methodes -- END
 };
 
