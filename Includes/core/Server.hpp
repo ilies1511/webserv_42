@@ -32,6 +32,7 @@ class Server
 {
 	public:
 		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
+		std::vector<int>						_deferred_close_fds;
 	private:
 		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
@@ -73,8 +74,8 @@ class Server
 		void	del_from_pollfds(int fd);
 		pollfd* getPollFdElement(int fd);
 		void	add_to_pollfds_prefilled(pollfd &new_element);
-
 		void	execute();
+		void	cleanup_deferred(void);
 		//TODO:
 		// void	check_timeouts(void);
 	//Methodes -- END

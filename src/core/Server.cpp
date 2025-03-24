@@ -107,6 +107,7 @@ void	Server::execute(void)
 			break;
 		}
 	}
+	cleanup_deferred();
 
 	// if (_pollfds[_i].revents & (POLLIN)) //Die Condition muss angepasst werden, da ich nicht mehr global mit durchiteriere
 	// {

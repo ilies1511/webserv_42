@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include <unordered_set>
+#include <algorithm>
 
 // Methodes -- BEGIN
 void Server::get_listener_socket(void)
@@ -202,25 +204,38 @@ void	Server::del_from_map(int fd)
 // 	del_from_pollfds();
 // }
 
+// Obsoletes (new: ft_closeNclean(int fd))
 void Server::ft_closeNclean(int fd)
 {
-	// 1. Schließe den Socket
-	if (fd != -1)
+	if (fd >= 0)
 	{
 		std::cout << "Closing fd: " << fd << "\n";
 		close(fd);
 	}
-	// 2. Entferne aus der Connection-Map
-	// if (_connections.count(fd)) {
-	//     std::cout << "Removing from connections map\n";
-	//     _connections.erase(fd);
-	// }
-	del_from_map(fd);
-	// 3. Entferne aus pollfds
-	del_from_pollfds(fd);
-	// 4. Setze FD auf ungültigen Wert
-	fd = -1;
+	// Markiere den fd zur späteren Entfernung aus _pollfds und _connections
+	_deferred_close_fds.push_back(fd);
 }
+
+// Back-Up Stand: 24.03.25 03:07
+// void Server::ft_closeNclean(int fd)
+// {
+// 	// 1. Schließe den Socket
+// 	if (fd != -1)
+// 	{
+// 		std::cout << "Closing fd: " << fd << "\n";
+// 		close(fd);
+// 	}
+// 	// 2. Entferne aus der Connection-Map
+// 	// if (_connections.count(fd)) {
+// 	//     std::cout << "Removing from connections map\n";
+// 	//     _connections.erase(fd);
+// 	// }
+// 	del_from_map(fd);
+// 	// 3. Entferne aus pollfds
+// 	del_from_pollfds(fd);
+// 	// 4. Setze FD auf ungültigen Wert
+// 	fd = -1;
+// }
 
 // Obsoletes (new: ft_closeNclean(int fd))
 void	Server::ft_closeNclean(size_t i)
@@ -283,3 +298,57 @@ pollfd* Server::getPollFdElement(int fd)
 	}
 	return (nullptr);
 }
+
+// void	Server::cleanup_connections(void)
+// {
+// 	for (int fd : connections_to_remove) {
+// 		del_from_map(fd);
+// 		del_from_pollfds(fd);
+// 	}
+// 	connections_to_remove.clear();
+// }
+
+void Server::cleanup_deferred(void)
+{
+	for (int fd : _deferred_close_fds)
+	{
+		// dell from _pollfds:
+		auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
+			[fd](const pollfd& pfd) { return pfd.fd == fd; });
+		if (it != _pollfds.end())
+		{
+			_pollfds.erase(it, _pollfds.end());
+			std::cout << "Removed fd: " << fd << " from pollfds\n";
+		}
+		//dell form Connection-Map
+		del_from_map(fd);
+	}
+	_deferred_close_fds.clear();
+}
+
+// // Diese Funktion wird am Ende einer Poll-Iteration aufgerufen.
+// void Server::cleanup_deferred()
+// {
+// 	// Baue eine Hash-Set aus den FDs, die geschlossen werden sollen.
+// 	std::unordered_set<int> to_close(_deferred_close_fds.begin(), _deferred_close_fds.end());
+// 	// Entferne alle pollfd-Einträge, deren fd in to_close enthalten ist.
+// 	_pollfds.erase(
+// 		std::remove_if(_pollfds.begin(), _pollfds.end(),
+// 			[&to_close](const pollfd& pfd) {
+// 				return to_close.count(pfd.fd) > 0;
+// 			}),
+// 		_pollfds.end()
+// 	);
+// 	// Entferne alle Einträge aus der Connection-Map, deren Key in to_close ist.
+// 	for (auto it = _connections.begin(); it != _connections.end(); ) {
+// 		if (to_close.count(it->first) > 0) {
+// 			std::cout << "Removed fd: " << it->first << " from connections\n";
+// 			it = _connections.erase(it);
+// 		}
+// 		else {
+// 			++it;
+// 		}
+// 	}
+// 	// Leere den Vektor für deferred closures.
+// 	_deferred_close_fds.clear();
+// }
