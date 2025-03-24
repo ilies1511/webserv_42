@@ -24,7 +24,8 @@ INC_DIRS := Includes \
 			Includes/Config \
 			Includes/StatusCodes \
 			Includes/Request \
-			Includes/request_parser
+			Includes/request_parser \
+			Includes/cgi
 
 SRC_DIRS := src \
 			src/Extra \
@@ -36,7 +37,8 @@ SRC_DIRS := src \
 			src/handler \
 			src/utils \
 			src/Request \
-			src/request_parser
+			src/request_parser \
+			src/cgi
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
@@ -63,7 +65,8 @@ HEADERS :=	Log.hpp \
 			Connection.hpp \
 			HTTP_Parser.hpp \
 			RequestParser.hpp \
-			Buffer.hpp
+			Buffer.hpp \
+			cgi.hpp
 
 HDR_CHECK := $(addprefix $(OBJ_DIR)/, $(notdir $(HEADERS:.hpp=.hpp.gch)))
 # there for preproc. -- END
@@ -122,6 +125,9 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_recv.cpp
 STATE_DIR_FILES_DIR := $(addprefix states/, $(STATE_DIR_FILES))
 
+CGI_DIR_FILES := cgi.cpp
+CGI_DIR := $(addprefix cgi/, $(CGI_DIR_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -136,7 +142,8 @@ MELTING_POT :=	$(SRC) \
 				$(REQUEST_DIR) \
 				$(FABI_REQUEST_DIR) \
 				$(STATE_DIR_FILES_DIR) \
-				$(CONFIG_DIR)
+				$(CONFIG_DIR) \
+				$(CGI_DIR)
 
 # SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
