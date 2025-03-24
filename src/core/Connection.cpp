@@ -79,6 +79,12 @@ void	Connection::execute_layer2(void)
 			return ;
 			//siehe Kommentar oben
 		}
+		case State::CGI:
+		{
+			entry_cgi();
+			return ;
+			//siehe Kommentar oben
+		}
 		case State::SEND:
 		{
 			send_data();

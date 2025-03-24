@@ -216,6 +216,16 @@ void	Connection::generate_internal_server_error_response(void)
 	return ;
 }
 
+void	Connection::set_full_status_code(size_t status)
+{
+	(void)status;
+	// if (_config.error_pages.find(status) == _config.error_pages.end()) {
+	// 	status = 500;
+	// }
+	// _system_path = _config.error_pages[status];
+	// prepare_fdFile_param(const std::string status_code);
+}
+
 //Utils -- END
 
 

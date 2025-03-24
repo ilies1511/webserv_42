@@ -9,10 +9,6 @@ RM := rm -rf
 ################################################################################
 
 OBJ_DIR := _obj
-# INC_DIRS := .
-#INC_DIRS := Includes Includes/Extra Includes/Tests Includes/Config
-# SRC_DIRS := .
-#SRC_DIRS := src src/Extra src/Tests src/playground src/config
 
 INC_DIRS := Includes \
 			Includes/Extra \
@@ -40,8 +36,8 @@ SRC_DIRS := src \
 
 # INC_DIRS := $(abspath Includes Includes/Extra Includes/Tests)
 # SRC_DIRS := $(abspath src src/Extra src/Tests src/playground)
-# Tell the Makefile where headers and source files are
 
+# Tell the Makefile where headers and source files are
 vpath %.hpp $(INC_DIRS)
 vpath %.cpp $(SRC_DIRS)
 
@@ -56,7 +52,6 @@ HEADERS :=	Log.hpp \
 			serverConfig.hpp \
 			token.hpp \
 			validation.hpp \
-			requestParsing.hpp \
 			webserv.hpp \
 			Request.hpp \
 			Response.hpp \
@@ -88,11 +83,12 @@ PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
 CORE_REPO_FILES :=	Server.cpp \
 					Connection.cpp \
+					utils_pollserver.cpp \
 					utils_Connection.cpp
 
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
-UTILS_REPO_FILES := utils_pollserver.cpp Buffer.cpp
+UTILS_REPO_FILES := Buffer.cpp
 UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
 
 HTTP_REPO_FILES := Request.cpp Response.cpp HTTP_Parser.cpp
@@ -108,9 +104,6 @@ CONFIG_DIR_FILES := serverConfig.cpp \
 					validation.cpp
 CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
 
-REQUEST_DIR_FILES := requestParsing.cpp
-REQUEST_DIR := $(addprefix Request/, $(REQUEST_DIR_FILES))
-
 FABI_REQUEST_DIR_FILES := P2.cpp
 FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
 
@@ -119,8 +112,12 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_read_file.cpp \
 					state_write_file.cpp \
 					state_send_data.cpp \
+					state_cgi.cpp \
 					state_recv.cpp
-STATE_DIR_FILES_DIR := $(addprefix states/, $(STATE_DIR_FILES))
+STATE_DIR := $(addprefix states/, $(STATE_DIR_FILES))
+
+METHODS_FILES := central.cpp method_get.cpp
+METHODS_REPO := $(addprefix methods/, $(METHODS_FILES))
 
 SRC := src_file.cpp
 
@@ -133,12 +130,11 @@ MELTING_POT :=	$(SRC) \
 				$(UTILS_REPO) \
 				$(HTTP_REPO) \
 				$(HANDLER_REPO) \
-				$(REQUEST_DIR) \
 				$(FABI_REQUEST_DIR) \
-				$(STATE_DIR_FILES_DIR) \
+				$(STATE_DIR) \
+				$(METHODS_REPO) \
 				$(CONFIG_DIR)
 
-# SRCS := $(MAIN_FILE) $(addprefix src/, $(SRC) $(EXTRA) $(TEST) $(PLAYGROUND_REPO) $(CORE_REPO))
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))
 
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
@@ -200,7 +196,10 @@ submodule_update:
 
 bonus: all
 
-san: fclean
+# san: fclean
+# 	make CFLAGS="$(CFLAGS_SAN)" LDFLAGS="$(LDFLAGS_SAN)"
+# 	@echo "$(GREEN)$(BOLD)Successful Compilation with fsan$(NC)"
+san:
 	make CFLAGS="$(CFLAGS_SAN)" LDFLAGS="$(LDFLAGS_SAN)"
 	@echo "$(GREEN)$(BOLD)Successful Compilation with fsan$(NC)"
 
