@@ -21,3 +21,5 @@ poll
 pollserver
 .cache
 compile_commands.json
+request.txt
+test.c

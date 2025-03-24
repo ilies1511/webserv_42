@@ -134,6 +134,7 @@ class Connection
 		bool	is_cgi(std::string &path);
 		void	entry_cgi(void);
 		void	set_full_status_code(size_t status);
+		void	redirect(size_t input_status_code, std::string New_Location);
 	//Methodes -- END
 };
 

@@ -17,6 +17,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include "Connection.hpp"
+#include "serverConfig.hpp"
 
 #define TIMEOUT 1000
 
@@ -42,7 +43,9 @@ class Server
 		const std::string						_port;
 		//OCF -- BEGIN
 	public:
-		size_t									_i;
+		serverConfig							_config;
+	public:
+		Server(const serverConfig &conf);
 		Server(const std::string &port);
 		~Server(void);
 	private:

@@ -218,12 +218,11 @@ void	Connection::generate_internal_server_error_response(void)
 
 void	Connection::set_full_status_code(size_t status)
 {
-	(void)status;
-	// if (_config.error_pages.find(status) == _config.error_pages.end()) {
-	// 	status = 500;
-	// }
-	// _system_path = _config.error_pages[status];
-	// prepare_fdFile_param(const std::string status_code);
+	if (_server._config.getErrorPages().find(status) == _server._config.getErrorPages().end()) {
+		status = 500;
+	}
+	_system_path = _server._config.getErrorPages()[status];
+	prepare_fdFile_param(std::to_string(status));
 }
 
 //Utils -- END

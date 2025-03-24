@@ -7,9 +7,19 @@
 
 // OCF -- BEGIN
 Server::Server(const std::string &port)
-	: _pollfds{}, _connections{}, listener_fd(-1) , _port(port), _i(0)
+	: _pollfds{}, _connections{}, listener_fd(-1) , _port(port)
 {
 	(void)port;
+	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
+	init_listener_socket();
+}
+Server::Server(const serverConfig &conf)
+	:	_pollfds{},
+		_connections{},
+		listener_fd(-1),
+		_port(std::to_string(conf.getPort())),
+		_config(conf)
+{
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
 	init_listener_socket();
 }

@@ -47,6 +47,15 @@ bool	Connection::file_exists_and_readable(const std::filesystem::path& p)
 	filled_request.filename = "html/index.html";
 */
 
+void	Connection::redirect(size_t input_status_code, std::string New_Location)
+{
+	this->_current_response.status_code = std::to_string(input_status_code);
+	_current_response.headers["Location"] = New_Location;
+	_current_response.headers["Connection"] = "close";
+	_system_path = _server._config.getErrorPages()[input_status_code];
+	prepare_fdFile_param(std::to_string(input_status_code));
+}
+
 /*
 	http://localhost:9035/var/www/data/files
 */
@@ -64,10 +73,7 @@ void	Connection::no_trailing_slash_case(void)
 			std::string corrected_uri = request.uri->path;
 			if (!corrected_uri.empty() && corrected_uri.back() != '/')
 				corrected_uri += '/';
-			_current_response.headers["Location"] = corrected_uri;
-			_current_response.headers["Connection"] = "close";
-			_system_path = "html/301.html";
-			prepare_fdFile_param("301");
+			redirect(301, corrected_uri);
 			return ;
 		}
 	}

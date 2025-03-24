@@ -13,7 +13,7 @@ bool	Connection::entry_parse(void) {
 		if (_request_parser.parse_headers()) {
 			// in real webserv would select config here
 			// 100 is a placeholder for value from the config
-			if (_request_parser.parse_body(100)) {
+			if (_request_parser.parse_body(_server._config.getClientMaxBodySize())) {
 				// save to get request here
 				this->request = _request_parser.getRequest();
 				std::cout << this->request << std::endl;

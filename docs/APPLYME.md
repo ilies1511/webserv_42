@@ -4,16 +4,16 @@ Präfix:
 
 x = Betroffener Bereich, z. B. Parsing, sprich FEAT(parsing): <Erläuterung des Commits>
 
-- FEAT(<x>) —> Add new feature
-- FIX(<x>) —> Bug fix
-- DOCS(<x>) —> Add documentation changes
-- STYLE(<x>) —> Changes that do not affect meaning of code, for example Norm
-- REFACTOR(<x>) —> Code that neither fixes a bug nor adds a feature
-- PERF(<x>) —> Changes that improves performance
-- TEST(<x>) —> Add test (shell script)
-- BUILD(<x>) —> Frame, architecture of Project
-- CHORE(<x>) —> Boring changes, that had to be done
-- REVERT(<x>) —> Revert a previous commit
+- FEAT(x) —> Add new feature
+- FIX(x) —> Bug fix
+- DOCS(x) —> Add documentation changes
+- STYLE(x) —> Changes that do not affect meaning of code, for example Norm
+- REFACTOR(x) —> Code that neither fixes a bug nor adds a feature
+- PERF(x) —> Changes that improves performance
+- TEST(x) —> Add test (shell script)
+- BUILD(x) —> Frame, architecture of Project
+- CHORE(x) —> Boring changes, that had to be done
+- REVERT(x) —> Revert a previous commit
 
 Beispiel:
 

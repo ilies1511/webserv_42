@@ -17,8 +17,11 @@ int	main(void)
 
 	std::vector<serverConfig> servers;
 	try {
-		// servers = parsing(tokenList);
-		Server alo("9035");
+		servers = parsing(tokenList);
+		// servers[0].getPort();
+		// Server alo("9035");
+		// Server alo(std::to_string(servers[0].getPort()));
+		Server alo(servers[0]);
 		alo.poll_loop(); //MAIN LOOP
 	} catch (const std::exception& e) {
 		std::cout << coloring("Error: " + std::string(e.what()), RED) << std::endl;
