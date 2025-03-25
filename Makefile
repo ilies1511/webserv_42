@@ -241,7 +241,7 @@ pollserver:
 	$(CPP) -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
 
 test_request_parser:#-fsanitize=address
-	$(CPP) -std=c++17 -g  -O3 src/$(FABI_REQUEST_DIR) src/request_parser/request_parser_tests.cpp -o parser_test && ./parser_test && rm parser_test
+	$(CPP) -std=c++17 -g -O3 src/$(FABI_REQUEST_DIR) src/request_parser/request_parser_tests.cpp -o parser_test && ./parser_test && rm parser_test
 
 -include $(OBJS:%.o=%.d)
 

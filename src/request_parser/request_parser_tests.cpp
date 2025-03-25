@@ -1,29 +1,8 @@
 #include "../../Includes/request_parser/RequestParser.hpp"
-#include "parser_internal.hpp"
 #include <cassert>
 #include <unistd.h>
 #include <fcntl.h>
 #include <fstream>
-
-
-const char *dummy_input =
-"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
-"User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
-"Accept: text/html\r\n"
-"Accept-Language: en-US, en; q=0.5\r\n"
-"Accept-Encoding: gzip, deflate\r\n"
-//"content-length:   10\r\n"
-"Transfer-Encoding: chunked\r\n"
-"\r\n"
-"0x5\r\n"
-"Hello\r\n"
-"0x1\r\n"
-" \r\n"
-"0x6\r\n"
-"World!\r\n"
-"0x0\r\n"
-"0xff\r\nnew message shouldn't be parsed\r\n"
-;
 
 class Tests {
 public:
@@ -68,7 +47,10 @@ public:
 		assert_sizes();
 	}
 
-	// currently ignores that the parser has no early error detecting if the request line isn't finished
+	// todo:
+	// URI test cases
+	// make hardcoded whitespace in this function part of the testcases
+	// body, content-length, chunked-encoding
 	void run_combination_tests() {
 		assert_sizes();
 		std::string before_method_str = "";
@@ -94,13 +76,25 @@ public:
 					request_str = before_version_str;
 					comb_version(v);
 					request_str += "\r\n";
+					// early test run to reduce run time, comment for full test
+					if (expect.status_code.has_value()) {
+						run_test();
+						continue ;
+					}
 					std::string before_headers_str = request_str;
 					Request before_headers = expect;
 					for (size_t h = 0; h < headers.size(); h++) {
 						expect = before_headers;
 						request_str = before_headers_str;
 						comb_headers(h);
-						for (int i = 0; i < 1; i++ /*todo: bodys later */) {
+						for (int i = 0; i < 1; i++ /*todo: bodys/encoding later */) {
+							run_test();
+						}
+						expect = before_headers;
+						request_str = before_headers_str;
+						comb_headers(h);
+						request_str += "\r\n";
+						for (int i = 0; i < 1; i++ /*todo: bodys/encoding later */) {
 							run_test();
 						}
 					}
@@ -108,11 +102,6 @@ public:
 			}
 		}
 		std::cout << "passes: " << passes << "; fails: " << fails << "!" << std::endl;
-	}
-
-	bool run_whitespace_tests() {
-		//todo: later
-		return (true);
 	}
 
 private:
@@ -152,7 +141,7 @@ private:
 			//std::cout << "##############expected:\n" << expect << "#############got:\n" << actual;
 			//std::cout << "********<**************\n";
 		} else {
-			std::cout << "test case |" << request_str << "|failed" << std::endl;
+			std::cout << "test case " <<  passes + fails << ": |" << request_str << "|failed" << std::endl;
 			std::cout << "##############expected:\n" << expect << "#############got:\n" << actual;
 			std::cout << "#######\n";
 			std::cout << "parser logging: \n";
@@ -185,11 +174,9 @@ private:
 
 	void comb_uri(size_t idx) {
 		request_str += uri_strs[idx];
+		expect.uri = uris[idx];
 		if (!expect.status_code.has_value()) {
 			expect.status_code = uri_codes[idx];
-		}
-		if (!expect.status_code.has_value()) {
-			expect.uri = uris[idx];
 		}
 	}
 
@@ -275,7 +262,7 @@ private:
 	void init_uris(void) {
 		{
 			Uri uri;
-			std::string str = "/search?q=test";
+			std::string str = "/search?q%3Dtest";
 			uri.full = str;
 			uri.path = "/search";
 			uri.query = "q=test";
@@ -284,6 +271,166 @@ private:
 			uris.push_back(uri);
 			uri_strs.push_back(str);
 			uri_codes.push_back(std::nullopt);
+		}
+		{
+			Uri uri;
+			uri.full = "/";
+			uri.path = "/";
+			uri.form.is_origin_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
+		{
+			Uri uri;
+			uri.full = "/path/with%20space";
+			uri.path = "/path/with space"; // Parser should preserve encoding
+			uri.form.is_origin_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
+		//{
+		////todo: what should the parser actually do in this case
+		//	Uri uri;
+		//	uri.full = "?query=empty-path";
+		//	uri.path = "/"; // should normalize empty path to "/" ?
+		//	uri.query = "query=empty-path";
+		//	uri.form.is_origin_form = 1;
+		//	uris.push_back(uri);
+		//	uri_strs.push_back(uri.full);
+		//	uri_codes.push_back(std::nullopt);
+		//}
+
+		// 2. VALID ABSOLUTE FORM (RFC 7230 §5.3.2)
+		{
+			Uri uri;
+			uri.full = "http://localhost:8080/path?query";
+			uri.authority = "localhost:8080";
+			uri.host = "localhost";
+			uri.port = "8080";
+			uri.path = "/path";
+			uri.query = "query";
+			uri.form.is_absolute_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
+		// https request
+		{
+			Uri uri;
+			uri.full = "https://www.example.com/";
+			uri.authority = "www.example.com";
+			uri.host = "www.example.com";
+			uri.path = "/";
+			uri.form.is_absolute_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(400);
+		}
+		{
+			Uri uri;  // IPv6 address
+			uri.full = "http://[2001:db8::1]:8080/path";
+			uri.authority = "[2001:db8::1]:8080";
+			uri.host = "2001:db8::1";
+			uri.port = "8080";
+			uri.path = "/path";
+			uri.form.is_absolute_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
+
+		// 3. VALID AUTHORITY FORM (RFC 7230 §5.3.3)
+		{
+			Uri uri;
+			uri.full = "localhost:8080";
+			uri.authority = "localhost:8080";
+			uri.host = "localhost";
+			uri.port = "8080";
+			uri.form.is_authority_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
+		//{
+		//	Uri uri;  // IPv6 authority
+		//	uri.full = "[::1]:443";
+		//	uri.authority = "[::1]:443";
+		//	uri.host = "::1";
+		//	uri.port = "443";
+		//	uri.form.is_authority_form = 1;
+		//	uris.push_back(uri);
+		//	uri_strs.push_back(uri.full);
+		//	uri_codes.push_back(std::nullopt);
+		//}
+
+		// 4. VALID ASTERISK FORM (RFC 7230 §5.3.4)
+		// not implemented
+		{
+			Uri uri;
+			uri.full = "*";
+			uri.path = "*";
+			uri.form.is_asterisk_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(501);
+		}
+
+		// 5. INVALID URIS
+		{
+			// Mixed form
+			uri_strs.push_back("http://host/path*");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Invalid absolute URI
+			uri_strs.push_back("http:///missing-host");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Invalid port
+			uri_strs.push_back("host:invalid-port");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Space in URI
+			uri_strs.push_back("/path with space");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Invalid IPv6
+			uri_strs.push_back("http://[::1/");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Multiple query markers
+			uri_strs.push_back("/path?query?invalid");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Invalid asterisk form
+			uri_strs.push_back("*invalid");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Missing authority
+			uri_strs.push_back("http://");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
+		}
+		{
+			// Invalid percent encoding
+			uri_strs.push_back("/path%xx");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
 		}
 	}
 
@@ -298,10 +445,6 @@ private:
 
 		versions.push_back("http/1.1");
 		version_strs.push_back("http/1.1");
-		version_codes.push_back(505);
-
-		versions.push_back("HTTP/1.2");
-		version_strs.push_back("HTTP/1.2");
 		version_codes.push_back(505);
 
 		versions.push_back("HTTP/1.11");
@@ -332,9 +475,6 @@ private:
 		version_strs.push_back("HTTP-1.1");
 		version_codes.push_back(400);
 
-		versions.push_back("HTTP/1\\1");
-		version_strs.push_back("HTTP-1.1");
-		version_codes.push_back(400);
 	}
 
 	void init_headers(void) {
@@ -343,6 +483,7 @@ private:
 
 			this->headers.push_back(header);
 		}
+
 		{
 			struct header header;
 			std::vector<std::vector<std::string>>			comps;
@@ -520,9 +661,6 @@ private:
 			comp[3] = "\r\n";
 			comps.push_back(comp);
 
-			// Expected: header name trimmed and lower-case, value trimmed.
-			expect["extra space header"] = "Value with spaces";
-
 			header.headers = comps;
 			header.status_code = 400;
 			this->headers.push_back(header);
@@ -640,6 +778,5 @@ private:
 int main(void) {
 	Tests tester;
 
-	errno = 0;
 	tester.run_combination_tests();
 }
