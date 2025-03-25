@@ -139,7 +139,7 @@ MELTING_POT :=	$(SRC) \
 				$(FABI_REQUEST_DIR) \
 				$(STATE_DIR) \
 				$(METHODS_REPO) \
-				$(CONFIG_DIR)
+				$(CONFIG_DIR) \
 				$(CGI_DIR)
 
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))

@@ -44,7 +44,6 @@ std::size_t serverConfig::getClientMaxBodySize() const {
 //     return _limit_except;
 // }
 
-
 std::string serverConfig::getRoot() const {
     return _root;
 }
@@ -53,11 +52,9 @@ std::string serverConfig::getIndex() const {
     return _index;
 }
 
-
 double serverConfig::getTimeout() const {
     return _timeout;
 }
-
 
 // std::vector<route> serverConfig::getLocation() const {
 //     return _location;

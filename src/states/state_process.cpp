@@ -16,6 +16,71 @@ void	Connection::entry_process(void)
 	{
 		set_full_status_code((size_t)*request.status_code);
 	}
+	std::cout << coloring("Entry Process Test", BLUE) << std::endl;
+	std::cout << coloring("system path: " + _system_path, BLUE) << std::endl;
+	std::cout << coloring("request uri_full: " + request.uri->full, BLUE) << std::endl;
+	std::cout << coloring("request uri_path: " + request.uri->path, BLUE) << std::endl;
+	std::cout << coloring("request method: " + request.method.value(), BLUE) << std::endl;
+
+	// getting URI of all locations
+	const auto& all_locations = _server._config.getLocation();
+
+	std::string longest_match;
+	std::size_t count = 0;
+	for (const auto& [location_names, route] : all_locations) {
+
+		std::string temp2 = request.uri->path;
+		if (temp2.back() != '/') {
+			temp2.push_back('/');
+		}
+		if (temp2.find(location_names) != std::string::npos) {
+			if (location_names.size() > count) {
+				longest_match = location_names;
+				count = location_names.size();
+			}
+		}
+	}
+	if (count == 0) {
+		std::cout << coloring("NO MATCH!!!", BLUE) << std::endl;
+	} else {
+        std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
+
+		// matching location
+		const route matchingRoute =  _server._config.getLocation()[longest_match];
+		// todo check redirect !
+		if (matchingRoute.getRouteIsRedirect()) {
+			std::cout << coloring("Location is a redirect", BLUE) << std::endl;
+			// TODO add redirect
+		}
+
+		std::string remainder;
+		if (request.uri->path.length() > longest_match.length()) {
+			remainder = request.uri->path.substr(longest_match.length() + 1, request.uri->path.length());
+			std::cout << coloring("remainder " + remainder, BLUE) << std::endl;
+		}
+		_expanded_path = matchingRoute.getActualPath();
+		std::cout << coloring("Actual Path: " + _expanded_path, BLUE) << std::endl;
+		if (!remainder.empty()) {
+			_expanded_path.append(remainder);
+		}
+		std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
+		std::string currPath = std::filesystem::current_path();
+		std::cout << coloring("Absolute Path: " + currPath + "/" + _expanded_path,BLUE) << std::endl;
+
+		// const route matchingRoute =  _server._config.getLocation()[longest_match];
+		std::vector<std::string> methods = matchingRoute.getAllowedMethods();
+		auto it = std::find(methods.begin(), methods.end(), request.method.value());
+		if (it != methods.end()) {
+			std::cout << coloring("method: " + request.method.value() + " is allowed", BLUE) << std::endl;
+		} else {
+			std::cout << coloring("method: " + request.method.value() + " is not allowed", BLUE) << std::endl;
+		}
+		std::cout << coloring("autoindex: " + (matchingRoute.getAutoIndex() ? std::string("on") : std::string("off")), BLUE) << std::endl;
+	}
+	// if no location is matching and config doesn't have "location /" error will be generated because:
+	// method and autoindex can only be activated inside a location
+
+
 	/*
 	TODO: PART 1
 		0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)

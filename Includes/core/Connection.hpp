@@ -45,6 +45,7 @@ class Connection
 		// Parser				parser;
 		Response				_current_response;
 		std::string				_system_path;
+		std::string				_expanded_path;
 	private:
 		int						_fdConnection;
 		int						_fdFile; //TODO: add error_fd
