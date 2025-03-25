@@ -6,6 +6,7 @@
 #include "printer.hpp"
 #include "StaticFileHandler.hpp"
 #include <map>
+#include <optional>
 
 //Utils -- BEGIN
 pollfd*	Connection::getPollFdElementRoot(int &fd)
@@ -220,13 +221,30 @@ void	Connection::generate_internal_server_error_response(void)
 	return ;
 }
 
-void	Connection::set_full_status_code(size_t status)
+void	Connection::set_full_status_code(size_t status, \
+		std::optional<std::string> custom_path)
 {
 	if (_server._config.getErrorPages().find(status) == _server._config.getErrorPages().end()) {
 		status = 500;
+		std::cout << "Alo 1\n";
 	}
-	_system_path = _server._config.getErrorPages()[status];
-	prepare_fdFile_param(std::to_string(status));
+	_current_response.status_code = std::to_string(status);
+	// Wenn custom_path vorhanden ist, benutze es; andernfalls nutze den Standardpfad
+	if (custom_path.has_value()) {
+		std::cout << "Alo 2\n";
+		_system_path = custom_path.value();
+	}
+	else {
+		std::cout << "Alo 3\n";
+		std::cout << "Status: " << status << "PRE System Path: " << _system_path << "\n";
+		_system_path = _server._config.getErrorPages()[status];
+		std::cout << "System Path: " << _system_path << "\n";
+	}
+	// key = static_cast<size_t>(std::stoull(status_code));
+	// _system_path = _server._config.getErrorPages()[key];
+	// _system_path = _server._config.getErrorPages()[status];
+	// prepare_fdFile_param(std::to_string(status));
+	prepare_fdFile();
 }
 
 //Utils -- END

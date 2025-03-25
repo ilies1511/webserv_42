@@ -133,7 +133,8 @@ class Connection
 		void	no_trailing_slash_case(void);
 		bool	is_cgi(std::string &path);
 		void	entry_cgi(void);
-		void	set_full_status_code(size_t status);
+		void	set_full_status_code(size_t status, \
+					std::optional<std::string> custom_path = std::nullopt);
 		void	redirect(size_t input_status_code, std::string New_Location);
 	//Methodes -- END
 };

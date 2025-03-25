@@ -96,15 +96,20 @@ void	Connection::trailing_slash_case(void)
 	std::cout << coloring("In has_trailing_slash()\n", TURQUOISE);
 	if (!std::filesystem::exists(_full_path))//Case tritt auf, wenn path nicht existiert
 	{
+		std::cout << "CR7\n";
 		_system_path = "errorPages/404.html";
-		prepare_fdFile_param("404");
+		// prepare_fdFile_param("404");
+		// set_full_status_code(404, "errorPages/404.html");
+		set_full_status_code(404);
 		return ;
 	}
 	std::filesystem::path index_file = _full_path / "index.html"; // ==> "/Users/iziane/42/repo_webserv/webserv/var/www/data/files/index.html
 	if (file_exists_and_readable(index_file)) {
 		printer::debug_putstr("file_exists_and_readable(index_file) CASE", __FILE__, __FUNCTION__, __LINE__);
 		_system_path = index_file;
-		prepare_fdFile_param("200"); //Setzt READ_FILE und next_state
+		std::cout << "im here\n";
+		set_full_status_code(200, index_file);
+		// prepare_fdFile_param("200"); //Setzt READ_FILE und next_state
 		return ;
 	}
 	else if (_autoindex_enabled) {
@@ -117,8 +122,9 @@ void	Connection::trailing_slash_case(void)
 	else
 	{
 		printer::debug_putstr("403 CASE", __FILE__, __FUNCTION__, __LINE__);
-		_system_path = "errorPages/403.html";
-		prepare_fdFile_param("403"); // Setzt READ_FILE und next_state
+		// _system_path = "errorPages/403.html";
+		// prepare_fdFile_param("403"); // Setzt READ_FILE und next_state
+		set_full_status_code(403, "errorPages/403.html");
 		return ;
 	}
 }
