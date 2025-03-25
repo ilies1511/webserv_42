@@ -256,9 +256,9 @@ char RequestParser::to_hex(char c) {
 	if (c >= '0' && c <= '9') {
 		return (c - '0');
 	} else if (c >= 'A' && c <= 'F') {
-		return (c - 'A');
+		return (c - 'A' + 10);
 	} else if (c >= 'a' && c <= 'f') {
-		return (c - 'a');
+		return (c - 'a' + 10);
 	} else {
 		return (PARSE_ASSERT(0));
 	}
@@ -273,7 +273,7 @@ std::string RequestParser::uri_decode(const std::string &str) {
 		} else {
 			i++;
 			if (i + 1 >= str.size() || !is_hex_digit(str[i]) || !is_hex_digit(str[i + 1])) {
-				std::cout << "invalid uri encoding: " << str.substr(i + 1, 2) << "\n";
+				std::cout << "invalid uri encoding: |" << str.substr(i + 1, 2) << "|\n";
 				this->request.status_code = 400;
 				return (ret);
 			}
@@ -677,8 +677,7 @@ Request &&RequestParser::getRequest(void) {
 
 #ifdef SOLO
 const char *dummy_input =
-//"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
-"POST * HTTP/1.1\r\n" "Host: www.example.re\r\n"
+"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
 "Accept-Language: en-US, en; q=0.5\r\n"

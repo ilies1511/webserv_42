@@ -28,7 +28,7 @@
 #define PATH "((?:\\/)|(?:(?:\\/[^\\s\\/\\?\\#\\*]+)+)|(?:(?:\\/[^\\s\\/\\?\\#]+)+\\/))"
 
 //#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
-#define QUERY "(?:(?:\\?)([A-Za-z0-9\\-_\\.\\~]*))"
+#define QUERY "(?:(?:\\?)([A-Za-z0-9\\-_\\.\\~\\%]*))"
 
 #define URI_TERM "(?:(?:\\#\\S*$)|$)" // either end of uri or # folloed by some non whitespace
 
