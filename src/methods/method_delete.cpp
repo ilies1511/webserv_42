@@ -8,41 +8,44 @@
 #include <filesystem>
 #include <sstream>
 
+void	Connection::is_dir_Case(void)
+{
+	if (!std::filesystem::is_empty(_full_path)) {
+		// Verzeichnis ist nicht leer, daher kann es nicht gelöscht werden – Conflict
+		set_full_status_code(409);
+	} else {
+		if (rmdir(_full_path.c_str()) == 0) {
+			set_full_status_code(204);
+		} else {
+			set_full_status_code(403);
+		}
+	}
+}
+
+void	Connection::is_file_Case(void)
+{
+	if (unlink(_full_path.c_str()) == 0) {
+		// Löschung erfolgreich: 204 No Content
+		set_full_status_code(204);
+	} else {
+		// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
+		set_full_status_code(403);
+	}
+}
+
+/*
+	Testcases:
+		curl -v -X DELETE http://localhost:9035/files/sample.txt
+		curl -v -X DELETE http://localhost:9035/files/empty_dir/
+		curl -v -X DELETE http://localhost:9035/files/nonexistent.txt
+
+		curl -v -X DELETE http://localhost:9035/var/www/data/files/
+*/
 void	Connection::handle_delete(void)
 {
-	_full_path = "/Users/iziane/42/repo_webserv/webserv/" + request.uri->path;
-	_full_path = std::filesystem::weakly_canonical(_full_path);
-
 	/*	TODO: Eearly Exit mit Steffens Part
 		if (_server._config.getLocation()["/"].getAllowedMethods())
 		{
-		}
-	*/
-
-	/*
-		Ueberpruefen ob Ressource existiert prüfe zuerst, ob die Ressource
-		existiert, ob sie gelöscht werden kann (Datei oder leeres Verzeichnis)
-		und liefere den passenden Status (204, 404, 403 oder 409).
-		if (!(ressource_exists))
-		{
-			set_full_status_code(404);
-		}
-		if (is_file)
-		{
-			if (!unlink(path2file)) {
-				set_full_status_code(403);
-			}
-		}
-		else if(is_dir)
-		{
-			if (not_empty) {
-				set_full_status_code(409);
-				return ;
-			}
-			if (rmdir(path2dir) failed) {
-				set_full_status_code(403);
-				return ;
-			}
 		}
 	*/
 
@@ -55,37 +58,48 @@ void	Connection::handle_delete(void)
 	std::cout << "DELETE - Full path: " << _full_path << "\n";
 
 	if (!std::filesystem::exists(_full_path)) {
+		std::cout << "In doesnt exist  Case\n";
 		set_full_status_code(404); // Ressource existiert nicht
 		return;
 	}
-
-	// is_file Case
-	if (std::filesystem::is_regular_file(_full_path)) {
-		if (unlink(_full_path.c_str()) == 0) {
-			// Löschung erfolgreich: 204 No Content
-			set_full_status_code(204);
-		} else {
-			// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
-			set_full_status_code(403);
-		}
-		return;
+	else if (std::filesystem::is_regular_file(_full_path)) {
+		std::cout << "In is_regular_file() Case\n";
+		is_file_Case();
 	}
-
-	// is_dir Case:
-	if (std::filesystem::is_directory(_full_path))
-	{
-		if (!std::filesystem::is_empty(_full_path)) {
-			// Verzeichnis ist nicht leer, daher kann es nicht gelöscht werden – Conflict
-			set_full_status_code(409);
-		} else {
-			if (rmdir(_full_path.c_str()) == 0) {
-				set_full_status_code(204);
-			} else {
-				set_full_status_code(403);
-			}
-		}
-		return;
+	else if (std::filesystem::is_directory(_full_path)) {
+		std::cout << "In is_directory() Case\n";
+		is_dir_Case();
 	}
 	// Falls die Ressource weder Datei noch Verzeichnis ist, gib 404 zurück:
-	set_full_status_code(404);
+	else {
+		set_full_status_code(404);
+	}
 }
+
+
+/*
+	Ueberpruefen ob Ressource existiert prüfe zuerst, ob die Ressource
+	existiert, ob sie gelöscht werden kann (Datei oder leeres Verzeichnis)
+	und liefere den passenden Status (204, 404, 403 oder 409).
+	if (!(ressource_exists))
+	{
+		set_full_status_code(404);
+	}
+	if (is_file)
+	{
+		if (!unlink(path2file)) {
+			set_full_status_code(403);
+		}
+	}
+	else if(is_dir)
+	{
+		if (not_empty) {
+			set_full_status_code(409);
+			return ;
+		}
+		if (rmdir(path2dir) failed) {
+			set_full_status_code(403);
+			return ;
+		}
+	}
+*/

@@ -136,6 +136,8 @@ class Connection
 		void	set_full_status_code(size_t status, \
 					std::optional<std::string> custom_path = std::nullopt);
 		void	redirect(size_t input_status_code, std::string New_Location);
+		void	is_file_Case(void);
+		void	is_dir_Case(void);
 	//Methodes -- ENDL
 };
 
