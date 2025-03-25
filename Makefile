@@ -240,6 +240,9 @@ poll:
 pollserver:
 	$(CPP) -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
 
+test_request_parser:
+	$(CPP) -std=c++17 src/$(FABI_REQUEST_DIR) src/request_parser/request_parser_tests.cpp -o parser_test && ./parser_test && rm parser_test
+
 -include $(OBJS:%.o=%.d)
 
 .PHONY: all clean fclean re bonus re_sub submodule_rebuild san debug test test_cases server client compile_commands.json
