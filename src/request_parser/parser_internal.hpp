@@ -25,7 +25,9 @@
 // request line patterns
 //todo: currently the path can have anything that is not space, '?' or '#'
 #define PATH "((?:\\/)|(?:(?:\\/[^\\s\\/\\?\\#]+)+)|(?:(?:\\/[^\\s\\/\\?\\#]+)+\\/))"
-#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
+
+//#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
+#define QUERY "(?:(?:\\?)([A-Za-z0-9\\-_\\.\\~]*))"
 
 #define URI_TERM "(?:(?:\\#\\S*$)|$)" // either end of uri or # folloed by some non whitespace
 
@@ -37,7 +39,10 @@
 #define AUTHORITY_FORM "(^" HOST ":" PORT "$)"
 
 #define ABSOLUTE_FORM "(^http\\:\\/\\/" "(" HOST ":" PORT ")" ORIGIN_FORM "$)"
-#define URI_PAT "(?:^" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM "$)"
+
+#define ASTERISK_FORM "(\\*)" // not implemented
+
+#define URI_PAT "(?:^" ORIGIN_FORM "|" AUTHORITY_FORM "|" ABSOLUTE_FORM "|" ASTERISK_FORM "$)"
 
 // header patterns
 #define FIELD_NAME "(?:^(?:([^\\:\\s][^\\:\\n]+)\\:)|^([^\\:\\n]*$))"
@@ -46,7 +51,6 @@
 
 //#define FIELD_VALUE 
 
-//ASTERISK_FORM : not implemented
 
 template<class T>
 std::ostream& operator<<(std::ostream& output, std::optional<T> val) {

@@ -72,6 +72,7 @@ public:
 
 	Request		request;
 	std::string &input;
+	std::string	uri_decode(const std::string &str);
 private:
 
 	void	setStatus(int status);
@@ -91,9 +92,11 @@ private:
 	bool	parse_encoded_body(size_t max_body_len);
 	bool	parse_chunked(size_t max_body_len);
 
+	char to_hex(char c);
 	/*only called by a macro */
 	bool	parse_assertion_exec(bool cond, const char *str_cond,
 						const char *file, const int line, const char *fn_str);
+
 };
 
 

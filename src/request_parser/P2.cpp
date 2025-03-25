@@ -242,8 +242,50 @@ RequestParser::RequestParser(std::string& input):
 RequestParser::~RequestParser(void){
 }
 
+static bool is_hex_digit(char c) {
+	if ((c >= '0' && c <= '9')
+		|| (c >= 'A' && c <= 'F')
+		|| (c >= 'a' && c <= 'f')
+	) {
+		return (true);
+	}
+	return (false);
+}
+
+char RequestParser::to_hex(char c) {
+	if (c >= '0' && c <= '9') {
+		return (c - '0');
+	} else if (c >= 'A' && c <= 'F') {
+		return (c - 'A');
+	} else if (c >= 'a' && c <= 'f') {
+		return (c - 'a');
+	} else {
+		return (PARSE_ASSERT(0));
+	}
+}
+
+std::string RequestParser::uri_decode(const std::string &str) {
+	std::string	ret;
+	ret.reserve(str.length());
+	for (size_t i = 0; i < str.length(); i++) {
+		if (str[i] != '%') {
+			ret += str[i];
+		} else {
+			i++;
+			if (i + 1 >= str.size() || !is_hex_digit(str[i]) || !is_hex_digit(str[i + 1])) {
+				std::cout << "invalid uri encoding: " << str.substr(i + 1, 2) << "\n";
+				this->request.status_code = 400;
+				return (ret);
+			}
+			ret += (this->to_hex(str[i]) * 16 + this->to_hex(str[i + 1]));
+		}
+	}
+	return (ret);
+}
+
 bool RequestParser::parse_uri(void) {
-	//std::cout << uri_pat_str << std::endl;
+	//std::cout << uri_pat_str << "\n";
+
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "invalid request uri\n";
@@ -251,8 +293,14 @@ bool RequestParser::parse_uri(void) {
 		return (true);
 	}
 	//for (size_t i = 0; i < match.size(); i++) {
-	//	std::cout << "match[" << i << "]: |" << match[i].str() << std::endl;
+	//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
 	//}
+	if (match[14].matched) {
+		this->request.status_code = 501;
+		std::cout << "Asterisk form uri: not implemented\n";
+		this->request.uri->path = "*";
+		return (true);
+	}
 	if (match[1].matched) {
 		request.uri->form.is_origin_form = 1;
 		request.uri->path = match[2].str();
@@ -276,6 +324,8 @@ bool RequestParser::parse_uri(void) {
 		PARSE_ASSERT(!match[1].matched);
 		PARSE_ASSERT(!match[4].matched);
 	}
+	this->request.uri->path = this->uri_decode(this->request.uri->path);
+	this->request.uri->query = this->uri_decode(this->request.uri->query);
 	return (true);
 }
 
@@ -317,7 +367,7 @@ bool RequestParser::parse_method(void) {
 }
 
 bool RequestParser::parse_request_line(void) {
-	//std::cout << "parsing input of |" << this->input << "|" << std::endl;
+	//std::cout << "parsing input of |" << this->input << "|" << "\n";
 	if (!this->parse_method()) {
 		return (false);
 	}
@@ -325,8 +375,26 @@ bool RequestParser::parse_request_line(void) {
 		return (true);
 	}
 
+	size_t uri_term = this->input.find(' ', this->pos);
+
+	Uri uri;
+	//todo: add uri too long check(414)
+	if (uri_term == std::string::npos) {
+		std::cout << "Not terminated uri\n";
+		return (false);
+	}
+	uri.full = this->input.substr(this->pos, uri_term - this->pos);
+	this->request.uri = std::move(uri);
+	this->parse_uri();
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
+
+
+
+
 	std::smatch match;
-	//std::cout << request_line_pat_str << std::endl;
+	//std::cout << request_line_pat_str << "\n";
 	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		this->setStatus(400);
@@ -359,6 +427,9 @@ bool RequestParser::parse_request_line(void) {
 	uri.full = match.str(1);
 	this->request.uri = std::move(uri);
 	this->parse_uri();//todo: differentiate between too long request line and too long uri(414)
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
 	if (match[3].matched) {
 		PARSE_ASSERT(!match[2].matched);
 		std::cout << "invalid version, 505\n";
@@ -376,7 +447,7 @@ bool RequestParser::parse_headers(void) {
 		return (true);
 	}
 	std::smatch	match;
-	//std::cout << header_pat_str << std::endl;
+	//std::cout << header_pat_str << "\n";
 	while (1) {
 		if (this->input[this->pos + 0] == '\r' && this->input[this->pos + 1] == '\n') {
 			this->finished_headers = true;
@@ -441,24 +512,24 @@ bool RequestParser::parse_not_encoded_body(size_t max_body_len) {
 	const static std::regex body_len_pat(R"(^[ \t\v\f]*\d+[ \t\v\f]*$)", std::regex::optimize);
 	if (!std::regex_match(body_len_str, body_len_pat)) {
 		this->setStatus(400);
-		std::cout << "invalid body len: " << body_len_str << std::endl;
+		std::cout << "invalid body len: " << body_len_str << "\n";
 		return (true);
 	}
 	try {
 		body_len = std::stoul(body_len_str);
 	} catch (const std::invalid_argument &e) {
 		this->setStatus(400);
-		std::cout << "invalid body len: " << body_len_str << std::endl;
+		std::cout << "invalid body len: " << body_len_str << "\n";
 		return (true);
 	} catch (const std::out_of_range &e) {
 		this->setStatus(413);
-		std::cout << "invalid body len: " << body_len_str << std::endl;
+		std::cout << "invalid body len: " << body_len_str << "\n";
 		return (true);
 	}
-	std::cout << "not encoded, body len: " << body_len << std::endl;
+	std::cout << "not encoded, body len: " << body_len << "\n";
 	if (max_body_len < body_len) {
 		std::cout << "invalid body len: " << body_len_str << "max body len: "
-			<< max_body_len << std::endl;
+			<< max_body_len << "\n";
 		this->setStatus(413);
 		return (true);
 	}
@@ -534,7 +605,7 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 bool RequestParser::parse_encoded_body(size_t max_body_len) {
 	std::string encoding_str = this->request.headers["transfer-encoding"];
 	std::transform(encoding_str.begin(), encoding_str.end(), encoding_str.begin(), [](char c){return (std::tolower(c));});
-	std::cout << "encoding: " << encoding_str << std::endl;
+	std::cout << "encoding: " << encoding_str << "\n";
 	if (this->request.headers.find("content-length") != this->request.headers.end()) {
 		std::cout << "rejecting request since content-length and encoding was found\n";
 		this->setStatus(400);
@@ -606,7 +677,8 @@ Request &&RequestParser::getRequest(void) {
 
 #ifdef SOLO
 const char *dummy_input =
-"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
+//"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
+"POST * HTTP/1.1\r\n" "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
 "Accept-Language: en-US, en; q=0.5\r\n"
