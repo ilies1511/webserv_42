@@ -75,6 +75,13 @@ namespace printer
 			<< NC << function << YELLOW << ", Line: " << NC << line \
 			<< YELLOW << ", msg: " << NC << msg << "\n";
 	}
+
+	void macro_debug_putstr(const char* msg, const char* file, const char* function, int line)
+	{
+		std::cout << TURQUOISE <<  "File: " << NC << file << TURQUOISE << ", Function: " \
+		<< NC << function << TURQUOISE << ", Line: " << NC << line \
+		<< TURQUOISE << ", msg: " << NC << msg << "\n";
+	}
 }
 
 
