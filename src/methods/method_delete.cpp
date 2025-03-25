@@ -17,6 +17,7 @@ void	Connection::is_dir_Case(void)
 		if (rmdir(_full_path.c_str()) == 0) {
 			set_full_status_code(204);
 		} else {
+			//TODO: add more precise error checks with errno
 			set_full_status_code(403);
 		}
 	}
@@ -28,6 +29,7 @@ void	Connection::is_file_Case(void)
 		// Löschung erfolgreich: 204 No Content
 		set_full_status_code(204);
 	} else {
+		//TODO: add more precise error checks with errno
 		// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
 		set_full_status_code(403);
 	}
@@ -57,22 +59,32 @@ void	Connection::handle_delete(void)
 	_full_path = std::filesystem::weakly_canonical(root + request.uri->path);
 	std::cout << "DELETE - Full path: " << _full_path << "\n";
 
-	if (!std::filesystem::exists(_full_path)) {
-		std::cout << "In doesnt exist  Case\n";
-		set_full_status_code(404); // Ressource existiert nicht
-		return;
+	P_DEBUG("alo");
+	try
+	{
+		if (!std::filesystem::exists(_full_path)) {
+			std::cout << "In doesnt exist  Case\n";
+			set_full_status_code(404); // Ressource existiert nicht
+			return;
+		}
+		else if (std::filesystem::is_regular_file(_full_path)) {
+			std::cout << "In is_regular_file() Case\n";
+			is_file_Case();
+		}
+		else if (std::filesystem::is_directory(_full_path)) {
+			std::cout << "In is_directory() Case\n";
+			is_dir_Case();
+		}
+		// Falls die Ressource weder Datei noch Verzeichnis ist, gib 404 zurück:
+		else {
+			set_full_status_code(404);
+		}
 	}
-	else if (std::filesystem::is_regular_file(_full_path)) {
-		std::cout << "In is_regular_file() Case\n";
-		is_file_Case();
-	}
-	else if (std::filesystem::is_directory(_full_path)) {
-		std::cout << "In is_directory() Case\n";
-		is_dir_Case();
-	}
-	// Falls die Ressource weder Datei noch Verzeichnis ist, gib 404 zurück:
-	else {
-		set_full_status_code(404);
+	catch(const std::exception& e)
+	{
+		P_DEBUG("alo");
+		printer::LogException(e, __FILE__, __FUNCTION__, __LINE__);
+		set_full_status_code(500);
 	}
 }
 
