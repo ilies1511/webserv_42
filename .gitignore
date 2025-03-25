@@ -6,7 +6,6 @@ _obj
 src/core/stash_Connection.cpp
 src/core/stash_Server.cpp
 webserv
-.idea
 .vscode
 .idea/editor.xml
 .idea/webserv2.iml
@@ -17,7 +16,6 @@ client
 server
 *.dSYM
 poll
-.idea
 pollserver
 .cache
 compile_commands.json
