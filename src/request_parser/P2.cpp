@@ -217,7 +217,7 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 //todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
 //example: "GET /abc"
 const std::regex RequestParser::method_pat(METHOD_PAT, std::regex::optimize);
-const std::regex RequestParser::request_line_pat(REQUEST_LINE_PAT, std::regex::optimize);
+const std::regex RequestParser::request_line_pat(VERSION_PAT, std::regex::optimize);
 
 const std::regex RequestParser::uri_pat(URI_PAT, std::regex::optimize);
 
@@ -277,7 +277,8 @@ std::string RequestParser::uri_decode(const std::string &str) {
 				this->request.status_code = 400;
 				return (ret);
 			}
-			ret += (this->to_hex(str[i]) * 16 + this->to_hex(str[i + 1]));
+			ret += this->to_hex(str[i]) * 16 + this->to_hex(str[i + 1]);
+			i++;
 		}
 	}
 	return (ret);
@@ -288,7 +289,7 @@ bool RequestParser::parse_uri(void) {
 
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
-		std::cout << "invalid request uri\n";
+		std::cout << "invalid request uri: " << this->request.uri->full << "\n";
 		this->setStatus(400); //todo: is 400 correct?
 		return (true);
 	}
@@ -375,28 +376,34 @@ bool RequestParser::parse_request_line(void) {
 		return (true);
 	}
 
-	size_t uri_term = this->input.find(' ', this->pos);
-
-	Uri uri;
-	//todo: add uri too long check(414)
-	if (uri_term == std::string::npos) {
-		std::cout << "Not terminated uri\n";
-		return (false);
+	//todo: should be in parse_uri
+	{
+		size_t uri_term = this->input.find(' ', this->pos);
+		Uri uri;
+		//todo: add uri too long check(414)
+		if (uri_term == std::string::npos) {
+			std::cout << "Not terminated uri\n";
+			return (false);
+		}
+		uri.full = this->input.substr(this->pos, uri_term - this->pos);
+		this->request.uri = std::move(uri);
+		this->parse_uri();
+		if (this->request.status_code.has_value()) {
+			return (true);
+		}
+		this->pos = uri_term;
+		while (this->input[this->pos] == ' ') {
+			this->pos++;
+		}
 	}
-	uri.full = this->input.substr(this->pos, uri_term - this->pos);
-	this->request.uri = std::move(uri);
-	this->parse_uri();
+
+	//todo: needs function parse_version
 	if (this->request.status_code.has_value()) {
 		return (true);
 	}
-
-
-
-
 	std::smatch match;
-	//std::cout << request_line_pat_str << "\n";
 	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
-		std::cout << "No match (invlaid request line?)\n";
+		std::cout << "No match (invlaid version syntax?)\n";
 		this->setStatus(400);
 		return (true);
 	}
@@ -404,41 +411,34 @@ bool RequestParser::parse_request_line(void) {
 	//for (size_t i = 0; i < match.size(); i++) {
 	//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
 	//}
-	if (!match[4].matched) {
-		if (!match[5].matched) {
-			std::cout << "invalid request (not terminated with more content)\n";
-			this->setStatus(400);
-			return (true);
-		}
-		if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
-			std::cout << "invalid request: request line too long\n";
-			this->setStatus(400);
-			return (true);
-		}
-		std::cout << "not terminated\n";
-		return (false);
-	}
-	Uri uri;
-	if (!match[1].matched) {
-		std::cout << "invalid uri\n";
-		this->setStatus(400);
-		return (true);
-	}
-	uri.full = match.str(1);
-	this->request.uri = std::move(uri);
-	this->parse_uri();//todo: differentiate between too long request line and too long uri(414)
-	if (this->request.status_code.has_value()) {
-		return (true);
-	}
+
 	if (match[3].matched) {
 		PARSE_ASSERT(!match[2].matched);
-		std::cout << "invalid version, 505\n";
+		std::cout << "unsupported version, 505\n";
 		this->setStatus(505);
 		return (true);
 	}
-	this->request.version = match.str(2);
+	if (!match[4].matched) {
+		if (match[5].matched) {
+			std::cout << "invalid request (not terminated request line with more content)\n";
+			this->setStatus(505);
+			return (true);
+		}
+		//todo: renable this case
+		//if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
+		//	std::cout << "invalid request: request line too long\n";
+		//	this->setStatus(400);
+		//	return (true);
+		//}
+		std::cout << "not terminated\n";
+		return (false);
+	}
+	else if (match[2].matched) {
+		PARSE_ASSERT(!match[3].matched);
+		this->request.version = match.str(2);
+		this->pos += static_cast<size_t>(match[1].length());
+	}
 
-	this->pos += static_cast<size_t>(match[0].length());
 	return (true);
 }
 

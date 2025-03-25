@@ -15,7 +15,8 @@
 #define METHOD_PAT "(?:^(?:(?:(GET|POST|DELETE) )|([a-zA-Z]+ )|([a-zA-Z]*$)))"
 
 //#define REQUEST_LINE_PAT "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?))"
-#define REQUEST_LINE_PAT "(?:^(?:(\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?($)?))"
+//#define REQUEST_LINE_PAT "(?:^(?:(\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?($)?))"
+#define VERSION_PAT "(?:(^(?:(?:(HTTP\\/1\\.1)\\r)|(?:(\\w+\\/\\d+\\.\\d+)\\r))(\\n)?)((?:[\\s\\S]+)$)?)"
 
 #ifndef URI_MAX
 //todo
@@ -24,7 +25,7 @@
 
 // request line patterns
 //todo: currently the path can have anything that is not space, '?' or '#'
-#define PATH "((?:\\/)|(?:(?:\\/[^\\s\\/\\?\\#]+)+)|(?:(?:\\/[^\\s\\/\\?\\#]+)+\\/))"
+#define PATH "((?:\\/)|(?:(?:\\/[^\\s\\/\\?\\#\\*]+)+)|(?:(?:\\/[^\\s\\/\\?\\#]+)+\\/))"
 
 //#define QUERY "(?:(?:\\?)([^\\s\\#]*))"
 #define QUERY "(?:(?:\\?)([A-Za-z0-9\\-_\\.\\~]*))"
@@ -38,7 +39,9 @@
 
 #define AUTHORITY_FORM "(^" HOST ":" PORT "$)"
 
-#define ABSOLUTE_FORM "(^http\\:\\/\\/" "(" HOST ":" PORT ")" ORIGIN_FORM "$)"
+//#define ABSOLUTE_FORM "(^http\\:\\/\\/" "(" HOST ":" PORT ")" ORIGIN_FORM "$)"
+
+#define ABSOLUTE_FORM "(^http\\:\\/\\/" "(" HOST "(?:" ":" PORT ")?" ")" ORIGIN_FORM "$)"
 
 #define ASTERISK_FORM "(\\*)" // not implemented
 
