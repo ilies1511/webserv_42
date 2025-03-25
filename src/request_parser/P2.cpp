@@ -298,7 +298,7 @@ bool RequestParser::parse_uri(void) {
 	//}
 	if (match[14].matched) {
 		this->request.status_code = 501;
-		std::cout << "Asterisk form uri: not implemented\n";
+		std::cout << "Asterisk form uri: OPTIONS method not implemented\n";
 		this->request.uri->path = "*";
 		return (true);
 	}
