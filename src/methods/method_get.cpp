@@ -53,9 +53,9 @@ void	Connection::redirect(size_t input_status_code, std::string New_Location)
 	_current_response.headers["Location"] = New_Location;
 	_current_response.headers["Connection"] = "close";
 	_system_path = _server._config.getErrorPages()[input_status_code];
-	// for (auto v : _server._config.getErrorPages()) {
-	// 	std::cout << v.second << std::endl;
-	// }
+	for (auto v : _server._config.getErrorPages()) {
+		std::cout << v.second << std::endl;
+	}
 	prepare_fdFile_param(std::to_string(input_status_code));
 }
 
@@ -68,7 +68,9 @@ void	Connection::no_trailing_slash_case(void)
 	{
 		if (std::filesystem::is_regular_file(_full_path))
 		{
-			prepare_fdFile_param("200");
+			std::cout << "\n\nALO LO\n\n";
+			// prepare_fdFile_param("200");
+			set_full_status_code(200, _full_path);
 		}
 		else if (std::filesystem::is_directory(_full_path))
 		{
@@ -82,8 +84,13 @@ void	Connection::no_trailing_slash_case(void)
 	}
 	else
 	{
-		_system_path = "errorPages/404.html";
-		prepare_fdFile_param("404");
+		std::cout << "Asehr\n";
+		for (auto v : _server._config.getErrorPages()) {
+			std::cout << v.second << std::endl;
+		}
+		set_full_status_code(404);
+		// _system_path = "errorPages/404.html";
+		// prepare_fdFile_param("404");
 		return ;
 	}
 }
@@ -124,7 +131,7 @@ void	Connection::trailing_slash_case(void)
 		printer::debug_putstr("403 CASE", __FILE__, __FUNCTION__, __LINE__);
 		// _system_path = "errorPages/403.html";
 		// prepare_fdFile_param("403"); // Setzt READ_FILE und next_state
-		set_full_status_code(403, "errorPages/403.html");
+		set_full_status_code(403);
 		return ;
 	}
 }

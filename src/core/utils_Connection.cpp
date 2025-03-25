@@ -221,6 +221,7 @@ void	Connection::generate_internal_server_error_response(void)
 	return ;
 }
 
+// map_statuscode_to_file
 void	Connection::set_full_status_code(size_t status, \
 		std::optional<std::string> custom_path)
 {
