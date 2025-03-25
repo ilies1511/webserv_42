@@ -15,6 +15,7 @@ void	Connection::entry_process(void)
 	if (request.status_code.has_value())
 	{
 		set_full_status_code((size_t)*request.status_code);
+		return ;
 	}
 	/*
 	TODO: PART 1

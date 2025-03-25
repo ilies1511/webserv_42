@@ -54,7 +54,7 @@ class Connection
 		Buffer					_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer					_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
 		RequestParser			_request_parser;
-		bool					_autoindex_enabled = false;
+		bool					_autoindex_enabled = true;
 		std::filesystem::path	_full_path = {};
 		//TODO:
 		// int					_fdWrite;
@@ -136,7 +136,7 @@ class Connection
 		void	set_full_status_code(size_t status, \
 					std::optional<std::string> custom_path = std::nullopt);
 		void	redirect(size_t input_status_code, std::string New_Location);
-	//Methodes -- END
+	//Methodes -- ENDL
 };
 
 #endif

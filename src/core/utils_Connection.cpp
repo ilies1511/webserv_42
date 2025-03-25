@@ -238,7 +238,7 @@ void	Connection::set_full_status_code(size_t status, \
 	else {
 		std::cout << "Alo 3\n";
 		std::cout << "Status: " << status << "PRE System Path: " << _system_path << "\n";
-		_system_path = _server._config.getErrorPages()[status];
+		_system_path = _server._config.getErrorPages()[status]; //TODO: use getErrorPages().at(status) --> but throws exception
 		std::cout << "System Path: " << _system_path << "\n";
 	}
 	// key = static_cast<size_t>(std::stoull(status_code));

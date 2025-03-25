@@ -116,7 +116,7 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_recv.cpp
 STATE_DIR := $(addprefix states/, $(STATE_DIR_FILES))
 
-METHODS_FILES := central.cpp method_get.cpp
+METHODS_FILES := central.cpp method_get.cpp method_delete.cpp
 METHODS_REPO := $(addprefix methods/, $(METHODS_FILES))
 
 SRC := src_file.cpp
