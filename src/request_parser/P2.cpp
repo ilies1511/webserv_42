@@ -286,7 +286,7 @@ bool RequestParser::parse_method(void) {
 	if (this->request.method.has_value() || this->request.status_code.has_value()) {
 		return (true);
 	}
-	if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->method_pat)) {
+	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->method_pat)) {
 		std::cout << "No match (invlaid request line (no method))\n";
 		this->setStatus(400);
 		return (true);
@@ -294,7 +294,7 @@ bool RequestParser::parse_method(void) {
 	if (match[1].matched) {
 		PARSE_ASSERT(!match[2].matched && !match[3].matched);
 		this->request.method = match.str(1);
-		this->pos += match[0].length();
+		this->pos += static_cast<size_t>(match[0].length());
 		return (true);
 	} else if (match[2].matched) {
 		PARSE_ASSERT(!match[1].matched && !match[3].matched);
@@ -303,7 +303,7 @@ bool RequestParser::parse_method(void) {
 		return (true);
 	} else if (match[3].matched) {
 		PARSE_ASSERT(!match[2].matched && !match[3].matched);
-		if (static_cast<long>(this->input.length()) - this->pos > REQUEST_LINE_MAX) { //todo: could add method too long here
+		if (this->input.length() - this->pos > REQUEST_LINE_MAX) { //todo: could add method too long here
 			std::cout << "invalid request: request line too long\n";
 			this->setStatus(400);
 			return (true);
@@ -327,7 +327,7 @@ bool RequestParser::parse_request_line(void) {
 
 	std::smatch match;
 	//std::cout << request_line_pat_str << std::endl;
-	if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->request_line_pat)) {
+	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
 		std::cout << "No match (invlaid request line?)\n";
 		this->setStatus(400);
 		return (true);
@@ -342,7 +342,7 @@ bool RequestParser::parse_request_line(void) {
 			this->setStatus(400);
 			return (true);
 		}
-		if (static_cast<long>(this->input.length()) - this->pos > REQUEST_LINE_MAX) {
+		if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
 			std::cout << "invalid request: request line too long\n";
 			this->setStatus(400);
 			return (true);
@@ -367,7 +367,7 @@ bool RequestParser::parse_request_line(void) {
 	}
 	this->request.version = match.str(2);
 
-	this->pos += match[0].length();
+	this->pos += static_cast<size_t>(match[0].length());
 	return (true);
 }
 
@@ -378,13 +378,13 @@ bool RequestParser::parse_headers(void) {
 	std::smatch	match;
 	//std::cout << header_pat_str << std::endl;
 	while (1) {
-		if (this->input[static_cast<size_t>(this->pos) + 0] == '\r' && this->input[static_cast<size_t>(this->pos) + 1] == '\n') {
+		if (this->input[this->pos + 0] == '\r' && this->input[this->pos + 1] == '\n') {
 			this->finished_headers = true;
 			this->pos += 2;
 			//std::cout << "headers terminated\n";
 			return (true);
 		}
-		if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->header_name_pat)) {
+		if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->header_name_pat)) {
 			std::cout << "invalid header name\n";
 			this->setStatus(400);
 			return (true);
@@ -406,13 +406,16 @@ bool RequestParser::parse_headers(void) {
 			// understand what to do if http version is 1.0 here
 			std::transform(key.begin(), key.end(), key.begin(), [](char c) { return (std::tolower(c));});
 			//todo: only advance if value is finished
-			this->pos += match[1].length() + 1;
+			this->pos += static_cast<size_t>(match[1].length()) + 1;
 		} else {
 			PARSE_ASSERT(match[2].matched);
 			std::cout << "unfinished request header\n";
 			return (false);
 		}
-		if (!std::regex_search(this->input.cbegin() + this->pos, this->input.cend(), match, this->header_value_pat)) {
+		if (!std::regex_search(
+			this->input.cbegin() + static_cast<long>(this->pos),
+			this->input.cend(), match, this->header_value_pat))
+		{
 			std::cout << "invalid header value\n";
 			this->setStatus(400);
 			return (true);
@@ -422,7 +425,7 @@ bool RequestParser::parse_headers(void) {
 		//}
 		if (match[2].matched) {
 			value = match.str(2);
-			this->pos += match[1].length();
+			this->pos += static_cast<size_t>(match[1].length());
 		} else {
 			PARSE_ASSERT(match[3].matched);
 			std::cout << "unfinished request header\n";
@@ -459,8 +462,8 @@ bool RequestParser::parse_not_encoded_body(size_t max_body_len) {
 		this->setStatus(413);
 		return (true);
 	}
-	if (this->input.length() - static_cast<size_t>(this->pos) >= static_cast<size_t>(body_len)) {
-		this->request.body = this->input.substr(static_cast<size_t>(this->pos), static_cast<size_t>(body_len));
+	if (this->input.length() - this->pos >= body_len) {
+		this->request.body = this->input.substr(this->pos, body_len);
 		std::cout << "parsed un encoded body\n";
 		return (true);
 	}
@@ -470,12 +473,12 @@ bool RequestParser::parse_not_encoded_body(size_t max_body_len) {
 // returns false if the body is not fullt received yet
 bool RequestParser::parse_chunked(size_t max_body_len) {
 	PARSE_ASSERT(this->pos > 0);
-	if (this->input.size() <= static_cast<size_t>(this->pos)) {
+	if (this->input.size() <= this->pos) {
 		return (false);
 	}
 	while (1) {
-		long old_pos = this->pos;
-		auto crlf = input.find("\r\n", static_cast<size_t>(this->pos));
+		size_t old_pos = this->pos;
+		auto crlf = input.find("\r\n", this->pos);
 		if (crlf == std::string::npos) {
 			this->pos = old_pos;
 			return (false);
@@ -484,8 +487,7 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 		size_t chunk_size;
 		try {
 			chunk_size = std::stoul(this->input.substr(
-				static_cast<size_t>(this->pos),
-				crlf - static_cast<size_t>(this->pos)), &chunk_ext_start, 16);
+				this->pos, crlf - this->pos), &chunk_ext_start, 16);
 		} catch (const std::out_of_range &e) {
 			this->setStatus(413);
 			return (true);
@@ -494,8 +496,8 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 			return (true);
 		}
 		//todo: chunk-ext
-		PARSE_ASSERT(crlf > static_cast<size_t>(this->pos));
-		this->pos = 2 + static_cast<long>(crlf);
+		PARSE_ASSERT(crlf > this->pos);
+		this->pos = 2 + crlf;
 		if (chunk_size == 0) {
 			break ;
 		}
@@ -503,30 +505,29 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 			this->setStatus(413);
 			return (true);
 		}
-		if (this->input.length() < chunk_size + static_cast<size_t>(this->pos) + 2) {
+		if (this->input.length() < chunk_size + this->pos + 2) {
 			this->pos = old_pos;
 			return (false);
 		}
-		if (this->input[static_cast<size_t>(this->pos) + chunk_size] != '\r'
-			|| this->input[static_cast<size_t>(this->pos) + chunk_size + 1] != '\n')
+		if (this->input[this->pos + chunk_size] != '\r'
+			|| this->input[this->pos + chunk_size + 1] != '\n')
 		{
 			this->setStatus(400);
 			return (true);
 		}
 		if (this->request.body.has_value()) {
-			this->request.body->append(this->input,
-					static_cast<size_t>(this->pos), chunk_size);
+			this->request.body->append(this->input, this->pos, chunk_size);
 		} else {
-			this->request.body = this->input.substr(static_cast<size_t>(this->pos), chunk_size);
+			this->request.body = this->input.substr(this->pos, chunk_size);
 		}
 		this->pos += chunk_size + 2;
 	}
-	size_t trailer_end = this->input.find("\r\n\r\n", static_cast<size_t>(this->pos));
+	size_t trailer_end = this->input.find("\r\n\r\n", this->pos);
 	if (trailer_end == std::string::npos) {
 		return (false);
 	}
 	//todo: trailers
-	this->pos = static_cast<long>(trailer_end) + 4;
+	this->pos = trailer_end + 4;
 	return (true);
 }
 
@@ -591,7 +592,7 @@ bool RequestParser::parse_body(size_t max_body_len) {
 	} else if (this->request.headers.find("content-length") != this->request.headers.end()) {
 		return (this->parse_not_encoded_body(max_body_len));
 	} else {
-		std::cout << "no body\n";
+		//std::cout << "no body\n";
 		return (true);
 	}
 }

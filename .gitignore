@@ -21,3 +21,4 @@ pollserver
 compile_commands.json
 request.txt
 test.c
+log

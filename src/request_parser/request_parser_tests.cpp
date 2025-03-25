@@ -3,6 +3,7 @@
 #include <cassert>
 #include <unistd.h>
 #include <fcntl.h>
+#include <fstream>
 
 
 const char *dummy_input =
@@ -29,17 +30,31 @@ public:
 	size_t			passes;
 	size_t			fails;
 
-	std::vector<std::string>		method_strs;
-	std::vector<std::string>		methods;
-	std::vector<std::optional<int>>	method_codes;
+	std::vector<std::string>				method_strs;
+	std::vector<std::string>				methods;
+	std::vector<std::optional<int>>			method_codes;
 
-	std::vector<std::string>		uri_strs;
-	std::vector<Uri>				uris;
-	std::vector<std::optional<int>>	uri_codes;
+	std::vector<std::string>				uri_strs;
+	std::vector<Uri>						uris;
+	std::vector<std::optional<int>>			uri_codes;
 
-	std::vector<std::string>		version_strs;
-	std::vector<std::string>		versions;
-	std::vector<std::optional<int>>	version_codes;
+	std::vector<std::string>				version_strs;
+	std::vector<std::string>				versions;
+	std::vector<std::optional<int>>			version_codes;
+
+
+	struct header {
+		std::optional<int>	status_code = std::nullopt;
+		/* Headers vector:
+		 * [0]: name
+		 * [1]: seperator
+		 * [2]: value
+		 * [3]: termination
+		*/
+		std::vector<std::vector<std::string>>			headers;
+		std::unordered_map<std::string, std::string>	expect;
+	};
+	std::vector<struct header>	headers;
 
 	Tests():
 		passes(0),
@@ -49,6 +64,7 @@ public:
 		init_methods();
 		init_uris();
 		init_versions();
+		init_headers();
 		assert_sizes();
 	}
 
@@ -64,10 +80,6 @@ public:
 			expect = before_method;
 			comb_method(m);
 			request_str += " ";
-			//if (expect.status_code.has_value()) {
-			//	run_test();
-			//	continue ;
-			//}
 			std::string before_uri_str = request_str;
 			Request before_uri = expect;
 			for (size_t u = 0; u < uris.size(); u++) {
@@ -75,10 +87,6 @@ public:
 				expect = before_uri;
 				comb_uri(u);
 				request_str += " ";
-				//if (expect.status_code.has_value()) {
-				//	run_test();
-				//	continue ;
-				//}
 				std::string before_version_str = request_str;
 				Request before_version = expect;
 				for (size_t v = 0; v < versions.size(); v++) {
@@ -86,11 +94,12 @@ public:
 					request_str = before_version_str;
 					comb_version(v);
 					request_str += "\r\n";
-					if (expect.status_code.has_value()) {
-						run_test();
-						continue ;
-					}
-					for (int i = 0; i < 1; i++ /*todo: headers later */) {
+					std::string before_headers_str = request_str;
+					Request before_headers = expect;
+					for (size_t h = 0; h < headers.size(); h++) {
+						expect = before_headers;
+						request_str = before_headers_str;
+						comb_headers(h);
 						for (int i = 0; i < 1; i++ /*todo: bodys later */) {
 							run_test();
 						}
@@ -114,14 +123,15 @@ private:
 	RequestParser	*parser;
 
 	void run_test(void) {
-		//std::cout << std::flush;
-		//int tmp = open("/dev/null", O_WRONLY);
-		//int std_out = dup(1);
-		//if (std_out < 0 || dup2(tmp, 1) < 0 || close(tmp) < 0) {
-		//	std::cerr << strerror(errno) << std::endl;
-		//	assert(errno == 0);
-		//}
+		std::cout << std::flush;
+		int tmp = open("log", O_WRONLY | O_TRUNC | O_CREAT, 0644);
+		int std_out = dup(1);
+		if (std_out < 0 || dup2(tmp, 1) < 0 || close(tmp) < 0) {
+			std::cerr << strerror(errno) << std::endl;
+			assert(errno == 0);
+		}
 
+		//std::cerr << request_str <<std::endl;
 		parser = new RequestParser(request_str);
 		if (parser->parse_request_line()) {
 			if (parser->parse_headers()) {
@@ -130,21 +140,32 @@ private:
 			}
 		}
 		actual = parser->getRequest();
-		//std::cout << std::flush;
-		//if (dup2(std_out, 1) < 0 || close(std_out) < 0) {
-		//	std::cerr << strerror(errno) << std::endl;
-		//	assert(errno == 0); //this asserts
-		//}
-		//std::cout << std::flush;
+		std::cout << std::flush;
+		if (dup2(std_out, 1) < 0 || close(std_out) < 0) {
+			std::cerr << strerror(errno) << std::endl;
+			assert(errno == 0); //this asserts
+		}
+		std::cout << std::flush;
 		if (actual == expect) {
 			//std::cout << "test case |" << request_str << "|passed" << std::endl;
 			passes++;
 			//std::cout << "##############expected:\n" << expect << "#############got:\n" << actual;
-			std::cout << "**********************\n";
+			//std::cout << "********<**************\n";
 		} else {
 			std::cout << "test case |" << request_str << "|failed" << std::endl;
 			std::cout << "##############expected:\n" << expect << "#############got:\n" << actual;
-
+			std::cout << "#######\n";
+			std::cout << "parser logging: \n";
+			std::ifstream file("log", std::ios::binary | std::ios::ate);
+			assert(file.is_open());
+			char buf[1000];
+			long size = file.tellg();
+			size = size > static_cast<long>(sizeof buf) - 1 ? sizeof buf - 1 : size;
+			buf[size] = 0;
+			file.seekg(0, std::ios::beg);
+			file.read(buf, size);
+			std::cout << buf;
+			file.close();
 			std::cout << "*******************************************\n";
 			fails++;
 		}
@@ -174,12 +195,31 @@ private:
 
 	void comb_version(size_t idx) {
 		request_str += version_strs[idx];
-		if (!expect.status_code.has_value()) {
-			expect.status_code = version_codes[idx];
+		if (expect.status_code.has_value()) {
+			return ;
 		}
-		if (!expect.status_code.has_value()) {
-			expect.version = versions[idx];
+		expect.status_code = version_codes[idx];
+		if (expect.status_code.has_value()) {
+			return ;
 		}
+		expect.version = versions[idx];
+	}
+
+	void comb_headers(size_t idx) {
+
+		struct header &headers = this->headers[idx];
+
+		for (const auto &line : headers.headers) {
+			request_str += line[0];
+			request_str += line[1];
+			request_str += line[2];
+			request_str += line[3];
+		}
+		if (this->expect.status_code.has_value()) {
+			return ;
+		}
+		this->expect.headers = headers.expect;
+		this->expect.status_code = headers.status_code;
 	}
 
 	void assert_sizes() {
@@ -195,6 +235,7 @@ private:
 		assert(versions.size());
 		assert(version_strs.size() == versions.size());
 		assert(version_codes.size() == versions.size());
+	
 	}
 
 	void init_methods(void) {
@@ -295,6 +336,305 @@ private:
 		version_strs.push_back("HTTP-1.1");
 		version_codes.push_back(400);
 	}
+
+	void init_headers(void) {
+		{
+			struct header header;
+
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "SomE Header1";
+			comp[1] = ": ";
+			comp[2] = "SOmE Key1";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			expect["some header1"] = "SOmE Key1";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "SomE Header2";
+			comp[1] = ":";
+			comp[2] = "SOmE Key2";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			expect["some header2"] = "SOmE Key2";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "SomE Header3";
+			comp[1] = ":";
+			comp[2] = "SOmE Key3";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			expect["some header3"] = "SOmE Key3";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "shouldnt matter sice next header is invalid";
+			comp[1] = ":";
+			comp[2] = "shouldnt matter sice next header is invalid";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			comp[0] = "dosnt matter invalid seperator";
+			comp[1] = ":\r";
+			comp[2] = "dosnt matter, invalid sep";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			header.status_code = 400;
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "shouldnt matter sice next header is invalid";
+			comp[1] = ":";
+			comp[2] = "shouldnt matter sice next header is invalid";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			comp[0] = "dosnt matter invalid seperator2";
+			comp[1] = ":\n";
+			comp[2] = "dosnt matter, invalid sep2";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			header.status_code = 400;
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "sep with many whitespace";
+			comp[1] = ":  \v\t\t ";
+			comp[2] = "sep with many whitespace";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			expect["sep with many whitespace"] = "sep with many whitespace";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		{
+			struct header header;
+			std::vector<std::vector<std::string>>			comps;
+			std::vector<std::string>						comp(4);
+			std::unordered_map<std::string, std::string>	expect;
+
+			comp[0] = "sep with 2 space";
+			comp[1] = ":  ";
+			comp[2] = "sep with 2 space";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			expect["sep with 2 space"] = "sep with 2 space";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+		// Test: Duplicate headers (should keep the last occurrence)
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+			std::unordered_map<std::string, std::string> expect;
+
+			comp[0] = "Duplicate-Header";
+			comp[1] = ": ";
+			comp[2] = "FirstValue";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			// Reset comp for second occurrence.
+			comp[0] = "duplicate-header";
+			comp[1] = ": ";
+			comp[2] = "SecondValue";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			// Assuming the parser overwrites duplicate headers.
+			expect["duplicate-header"] = "SecondValue";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+
+		// Test: Header with extra whitespace in name and value (expect trimming and lower-casing)
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+			std::unordered_map<std::string, std::string> expect;
+
+			comp[0] = "Extra ending Space Header   ";
+			comp[1] = ": ";
+			comp[2] = "   Value with spaces   ";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			// Expected: header name trimmed and lower-case, value trimmed.
+			expect["extra space header"] = "Value with spaces";
+
+			header.headers = comps;
+			header.status_code = 400;
+			this->headers.push_back(header);
+		}
+		// Test: Header with extra whitespace in name and value (expect trimming and lower-casing)
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+			std::unordered_map<std::string, std::string> expect;
+
+			comp[0] = "   Extra beginning Space Header";
+			comp[1] = ": ";
+			comp[2] = "   Value with spaces   ";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			header.headers = comps;
+			header.expect = expect;
+			header.status_code = 400;
+			this->headers.push_back(header);
+		}
+
+		// Test: Header with missing colon (invalid separator, should result in an error)
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+
+			comp[0] = "NoColonHeader";
+			comp[1] = "";  // missing separator
+			comp[2] = "NoColonValue";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+
+			// Mark as an error.
+			header.status_code = 400;
+			header.headers = comps;
+			this->headers.push_back(header);
+		}
+
+		// Test: Multiple valid header lines in a single block
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::unordered_map<std::string, std::string> expect;
+
+			// First header line.
+			{
+				std::vector<std::string> comp(4);
+				comp[0] = "Header-One";
+				comp[1] = ": ";
+				comp[2] = "Value1";
+				comp[3] = "\r\n";
+				comps.push_back(comp);
+				expect["header-one"] = "Value1";
+			}
+			// Second header line.
+			{
+				std::vector<std::string> comp(4);
+				comp[0] = "Header-Two";
+				comp[1] = ": ";
+				comp[2] = "Value2";
+				comp[3] = "\r\n";
+				comps.push_back(comp);
+				expect["header-two"] = "Value2";
+			}
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+
+		// Test: Header with an empty value
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+			std::unordered_map<std::string, std::string> expect;
+
+			comp[0] = "Empty-Value";
+			comp[1] = ": ";
+			comp[2] = "";  // empty value
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+			expect["empty-value"] = "";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+
+		// Test: Header with unusual but valid characters in the field name
+		{
+			struct header header;
+			std::vector<std::vector<std::string>> comps;
+			std::vector<std::string> comp(4);
+			std::unordered_map<std::string, std::string> expect;
+
+			comp[0] = "X-Custom_Header+Test";
+			comp[1] = ": ";
+			comp[2] = "SomeValue";
+			comp[3] = "\r\n";
+			comps.push_back(comp);
+			expect["x-custom_header+test"] = "SomeValue";
+
+			header.headers = comps;
+			header.expect = expect;
+			this->headers.push_back(header);
+		}
+	}
+
 };
 
 int main(void) {

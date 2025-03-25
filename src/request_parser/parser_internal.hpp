@@ -41,7 +41,10 @@
 
 // header patterns
 #define FIELD_NAME "(?:^(?:([^\\:\\s][^\\:\\n]+)\\:)|^([^\\:\\n]*$))"
-#define FIELD_VALUE "(?:^([ \\t\\f\\v]*(\\S[^\\r\\n]*)\\r\\n)|^([ \\t\\f\\v]*(?:(?:\\S[^\\r\\n]*)|(?:\\S))?\\r?$))"
+//#define FIELD_VALUE "(?:^([ \\t\\f\\v]*(\\S[^\\r\\n]*)\\r\\n)|^([ \\t\\f\\v]*(?:(?:\\S[^\\r\\n]*)|(?:\\S))?\\r?$))"
+#define FIELD_VALUE "(?:^([ \\t\\f\\v]*((?:\\S[^\\r\\n]*)|(?:))\\r\\n)|^([ \\t\\f\\v]*(?:(?:\\S[^\\r\\n]*)|(?:\\S))?\\r?$))"
+
+//#define FIELD_VALUE 
 
 //ASTERISK_FORM : not implemented
 
