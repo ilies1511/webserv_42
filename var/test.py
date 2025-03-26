@@ -2,14 +2,13 @@
 
 import socket
 
-request = """POST / HTTP/1.1\r
-content-length: 10\r
+request = """GET / HTTP/1.1\r
+host: as\r
 \r
-1234567890
 """
 
 
-def start_client(host='localhost', port=9035):
+def start_client(host='localhost', port=8080):
 	"""Starts a TCP client that connects to the specified server."""
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
 		client_socket.connect((host, port))
