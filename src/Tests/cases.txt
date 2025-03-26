@@ -1,0 +1,15 @@
+run_client localhost 8080 DELETE /var/empty_dir
+
+run_client localhost 9035 DELETE /var/www/data/files/dummy.txt/
+
+
+dir ist nicht leeres Repo:
+	run_client localhost 9035 DELETE /var/www/data/files/dir/
+	run_client localhost 9035 DELETE /var/www/data/files/dir
+
+dir ist leeres Repo:
+	run_client localhost 9035 DELETE /var/www/data/files/dir/
+	run_client localhost 9035 DELETE /var/www/data/files/dir
+
+Valid Path zur file + /: -> 404
+	run_client localhost 9035 DELETE /var/www/data/files/alo.txt/
