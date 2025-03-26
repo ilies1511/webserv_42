@@ -547,8 +547,15 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 	if (this->input.size() <= this->pos) {
 		return (false);
 	}
+	std::cout << "Parsing chunked\n";
 	while (1) {
 		size_t old_pos = this->pos;
+		if (!is_hex_digit(this->input[this->pos])) {
+			//todo: i think this check can be done for more cases
+			std::cout << "invalid chunk start\n";
+			this->setStatus(400);
+			return (true);
+		}
 		auto crlf = input.find("\r\n", this->pos);
 		if (crlf == std::string::npos) {
 			this->pos = old_pos;

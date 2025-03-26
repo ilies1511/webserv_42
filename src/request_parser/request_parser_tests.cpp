@@ -9,6 +9,8 @@ public:
 	size_t			passes;
 	size_t			fails;
 
+	size_t			max_body_len;
+
 	std::vector<std::string>				method_strs;
 	std::vector<std::string>				methods;
 	std::vector<std::optional<int>>			method_codes;
@@ -35,6 +37,16 @@ public:
 	};
 	std::vector<struct header>	headers;
 
+	struct body {
+		std::vector<std::pair<std::string, std::string>>		headers;
+		std::string				body_input;
+		std::string				expected_body;
+		std::optional<int>		status_code;
+		size_t					max_body_len = DEFAULT_MAX_REQ_BODY_SIZE;
+	};
+
+	std::vector<struct body>		bodies;
+
 	Tests():
 		passes(0),
 		fails(0),
@@ -44,6 +56,7 @@ public:
 		init_uris();
 		init_versions();
 		init_headers();
+		init_bodies();
 		assert_sizes();
 	}
 
@@ -93,8 +106,13 @@ public:
 						expect = before_headers;
 						request_str = before_headers_str;
 						comb_headers(h);
-						request_str += "\r\n";
-						for (int i = 0; i < 1; i++ /*todo: bodys/encoding later */) {
+						std::string before_body_str = request_str;
+						Request before_body = expect;
+						//request_str += "\r\n";
+						for (size_t b = 0; b < bodies.size(); b++) {
+							request_str = before_body_str;
+							expect = before_body;
+							comb_body(b);
 							run_test();
 						}
 					}
@@ -124,7 +142,7 @@ private:
 		parser = new RequestParser(request_str);
 		if (parser->parse_request_line()) {
 			if (parser->parse_headers()) {
-				if (parser->parse_body(DEFAULT_MAX_REQ_BODY_SIZE)) {
+				if (parser->parse_body(this->max_body_len)) {
 				}
 			}
 		}
@@ -142,6 +160,7 @@ private:
 			//std::cout << "********<**************\n";
 		} else {
 			std::cout << "test case " <<  passes + fails << ": |" << request_str << "|failed" << std::endl;
+			std::cout << "max_body_len: " << this->max_body_len << "\n";
 			std::cout << "##############expected:\n" << expect << "#############got:\n" << actual;
 			std::cout << "#######\n";
 			std::cout << "parser logging: \n";
@@ -207,6 +226,21 @@ private:
 		}
 		this->expect.headers = headers.expect;
 		this->expect.status_code = headers.status_code;
+	}
+
+	void comb_body(size_t idx) {
+		struct body body;
+		for (size_t i = 0; i < bodies[idx].headers.size(); i++) {
+			this->request_str += bodies[idx].headers[i].first + ": " + bodies[idx].headers[i].second + "\r\n";
+			this->expect.headers[bodies[idx].headers[i].first] = bodies[idx].headers[i].second;
+		}
+		this->max_body_len = bodies[idx].max_body_len;
+		this->request_str += "\r\n";
+		this->request_str += bodies[idx].body_input;
+		this->expect.body = bodies[idx].expected_body;
+		if (!this->expect.status_code.has_value()) {
+			this->expect.status_code = bodies[idx].status_code;
+		}
 	}
 
 	void assert_sizes() {
@@ -711,7 +745,6 @@ private:
 			std::vector<std::vector<std::string>> comps;
 			std::unordered_map<std::string, std::string> expect;
 
-			// First header line.
 			{
 				std::vector<std::string> comp(4);
 				comp[0] = "Header-One";
@@ -721,7 +754,6 @@ private:
 				comps.push_back(comp);
 				expect["header-one"] = "Value1";
 			}
-			// Second header line.
 			{
 				std::vector<std::string> comp(4);
 				comp[0] = "Header-Two";
@@ -737,7 +769,6 @@ private:
 			this->headers.push_back(header);
 		}
 
-		// Test: Header with an empty value
 		{
 			struct header header;
 			std::vector<std::vector<std::string>> comps;
@@ -776,6 +807,162 @@ private:
 		}
 	}
 
+	void init_bodies() {
+		{ 
+			body test;
+			test.headers = {{"content-length", "11"}};
+			test.body_input = "Hello World";
+			test.expected_body = "Hello World";
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "11"}};
+			test.body_input = "Hello World";
+			test.max_body_len = 5;
+			test.status_code = 413;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "11"}};
+			test.body_input = "Hello World";
+			test.expected_body = "Hello World";
+			test.max_body_len = 11;
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "11"}};
+			test.body_input = "Hello World";
+			test.max_body_len = 10;
+			test.status_code = 413;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "5"}};
+			test.body_input = "12345";
+			test.expected_body = "12345";
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "5"}};
+			test.body_input = "123";
+			test.expected_body = ""; // not finished body
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"content-length", "abc"}};
+			test.body_input = "12345";
+			test.expected_body = "";
+			test.status_code = 400;
+			bodies.push_back(test);
+		}
+	
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"5\r\n"
+				"Hello\r\n"
+				"6\r\n"
+				" World\r\n"
+				"0\r\n"
+				"\r\n";
+			test.expected_body = "Hello World";
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"5\r\n"
+				"Hello\r\n"
+				"6\r\n"
+				" World\r\n"
+				"0\r\n"
+				"\r\n";
+			test.expected_body = "Hello World";
+			test.max_body_len = 11;
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"0\r\n"
+				"\r\n";
+			test.max_body_len = 10;
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"5\r\n"
+				"Hello\r\n"
+				"6\r\n"
+				" World\r\n"
+				"0\r\n"
+				"\r\n";
+			test.max_body_len = 10;
+			test.status_code = 413;
+			bodies.push_back(test);
+		}
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"0\r\n"
+				"\r\n";
+			test.expected_body = "";
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+	
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input = "invalid_chunk_data";
+			test.expected_body = "";
+			test.status_code = 400;
+			bodies.push_back(test);
+		}
+	
+		{
+			body test;
+			test.headers.push_back({"content-length", "5"});
+			test.headers.push_back({"transfer-encoding", "chunked"});
+			test.body_input = "0\r\n\r\n";
+			test.expected_body = "";
+			test.status_code = 400;
+			bodies.push_back(test);
+		}
+	
+		{
+			body test;
+			test.headers = {{"transfer-encoding", "chunked"}};
+			test.body_input =
+				"5\r\n"
+				"Hello\r\n"
+				"0\r\n"
+				"Trailer: X-Custom\r\n"
+				"X-Custom: Value\r\n"
+				"\r\n";
+			test.expected_body = "Hello";
+			test.status_code = std::nullopt;
+			bodies.push_back(test);
+		}
+	}
 };
 
 int main(void) {
