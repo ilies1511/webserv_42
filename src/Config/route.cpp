@@ -44,7 +44,7 @@ std::string route::getActualPath() const {
 
 
 
-std::pair<std::size_t, std::string> route::getRedirect() {
+std::pair<std::size_t, std::string> route::getRedirect() const {
     return _redirect;
 }
 

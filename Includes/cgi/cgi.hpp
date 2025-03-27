@@ -21,6 +21,7 @@ enum CGI_STATE {
     WAIT,
     WRITE,
     READ,
+    FINISH
 };
 
 class CGI {
@@ -45,7 +46,7 @@ private:
     std::string                 _content_length;
     std::string                 _query_string;
     std::string                 _path_info;
-
+    std::string                 _cgi_engine;
 
 
 public:

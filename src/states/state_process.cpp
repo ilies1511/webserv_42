@@ -9,16 +9,73 @@
 #include <filesystem>
 #include <sstream>
 
+// void	Connection::i
+
+void	Connection::validate_match(const std::string& longest_match) {
+
+	std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
+
+	_matching_route = &_server._config.getLocation()[longest_match];
+	// TODO check redirect !
+	if (_matching_route->getRouteIsRedirect()) {
+		std::cout << coloring("Location is a redirect", BLUE) << std::endl;
+		auto [typeOfRedirect, newLocation] =_matching_route->getRedirect();
+		redirect(typeOfRedirect, newLocation);
+	}
+	std::string remainder;
+	if (request.uri->path.length() > longest_match.length()) {
+		remainder = request.uri->path.substr(longest_match.length() + 1, request.uri->path.length());
+		std::cout << coloring("remainder " + remainder, BLUE) << std::endl;
+	}
+	_expanded_path =_matching_route->getActualPath();
+	std::cout << coloring("Actual Path: " + _expanded_path, BLUE) << std::endl;
+	if (!remainder.empty()) {
+		_expanded_path.append(remainder);
+	}
+	std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
+	std::string currPath = std::filesystem::current_path();
+	std::cout << coloring("Absolute Path: " + currPath + "/" + _expanded_path,BLUE) << std::endl;
+
+	std::vector<std::string> methods =_matching_route->getAllowedMethods();
+	auto it = std::find(methods.begin(), methods.end(), request.method.value());
+	if (it != methods.end()) {
+		std::cout << coloring("method: " + request.method.value() + " is allowed", BLUE) << std::endl;
+	} else {
+		std::cout << coloring("method: " + request.method.value() + " is not allowed", BLUE) << std::endl;
+		// TODO all status code 405
+	}
+	std::cout << coloring("autoindex: " + (_matching_route->getAutoIndex() ? std::string("on") : std::string("off")), BLUE) << std::endl;
+	_autoindex_enabled =_matching_route->getAutoIndex();
+
+	std::cout << coloring(request.uri->path, BLUE) << std::endl;
+	if (is_cgi(request.uri->path)) {
+		for (const auto& [fst, snd] :_matching_route->getCgi()) {
+			if (fst == ".py") {
+				const std::string cgiExec = snd;
+				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
+				_cgi.emplace();
+				this->_state = State::CGI;
+				this->_next_state = State::SEND;
+				return ;
+			}
+		}
+		// TODO type of CGI script not supported
+		// std::cout << coloring("NO CGI", BLUE) << std::endl;
+		// this->_state = State::CGI;
+		// this->_next_state = State::SEND;
+		return ;
+	}
+	methode_handler();
+}
+
+// Try to match Request URI with Location. If match -> expanding path
 void	Connection::entry_process(void)
 {
 	//0:
-	if (request.status_code.has_value())
-	{
+	if (request.status_code.has_value()) {
 		set_full_status_code((size_t)*request.status_code);
 	}
 	std::cout << coloring("Entry Process Test", BLUE) << std::endl;
-	std::cout << coloring("system path: " + _system_path, BLUE) << std::endl;
-	std::cout << coloring("request uri_full: " + request.uri->full, BLUE) << std::endl;
 	std::cout << coloring("request uri_path: " + request.uri->path, BLUE) << std::endl;
 	std::cout << coloring("request method: " + request.method.value(), BLUE) << std::endl;
 
@@ -42,44 +99,11 @@ void	Connection::entry_process(void)
 	}
 	if (count == 0) {
 		std::cout << coloring("NO MATCH!!!", BLUE) << std::endl;
+        // if no location is matching and config doesn't have "location /" error will be generated because:
+        // method and autoindex can only be activated inside a location
 	} else {
-        std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
-
-		// matching location
-		const route matchingRoute =  _server._config.getLocation()[longest_match];
-		// todo check redirect !
-		if (matchingRoute.getRouteIsRedirect()) {
-			std::cout << coloring("Location is a redirect", BLUE) << std::endl;
-			// TODO add redirect
-		}
-
-		std::string remainder;
-		if (request.uri->path.length() > longest_match.length()) {
-			remainder = request.uri->path.substr(longest_match.length() + 1, request.uri->path.length());
-			std::cout << coloring("remainder " + remainder, BLUE) << std::endl;
-		}
-		_expanded_path = matchingRoute.getActualPath();
-		std::cout << coloring("Actual Path: " + _expanded_path, BLUE) << std::endl;
-		if (!remainder.empty()) {
-			_expanded_path.append(remainder);
-		}
-		std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
-		std::string currPath = std::filesystem::current_path();
-		std::cout << coloring("Absolute Path: " + currPath + "/" + _expanded_path,BLUE) << std::endl;
-
-		// const route matchingRoute =  _server._config.getLocation()[longest_match];
-		std::vector<std::string> methods = matchingRoute.getAllowedMethods();
-		auto it = std::find(methods.begin(), methods.end(), request.method.value());
-		if (it != methods.end()) {
-			std::cout << coloring("method: " + request.method.value() + " is allowed", BLUE) << std::endl;
-		} else {
-			std::cout << coloring("method: " + request.method.value() + " is not allowed", BLUE) << std::endl;
-		}
-		std::cout << coloring("autoindex: " + (matchingRoute.getAutoIndex() ? std::string("on") : std::string("off")), BLUE) << std::endl;
+		validate_match(longest_match);
 	}
-	// if no location is matching and config doesn't have "location /" error will be generated because:
-	// method and autoindex can only be activated inside a location
-
 
 	/*
 	TODO: PART 1
@@ -117,11 +141,12 @@ void	Connection::entry_process(void)
 	// request.readFile = true;
 	// // request.filename = "html/index.html";
 	// // filled_request._headers = ;
-	if (is_cgi(request.uri->path)) {
-		this->_state = State::CGI;
-		this->_next_state = State::SEND;
-		return ;
-	}
+	// std::cout << coloring(request.uri->path, BLUE) << std::endl;
+	// if (is_cgi(request.uri->path)) {
+	// 	this->_state = State::CGI;
+	// 	this->_next_state = State::SEND;
+	// 	return ;
+	// }
 	methode_handler();
 	return ;
 }

@@ -15,11 +15,14 @@ bool Connection::is_cgi(std::string &path) {
 	{
 		return (false);
 	}
-	if (path.length() > 3
-		&& path.find_last_of(".py") == (size_t)(path.end() - path.begin() - 3)
-		&& (request.method == "GET" || request.method == "POST"))
-	{
-		return (true);
+	// if (path.length() > 3
+	// 	&& path.find_last_of(".py") == (size_t)(path.end() - path.begin() - 3)
+	// 	&& (request.method == "GET" || request.method == "POST"))
+	// {
+	// 	return (true);
+	// }
+	if (path.length() > 3 && path.find_last_of(".py") == path.length() - 1) {
+        return true;
 	}
 	return (false);
 }

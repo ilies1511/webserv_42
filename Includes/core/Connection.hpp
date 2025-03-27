@@ -10,9 +10,11 @@
 #include "Response.hpp"
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
+#include <cgi.hpp>
 #include <unistd.h>
 #include <poll.h>
 #include <filesystem>
+#include <route.hpp>
 
 class Buffer;
 class Server;
@@ -46,6 +48,8 @@ class Connection
 		Response				_current_response;
 		std::string				_system_path;
 		std::string				_expanded_path;
+		route*					_matching_route;
+		std::optional<CGI>		_cgi;
 	private:
 		int						_fdConnection;
 		int						_fdFile; //TODO: add error_fd
@@ -55,7 +59,7 @@ class Connection
 		Buffer					_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer					_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
 		RequestParser			_request_parser;
-		bool					_autoindex_enabled = true;
+		bool					_autoindex_enabled;
 		std::filesystem::path	_full_path = {};
 		//TODO:
 		// int					_fdWrite;
@@ -134,6 +138,7 @@ class Connection
 		void	no_trailing_slash_case(void);
 		bool	is_cgi(std::string &path);
 		void	entry_cgi(void);
+		void	validate_match(const std::string& longest_match);
 		void	set_full_status_code(size_t status);
 		void	redirect(size_t input_status_code, std::string New_Location);
 	//Methodes -- END

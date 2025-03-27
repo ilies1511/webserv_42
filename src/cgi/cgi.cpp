@@ -2,39 +2,43 @@
 #include <vector>
 #include <filesystem>
 
-CGI::CGI() :    _is_finished(false),
-                _state(INIT) {
-    _method = "GET";
-    _query_string = "name=joe&name=bill";
-    _script = "/Users/sparth/Documents/Tests/webservTests/get.py";
-    // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
+// CGI::CGI() :    _is_finished(false),
+//                 _state(INIT) {
+//     _method = "GET";
+//     _query_string = "name=joe&name=bill";
+//     _script = "/Users/sparth/Documents/Tests/webservTests/get.py";
+//     // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
+//
+//     // _env.emplace_back("REQUEST_METHOD=GET");
+//     // _env.emplace_back("SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/hello.py");
+//     // _env.emplace_back("QUERY_STRING=name=joe&name=bill");
+//     // _env.emplace_back("CONTENT_TYPE=");
+//     // _env.emplace_back( "CONTENT_LENGTH=");
+//     // _env.emplace_back("PATH_INFO=");
+//     // todo add header !!!!
+//     _envp.emplace_back((char *)"REQUEST_METHOD=GET");
+//     _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/get.py");
+//     // _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/getWait.py"); // Test Timeout
+//     // _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py");
+//     _envp.emplace_back((char *)"QUERY_STRING=name=joe&name=bill");
+//     _envp.emplace_back((char *)"CONTENT_TYPE=");
+//     _envp.emplace_back((char *) "CONTENT_LENGTH=");
+//     _envp.emplace_back((char *)"PATH_INFO=");
+//     _envp.emplace_back(nullptr);
+//
+//     _argv.emplace_back((char *)"/usr/local/bin/python3.9");
+//     _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/get.py");
+//     // _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/getWait.py"); // Test Timeout
+//     // _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py");
+//     _argv.emplace_back(nullptr);
+//
+//     // _method = "GET";
+//     // _query_string = "name=joe&name=bill";
+//     // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
+// }
 
-    // _env.emplace_back("REQUEST_METHOD=GET");
-    // _env.emplace_back("SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/hello.py");
-    // _env.emplace_back("QUERY_STRING=name=joe&name=bill");
-    // _env.emplace_back("CONTENT_TYPE=");
-    // _env.emplace_back( "CONTENT_LENGTH=");
-    // _env.emplace_back("PATH_INFO=");
-    // todo add header !!!!
-    _envp.emplace_back((char *)"REQUEST_METHOD=GET");
-    _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/get.py");
-    // _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/getWait.py"); // Test Timeout
-    // _envp.emplace_back((char *)"SCRIPT_NAME=/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py");
-    _envp.emplace_back((char *)"QUERY_STRING=name=joe&name=bill");
-    _envp.emplace_back((char *)"CONTENT_TYPE=");
-    _envp.emplace_back((char *) "CONTENT_LENGTH=");
-    _envp.emplace_back((char *)"PATH_INFO=");
-    _envp.emplace_back(nullptr);
+CGI::CGI() : _state(INIT) {
 
-    _argv.emplace_back((char *)"/usr/local/bin/python3.9");
-    _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/get.py");
-    // _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/getWait.py"); // Test Timeout
-    // _argv.emplace_back((char *)"/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py");
-    _argv.emplace_back(nullptr);
-
-    // _method = "GET";
-    // _query_string = "name=joe&name=bill";
-    // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
 }
 
 CGI::~CGI() = default;
