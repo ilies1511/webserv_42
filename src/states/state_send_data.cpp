@@ -55,6 +55,12 @@ void	Connection::send_data(void)
 			ft_closeNcleanRoot(this->_fdConnection);
 			return ;
 		}
+	} // TODO HOTFIX should be fixed !!!!
+	else if (_cgi.has_value()) {
+		const std::string tmp = _cgi->getOutput();
+		_OutputBuffer._buffer.assign(tmp.begin(), tmp.end());
+		send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		return;
 	}
 	_state = State::SEND;
 	// /*

@@ -14,7 +14,7 @@ Connection::Connection(int fd, Server &server)
 		request{},
 		_current_response{},
 		_system_path("html/index.html"),
-		_matching_route(nullptr),
+		_matching_route(std::nullopt),
 		_cgi(std::nullopt),
 		_fdConnection(fd),
 		_fdFile(-1),

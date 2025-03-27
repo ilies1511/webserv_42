@@ -15,7 +15,7 @@ void	Connection::validate_match(const std::string& longest_match) {
 
 	std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
 
-	_matching_route = &_server._config.getLocation()[longest_match];
+	_matching_route = _server._config.getLocation()[longest_match];
 	// TODO check redirect !
 	if (_matching_route->getRouteIsRedirect()) {
 		std::cout << coloring("Location is a redirect", BLUE) << std::endl;
@@ -34,7 +34,8 @@ void	Connection::validate_match(const std::string& longest_match) {
 	}
 	std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
 	std::string currPath = std::filesystem::current_path();
-	std::cout << coloring("Absolute Path: " + currPath + "/" + _expanded_path,BLUE) << std::endl;
+	_absolute_path = currPath + "/" + _expanded_path;
+	std::cout << coloring("Absolute Path: " + _absolute_path, BLUE)  << std::endl;
 
 	std::vector<std::string> methods =_matching_route->getAllowedMethods();
 	auto it = std::find(methods.begin(), methods.end(), request.method.value());
@@ -55,6 +56,9 @@ void	Connection::validate_match(const std::string& longest_match) {
 				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
 				_cgi.emplace();
 				this->_state = State::CGI;
+				_cgi->setCgiEngine(snd);
+				entry_cgi();
+				// return;
 				this->_next_state = State::SEND;
 				return ;
 			}
@@ -65,6 +69,7 @@ void	Connection::validate_match(const std::string& longest_match) {
 		// this->_next_state = State::SEND;
 		return ;
 	}
+	// TODO NO CGI !!!
 	methode_handler();
 }
 
@@ -74,6 +79,7 @@ void	Connection::entry_process(void)
 	//0:
 	if (request.status_code.has_value()) {
 		set_full_status_code((size_t)*request.status_code);
+		return;
 	}
 	std::cout << coloring("Entry Process Test", BLUE) << std::endl;
 	std::cout << coloring("request uri_path: " + request.uri->path, BLUE) << std::endl;
@@ -101,6 +107,8 @@ void	Connection::entry_process(void)
 		std::cout << coloring("NO MATCH!!!", BLUE) << std::endl;
         // if no location is matching and config doesn't have "location /" error will be generated because:
         // method and autoindex can only be activated inside a location
+		set_full_status_code(403);
+		return;
 	} else {
 		validate_match(longest_match);
 	}
@@ -147,6 +155,6 @@ void	Connection::entry_process(void)
 	// 	this->_next_state = State::SEND;
 	// 	return ;
 	// }
-	methode_handler();
+	// methode_handler();
 	return ;
 }

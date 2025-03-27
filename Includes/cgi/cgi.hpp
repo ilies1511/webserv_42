@@ -26,7 +26,6 @@ enum CGI_STATE {
 
 class CGI {
 private:
-    bool                        _is_finished;
     CGI_STATE                   _state;
     // std::vector<std::string>    _env;
     std::vector<char *>         _envp;
@@ -40,13 +39,13 @@ private:
 
     std::string                 _output;
 
-    std::string                 _method;
-    std::string                 _script;
-    std::string                 _content_type;
-    std::string                 _content_length;
-    std::string                 _query_string;
-    std::string                 _path_info;
-    std::string                 _cgi_engine;
+    std::string                _method;
+    std::string                _script;
+    std::string                _content_type;
+    std::string                _content_length;
+    std::string                _query_string;
+    std::string                _path_info;
+    std::string                _cgi_engine;
 
 
 public:
@@ -54,15 +53,33 @@ public:
     // CGI(const Request& request);
     ~CGI();
 
-    bool        getIsFinished() const;
-    CGI_STATE   getCgiState() const;
+    CGI_STATE           getCgiState() const;
+    std::string  getMethod() const;
+    std::string  getScript() const;
+    std::string  getContentType() const;
+    std::string  getContentLength() const;
+    std::string  getQueryString() const;
+    std::string  getPathInfo() const;
+    std::string  getCgiEngine() const;
+    std::string  getOutput() const;
 
-    void    setIsFinished(bool option);
-    void    setCgiState(CGI_STATE value);
+    void    setCgiState(const CGI_STATE& value);
+    void    setMethod(const std::string& method);
+    void    setScript(const std::string& script);
+    void    setContentType(const std::string& type);
+    void    setContentLength(const std::string& length);
+    void    setQueryString(const std::string& query);
+    void    setPathInfo(const std::string& path);
+    void    setCgiEngine(const std::string& engine);
+    void    setEnvp(std::string& env);
+
+
 
 
     void    runCgi();
     void    cgiProcess();
     void    readCgiOutput();
-
+    void    setup_connection();
+    void    writing();
+    void    waiting();
 };

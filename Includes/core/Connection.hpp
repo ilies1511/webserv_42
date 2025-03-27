@@ -48,7 +48,8 @@ class Connection
 		Response				_current_response;
 		std::string				_system_path;
 		std::string				_expanded_path;
-		route*					_matching_route;
+		std::string				_absolute_path;
+		std::optional<route>	_matching_route;
 		std::optional<CGI>		_cgi;
 	private:
 		int						_fdConnection;
@@ -137,7 +138,8 @@ class Connection
 		void	trailing_slash_case(void);
 		void	no_trailing_slash_case(void);
 		bool	is_cgi(std::string &path);
-		void	entry_cgi(void);
+		void	entry_cgi();
+		void	setup_cgi();
 		void	validate_match(const std::string& longest_match);
 		void	set_full_status_code(size_t status);
 		void	redirect(size_t input_status_code, std::string New_Location);
