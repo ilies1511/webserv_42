@@ -56,6 +56,11 @@ class Connection
 		RequestParser			_request_parser;
 		bool					_autoindex_enabled = true;
 		std::filesystem::path	_full_path = {};
+		//Timeout-Feature
+	public:
+		std::chrono::steady_clock::time_point _last_activity;
+		static constexpr std::chrono::seconds TIMEOUT_DURATION{5}; // 30 Sekunden
+
 		//TODO:
 		// int					_fdWrite;
 		// int					_fdRead;
@@ -138,6 +143,7 @@ class Connection
 		void	redirect(size_t input_status_code, std::string New_Location);
 		void	is_file_Case(void);
 		void	is_dir_Case(void);
+		bool	is_timed_out() const;
 	//Methodes -- ENDL
 };
 

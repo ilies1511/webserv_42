@@ -20,7 +20,8 @@ Connection::Connection(int fd, Server &server)
 		finished_sending(false),
 		_InputBuffer{},
 		_OutputBuffer{},
-		_request_parser(_InputBuffer._buffer)
+		_request_parser(_InputBuffer._buffer),
+		_last_activity(std::chrono::steady_clock::now())
 {
 
 	std::cout << "I'm Connection Constructor: cap of buffer: " << _InputBuffer._buffer.capacity() << "Output Buffer: " << _OutputBuffer._buffer.capacity() << "\n";

@@ -33,6 +33,7 @@ void	Connection::send_data(void)
 		printer::debug_putstr("In alo Case", __FILE__, __FUNCTION__, __LINE__);
 		return ;
 	}
+	_last_activity = std::chrono::steady_clock::now();
 	_OutputBuffer._buffer.assign(_current_response.response_inzemaking.begin(), _current_response.response_inzemaking.end());
 	ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
 	if (sent > 0)

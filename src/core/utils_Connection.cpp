@@ -248,6 +248,12 @@ void	Connection::set_full_status_code(size_t status, \
 	prepare_fdFile();
 }
 
+bool Connection::is_timed_out() const
+{
+	auto now = std::chrono::steady_clock::now();
+	return (now - _last_activity) > TIMEOUT_DURATION;
+}
+
 //Utils -- END
 
 
