@@ -8,63 +8,113 @@
 #include <filesystem>
 #include <sstream>
 
+// //Working Backup without errno handling
+// void	Connection::is_dir_Case(void)
+// {
+// 	if (!std::filesystem::exists(_full_path)) {
+// 		P_DEBUG("2nd 404 in is_dir_Case");
+// 		// set_full_status_code(409);
+// 		set_full_status_code(404);
+// 		return ;
+// 	}
+// 	if (!std::filesystem::is_empty(_full_path)) {
+// 		// Verzeichnis ist nicht leer, daher kann es nicht gelöscht werden – Conflict
+// 		set_full_status_code(409);
+// 	}
+// 	else {
+// 		if (rmdir(_full_path.c_str()) == 0) {
+// 			set_full_status_code(204);
+// 		}
+// 		else {
+// 			//TODO: add more precise error checks with errno
+// 			set_full_status_code(403);
+// 		}
+// 	}
+// }
+
 void	Connection::is_dir_Case(void)
 {
-	if (!std::filesystem::exists(_full_path)) {
-		P_DEBUG("2nd 404 in is_dir_Case");
-		// set_full_status_code(409);
-		set_full_status_code(404);
-		return ;
+	// Prüfe explizit auf Verzeichnis (auch wenn Slash vorhanden ist)
+	const bool path_exists = std::filesystem::exists(_full_path);
+
+	if (!std::filesystem::is_directory(_full_path)) {
+		set_full_status_code(path_exists ? 409 : 404);
+		return;
 	}
-	if (!std::filesystem::is_empty(_full_path)) {
-		// Verzeichnis ist nicht leer, daher kann es nicht gelöscht werden – Conflict
-		set_full_status_code(409);
+	if (rmdir(_full_path.c_str()) == 0) {
+		set_full_status_code(204);
 	}
-	else {
-		if (rmdir(_full_path.c_str()) == 0) {
-			set_full_status_code(204);
+	else
+	{
+		switch (errno) {
+			case ENOTEMPTY:	set_full_status_code(409); break;
+			case EACCES:	// Fallthrough
+			case EPERM:		set_full_status_code(403); break;
+			case ENOENT:	set_full_status_code(404); break;
+			default:		set_full_status_code(500);
 		}
-		else {
-			//TODO: add more precise error checks with errno
-			set_full_status_code(403);
-		}
+		errno = 0;
 	}
 }
 
-void	Connection::is_file_Case(void)
+void Connection::is_file_Case()
 {
-	if (!std::filesystem::exists(_full_path)) {
-		P_DEBUG("3nd 404 in is_file_Case");
-		set_full_status_code(404);
-		return ;
-	}
-	if (std::filesystem::is_regular_file(_full_path))
-	{
-		if (unlink(_full_path.c_str()) == 0) {
-			// Löschung erfolgreich: 204 No Content
-			set_full_status_code(204);
-		}
-		else {
-			//TODO: add more precise error checks with errno
-			// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
-			set_full_status_code(403);
-		}
-	}
-	else if (std::filesystem::is_directory(_full_path))
-	{
-		P_DEBUG("conflict case");
+	// Prüfe explizit auf Datei
+	if (std::filesystem::is_directory(_full_path)) {
 		set_full_status_code(409);
-		return ;
+		return;
 	}
-	// if (unlink(_full_path.c_str()) == 0) {
-	// 	// Löschung erfolgreich: 204 No Content
-	// 	set_full_status_code(204);
-	// } else {
-	// 	//TODO: add more precise error checks with errno
-	// 	// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
-	// 	set_full_status_code(403);
-	// }
+	if (unlink(_full_path.c_str()) == 0) {
+		set_full_status_code(204);
+	}
+	else
+	{
+		switch (errno) {
+			case ENOENT:	set_full_status_code(404); break;
+			case EACCES:	// Fallthrough
+			case EPERM: 	set_full_status_code(403); break;
+			case EISDIR:	set_full_status_code(409); break;
+			default:		set_full_status_code(500);
+		}
+		errno = 0;
+	}
 }
+
+// //Working Backup without errno handling
+// void	Connection::is_file_Case(void)
+// {
+// 	if (!std::filesystem::exists(_full_path)) {
+// 		P_DEBUG("3nd 404 in is_file_Case");
+// 		set_full_status_code(404);
+// 		return ;
+// 	}
+// 	if (std::filesystem::is_regular_file(_full_path))
+// 	{
+// 		if (unlink(_full_path.c_str()) == 0) {
+// 			// Löschung erfolgreich: 204 No Content
+// 			set_full_status_code(204);
+// 		}
+// 		else {
+// 			//TODO: add more precise error checks with errno
+// 			// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
+// 			set_full_status_code(403);
+// 		}
+// 	}
+// 	else if (std::filesystem::is_directory(_full_path))
+// 	{
+// 		P_DEBUG("conflict case");
+// 		set_full_status_code(409);
+// 		return ;
+// 	}
+// 	// if (unlink(_full_path.c_str()) == 0) {
+// 	// 	// Löschung erfolgreich: 204 No Content
+// 	// 	set_full_status_code(204);
+// 	// } else {
+// 	// 	//TODO: add more precise error checks with errno
+// 	// 	// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
+// 	// 	set_full_status_code(403);
+// 	// }
+// }
 
 /*
 	Testcases:
@@ -118,8 +168,12 @@ void	Connection::handle_delete(void)
 		// }
 		// // Falls die Ressource weder Datei noch Verzeichnis ist, gib 404 zurück:
 		else {
+			assert(0);
 			set_full_status_code(404);
 		}
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		set_full_status_code(404); // Ungültiger Pfad
 	}
 	catch(const std::exception& e)
 	{

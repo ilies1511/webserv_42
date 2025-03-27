@@ -44,6 +44,9 @@ void	Connection::entry_process(void)
 			methode_handler()
 	*/
 
+	// GET / HTTP/1.1
+	// Cookie: username, theme
+
 	// request.method = "GET";
 	// request.uri = "/index.html";
 	// request._version = "HTTP/1.1";
