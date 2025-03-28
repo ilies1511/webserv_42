@@ -10,6 +10,7 @@
 #include <sstream>
 
 //TODO: just a placeholder for now
+
 bool Connection::is_cgi(std::string &path) {
 	if (request.status_code.has_value())
 	{
@@ -97,7 +98,7 @@ void	Connection::entry_cgi()
 		this->_state = State::SEND;
 		return;
 	}
-
+	// TODO implement CGI error handling
 	/*
 	if (run_cgi is finished)
 	{

@@ -137,10 +137,14 @@ class Connection
 		bool	entry_parse(void);
 		void	trailing_slash_case(void);
 		void	no_trailing_slash_case(void);
+
 		bool	is_cgi(std::string &path);
+		bool	method_is_allowed(const std::vector<std::string>& methods);
+		bool	malicious_request();
+		bool	is_redirect();
 		void	entry_cgi();
 		void	setup_cgi();
-		void	validate_match(const std::string& longest_match);
+		void	validate_match(std::string& longest_match);
 		void	set_full_status_code(size_t status);
 		void	redirect(size_t input_status_code, std::string New_Location);
 	//Methodes -- END
