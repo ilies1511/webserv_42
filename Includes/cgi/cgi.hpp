@@ -27,7 +27,6 @@ enum CGI_STATE {
 class CGI {
 private:
     CGI_STATE                   _state;
-    // std::vector<std::string>    _env;
     std::vector<char *>         _envp;
     std::vector<char *>         _argv;
 
@@ -46,9 +45,13 @@ private:
     std::string                _query_string;
     std::string                _path_info;
     std::string                _cgi_engine;
+    std::string                _script_name;
 
 
 public:
+
+    std::vector<std::string>    _env;
+
     CGI();
     // CGI(const Request& request);
     ~CGI();

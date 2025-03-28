@@ -248,7 +248,9 @@ void update_routes(std::vector<serverConfig>& server_configs) {
                // temp.setActualPath(routeRoot + uri);
            }
            if (raw_actual_path.back() != '/') {
-                raw_actual_path.push_back('/');
+               if (!std::filesystem::is_regular_file(raw_actual_path)) {
+                   raw_actual_path.push_back('/');
+               }
            }
            temp.setActualPath(raw_actual_path);
            //  route without index - try to get index from server block

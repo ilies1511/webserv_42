@@ -149,6 +149,8 @@ void CGI::setEnvp(std::string& env) {
 
 void CGI::cgiProcess() {
     std::cerr << "CHECK FROM CGI PROCESS" << std::endl;
+    std::cerr << _argv[0] << std::endl;
+    std::cerr << _argv[1] << std::endl;
     if (close(_pipeIn[1]) == -1 || close(_pipeOut[0]) == -1
     || dup2(_pipeIn[0], STDIN_FILENO) == - 1 || dup2(_pipeOut[1], STDOUT_FILENO) == -1
     || close(_pipeIn[0]) == -1 || close(_pipeOut[1]) == -1) {
@@ -248,7 +250,13 @@ void CGI::readCgiOutput() {
 void    CGI::setup_connection() {
     _envp.emplace_back(nullptr);
     _argv.emplace_back(_cgi_engine.data());
-    _argv.emplace_back(_script.data());
+    size_t pos = _script.rfind('/');
+    if (pos != std::string::npos) {
+        _script_name = _script.substr(pos + 1, _script.length());
+    } else {
+        _script_name = _script;
+    }
+    _argv.emplace_back(_script_name.data());
     _argv.emplace_back(nullptr);
     std::cout << coloring("Environment", BLUE) << std::endl;
     // for (auto word : _envp) {

@@ -90,7 +90,7 @@ void	Connection::validate_match(std::string& longest_match) {
 	_autoindex_enabled =_matching_route->getAutoIndex();
 
 	std::cout << coloring(request.uri->path, BLUE) << std::endl;
-	if (is_cgi(request.uri->path)) {
+	if (is_cgi(_expanded_path)) {
 		for (const auto& [fst, snd] :_matching_route->getCgi()) {
 			if (fst == ".py") {
 				const std::string cgiExec = snd;
@@ -106,6 +106,7 @@ void	Connection::validate_match(std::string& longest_match) {
         set_full_status_code(415); // unsupported media tpe
 		return ;
 	}
+	std::cout << coloring("this shit should not get printed", BLUE) << std::endl;
 	methode_handler();
 }
 
