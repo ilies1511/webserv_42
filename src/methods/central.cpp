@@ -8,9 +8,6 @@
 #include <filesystem>
 #include <sstream>
 
-void	Connection::handle_delete(void)
-{}
-
 void	Connection::handle_post(void)
 {}
 

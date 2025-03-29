@@ -119,7 +119,7 @@ STATE_DIR_FILES :=	state_process.cpp \
 					state_recv.cpp
 STATE_DIR := $(addprefix states/, $(STATE_DIR_FILES))
 
-METHODS_FILES := central.cpp method_get.cpp
+METHODS_FILES := central.cpp method_get.cpp method_delete.cpp
 METHODS_REPO := $(addprefix methods/, $(METHODS_FILES))
 
 CGI_DIR_FILES := cgi.cpp
@@ -239,6 +239,9 @@ poll:
 
 pollserver:
 	$(CPP) -Wall -Werror -Wextra -o pollserver src/playground/5_pollserver.cpp
+
+gen_status_pages:
+	c++ -std=c++17 src/utils/gen_status_pages.cpp -o gen_page && ./gen_page && rm gen_page
 
 test_request_parser:#-fsanitize=address
 	$(CPP) -std=c++17 -g -O3 src/$(FABI_REQUEST_DIR) src/request_parser/request_parser_tests.cpp -o parser_test && ./parser_test && rm parser_test

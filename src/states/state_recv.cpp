@@ -32,6 +32,7 @@ void	Connection::recv_data(void)
 	if (!check_revent(_fdConnection, POLLIN)) {
 		return ;
 	}
+	_last_activity = std::chrono::steady_clock::now();
 	//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
 	static char buf[10000000];
 	// ssize_t bytes = recv(_fdConnection, _InputBuffer._buffer.data(), \

@@ -346,6 +346,19 @@ void Server::cleanup_deferred(void)
 	_deferred_close_fds.clear();
 }
 
+void Server::check_connection_timeouts(void)
+{
+	for (auto& [fd, conn] : _connections)
+	{
+		if (conn->is_timed_out()) {
+			std::cout << coloring("Timeout: Queueing connection " + \
+					std::to_string(fd) + " for closure\n", LIGHT_RED);
+			_deferred_close_fds.push_back(fd);
+		}
+	}
+}
+
+
 // void Server::cleanup_deferred(void)
 // {
 // 	for (int fd : _deferred_close_fds)

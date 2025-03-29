@@ -18,12 +18,14 @@
 #include <fcntl.h>
 #include "Connection.hpp"
 #include "serverConfig.hpp"
+#include <chrono> // std::chrono
 
 #define TIMEOUT 1000
 
 /*
 	TODO: IServer {
 			fromServer
+
 			fromENV
 		}
 		builderPattern --> server with port, with config, server with parser, server with middleware
@@ -79,6 +81,7 @@ class Server
 		void	add_to_pollfds_prefilled(pollfd &new_element);
 		void	execute();
 		void	cleanup_deferred(void);
+		void	check_connection_timeouts(void);
 		//TODO:
 		// void	check_timeouts(void);
 	//Methodes -- END

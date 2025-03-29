@@ -6,6 +6,10 @@
 #include <string>
 #include "Log.hpp"
 
+#ifndef P_DEBUG
+# define P_DEBUG(content) printer::macro_debug_putstr(content, __FILE__, __FUNCTION__, __LINE__)
+#endif
+
 // Prototyp der Coloring-Funktion
 std::string coloring(const std::string& text, const std::string& color);
 
@@ -38,5 +42,8 @@ namespace printer
 	void LogException(const std::exception& e, const char* file, const char* function, int line);
 
 	void debug_putstr(const char* msg, const char* file, const char* function, int line);
+
+	void macro_debug_putstr(const char* msg, const char* file, const char* function, int line);
 }
+
 #endif
