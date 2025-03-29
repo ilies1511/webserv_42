@@ -47,6 +47,7 @@ private:
     std::string                 _path_info;
     std::string                 _cgi_engine;
     std::string                 _script_name;
+    std::string                 _body;
 
 
 public:
@@ -76,6 +77,7 @@ public:
     void    setPathInfo(const std::string& path);
     void    setCgiEngine(const std::string& engine);
     void    setEnvp(std::string& env);
+    void    setBody(const std::string& str);
 
 
 

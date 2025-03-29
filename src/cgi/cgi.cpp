@@ -143,6 +143,10 @@ void CGI::setEnvp(std::string& env) {
     _envp.emplace_back(env.data());
 }
 
+void CGI::setBody(const std::string &str) {
+    _body = str;
+}
+
 
 
 
@@ -240,7 +244,7 @@ void    CGI::setup_connection() {
 
 void    CGI::writing() {
     // Todo Should be non-blocking !!!
-    write(_pipeIn[1], "whats up", 8);
+    write(_pipeIn[1], _body.data(), _body.length());
     _state = WAIT;
     _start = std::chrono::high_resolution_clock::now();
 }

@@ -16,16 +16,14 @@ bool Connection::is_cgi(std::string &path) {
 	{
 		return (false);
 	}
-	// if (path.length() > 3
-	// 	&& path.find_last_of(".py") == (size_t)(path.end() - path.begin() - 3)
-	// 	&& (request.method == "GET" || request.method == "POST"))
-	// {
-	// 	return (true);
-	// }
-	if (path.length() > 3 && path.find_last_of(".py") == path.length() - 1) {
-        return true;
+	if (path.length() > 3) {
+		size_t dot_pos = path.find_last_of('.');
+		if (dot_pos != std::string::npos) {
+			std::string ext = path.substr(dot_pos);
+			return (ext == ".py" || ext == ".pl" ||ext == ".php");
+		}
 	}
-	return (false);
+	return false;
 }
 
 void	Connection::setup_cgi() {
@@ -65,6 +63,7 @@ void	Connection::setup_cgi() {
 	}
 	if (request.body.has_value()) {
 		_cgi->_env.emplace_back("CONTENT_LENGTH=" + std::to_string(request.body.value().length()));
+		_cgi->setBody(request.body.value());
 	} else {
 		_cgi->_env.emplace_back("CONTENT_LENGTH=");
 	}

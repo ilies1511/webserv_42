@@ -91,8 +91,17 @@ void	Connection::validate_match(std::string& longest_match) {
 
 	std::cout << coloring(request.uri->path, BLUE) << std::endl;
 	if (is_cgi(_expanded_path)) {
+		size_t pos = _expanded_path.rfind('.');
+		std::string cgi_identifier;
+		if (pos != std::string::npos) {
+			cgi_identifier = _expanded_path.substr(pos, _expanded_path.length() -1);
+		} else {
+			cgi_identifier = _expanded_path;
+		}
+		std::cout << coloring("CGI identifier: " + cgi_identifier, BLUE) << std::endl;
 		for (const auto& [fst, snd] :_matching_route->getCgi()) {
-			if (fst == ".py") {
+			// if (fst == ".py") {
+			if (fst == cgi_identifier) {
 				const std::string cgiExec = snd; // TODO maybe check if cgi executable is valid
 				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
 				_cgi.emplace();
@@ -103,10 +112,10 @@ void	Connection::validate_match(std::string& longest_match) {
 				return ;
 			}
 		}
+		std::cout << coloring("TESTETSETSET\n", BLUE) << std::endl;
         set_full_status_code(415); // unsupported media tpe
 		return ;
 	}
-	std::cout << coloring("this shit should not get printed", BLUE) << std::endl;
 	methode_handler();
 }
 

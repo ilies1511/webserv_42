@@ -138,7 +138,7 @@ void	Connection::handle_get(void)
 	std::cout << "\nALLOOOO aus handle_get entry\n";
 
 
-	_full_path = "/Users/sparth/Documents/Projects/webserv2" + request.uri->path;
+	_full_path = "/Users/sparth/Documents/Projects/webserv2/www" + request.uri->path;
 	// std::filesystem::path full_path = std::filesystem::path("/Users/iziane/42/repo_webserv/webserv/") / this->request.uri;
 
 
