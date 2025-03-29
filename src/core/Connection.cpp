@@ -14,13 +14,16 @@ Connection::Connection(int fd, Server &server)
 		request{},
 		_current_response{},
 		_system_path("html/index.html"),
+		_matching_route(std::nullopt),
+		_cgi(std::nullopt),
 		_fdConnection(fd),
 		_fdFile(-1),
 		sent_bytes(0),
 		finished_sending(false),
 		_InputBuffer{},
 		_OutputBuffer{},
-		_request_parser(_InputBuffer._buffer)
+		_request_parser(_InputBuffer._buffer),
+		_autoindex_enabled(false)
 {
 
 	std::cout << "I'm Connection Constructor: cap of buffer: " << _InputBuffer._buffer.capacity() << "Output Buffer: " << _OutputBuffer._buffer.capacity() << "\n";

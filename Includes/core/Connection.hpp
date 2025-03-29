@@ -10,9 +10,11 @@
 #include "Response.hpp"
 #include "HTTP_Parser.hpp"
 // #include "Server.hpp"
+#include <cgi.hpp>
 #include <unistd.h>
 #include <poll.h>
 #include <filesystem>
+#include <route.hpp>
 
 class Buffer;
 class Server;
@@ -45,6 +47,10 @@ class Connection
 		// Parser				parser;
 		Response				_current_response;
 		std::string				_system_path;
+		std::string				_expanded_path;
+		std::string				_absolute_path;
+		std::optional<route>	_matching_route;
+		std::optional<CGI>		_cgi;
 	private:
 		int						_fdConnection;
 		int						_fdFile; //TODO: add error_fd
@@ -54,7 +60,7 @@ class Connection
 		Buffer					_InputBuffer;//TODO: 19.03.25 change to lowercase // Dieser Buffer wird fuer read() bzw. recv() verwendet
 		Buffer					_OutputBuffer; // Dieser Buffer wird fuer write bzw. send() verwendet
 		RequestParser			_request_parser;
-		bool					_autoindex_enabled = true;
+		bool					_autoindex_enabled;
 		std::filesystem::path	_full_path = {};
 		//TODO:
 		// int					_fdWrite;
@@ -131,8 +137,14 @@ class Connection
 		bool	entry_parse(void);
 		void	trailing_slash_case(void);
 		void	no_trailing_slash_case(void);
+
 		bool	is_cgi(std::string &path);
-		void	entry_cgi(void);
+		bool	method_is_allowed(const std::vector<std::string>& methods);
+		bool	malicious_request();
+		bool	is_redirect();
+		void	entry_cgi();
+		void	setup_cgi();
+		void	validate_match(std::string& longest_match);
 		void	set_full_status_code(size_t status);
 		void	redirect(size_t input_status_code, std::string New_Location);
 	//Methodes -- END

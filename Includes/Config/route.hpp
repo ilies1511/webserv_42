@@ -35,7 +35,7 @@ class route {
         std::string                                     getRoot() const;
         std::string                                     getAlias() const;
 
-        std::pair<std::size_t, std::string>             getRedirect();
+        std::pair<std::size_t, std::string>             getRedirect() const;
         bool                                            getAutoIndex() const;
         std::string                                     getIndex() const;
         std::string                                     getActualPath() const;
