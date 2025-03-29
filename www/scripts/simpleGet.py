@@ -3,7 +3,9 @@
 # Import necessary CGI modules
 import cgi
 import html
+import datetime
 
+current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # Print the required HTTP headers
 # print("HTTP/1.1 200 OK")
 print("Content-type: text/html\n")
@@ -12,8 +14,8 @@ print("Content-type: text/html\n")
 print("<html>")
 print("<head><title>CGI Example</title></head>")
 print("<body>")
-print("<h1>Hello from Python CGI!</h1>")
-
+print("<h1>Python CGI!</h1>")
+print(f"<p>Current Time: {current_time}</p>")
 # Use cgi module to get any query parameters passed in the URL
 form = cgi.FieldStorage()
 
