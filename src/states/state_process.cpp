@@ -93,7 +93,7 @@ void	Connection::validate_match(std::string& longest_match) {
 	if (is_cgi(_expanded_path)) {
 		for (const auto& [fst, snd] :_matching_route->getCgi()) {
 			if (fst == ".py") {
-				const std::string cgiExec = snd;
+				const std::string cgiExec = snd; // TODO maybe check if cgi executable is valid
 				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
 				_cgi.emplace();
 				this->_state = State::CGI;

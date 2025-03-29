@@ -60,6 +60,7 @@ void	Connection::send_data(void)
 		const std::string tmp = _cgi->getOutput();
 		_OutputBuffer._buffer.assign(tmp.begin(), tmp.end());
 		send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+		ft_closeNcleanRoot(this->_fdConnection);
 		return;
 	}
 	_state = State::SEND;

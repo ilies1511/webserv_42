@@ -38,7 +38,9 @@
 //     // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
 // }
 
-CGI::CGI() : _state(INIT) {
+CGI::CGI() :    _state(INIT),
+                _wpidstatus(0),
+                _output("HTTP/1.1 200 OK\r\n") {
 
 }
 
@@ -99,6 +101,7 @@ std::string CGI::getPathInfo() const {
 std::string CGI::getCgiEngine() const {
     return _cgi_engine;
 }
+
 
 std::string CGI::getOutput() const {
     return _output;
@@ -165,7 +168,7 @@ void CGI::cgiProcess() {
     }
     std::cerr << "script location: " << std::filesystem::current_path() << std::endl;
     execve(_argv[0], _argv.data(), _envp.data());
-    std::cerr << "Internal CGI error" << std::endl;
+    std::cerr << "CGI execution failed" << std::endl;
     exit(1);
 }
 
@@ -190,63 +193,6 @@ void CGI::readCgiOutput() {
     _output.append(buffer, static_cast<size_t>(bytesRead));
 }
 
-
-// void CGI::runCgi() {
-//     if (_state == INIT) {
-//         // int pipeIn[2], _pipeOut[2];
-//
-//         if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1) {
-//             std::cout << "pipe failed" << std::endl;
-//             exit(1);
-//         }
-//         fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
-//         fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
-//
-//         _pid = fork();
-//         if (_pid == -1) {
-//             std::cout << "fork failed" << std::endl;
-//             exit (1);
-//         }
-//         if (_pid == 0) {
-//             cgiProcess();
-//         }
-//         if (close(_pipeIn[0]) == -1 || close(_pipeOut[1])) {
-//             std::cout << "internal server error" << std::endl;
-//         }
-//         if (_method == "POST") {
-//             _state = WRITE;
-//         } else {
-//             _state = WAIT;
-//             _start = std::chrono::high_resolution_clock::now();
-//         }
-//     }
-//     if (_state == WRITE) {
-//             // Todo Should be non-blocking !!!
-//             write(_pipeIn[1], "whats up", 8);
-//             _state = WAIT;
-//             _start = std::chrono::high_resolution_clock::now();
-//     }
-//     if (_state == WAIT) {
-//         // auto start = std::chrono::high_resolution_clock::now();
-//         pid_t process = waitpid(_pid, &_wpidstatus, WNOHANG);
-//         auto current = std::chrono::high_resolution_clock::now();
-//         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current - _start);
-//         // std::cout << "duration: " << duration.count() << std::endl;
-//         if (duration.count() >= CGI_TIMEOUT) {
-//             std::cout << "CGI_TIMEOUT after " << duration.count() << std::endl;
-//             kill(_pid, SIGKILL);
-//             setCgiState(FINISH);
-//            // _is_finished = true;
-//         } else if (process == _pid) {
-//             std::cout << "Script finished in " << duration.count() << std::endl;
-//             _state = READ;
-//         }
-//     }
-//     if (_state == READ) {
-//         readCgiOutput();
-//     }
-// }
-
 void    CGI::setup_connection() {
     _envp.emplace_back(nullptr);
     _argv.emplace_back(_cgi_engine.data());
@@ -264,7 +210,8 @@ void    CGI::setup_connection() {
     // }
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1) {
         std::cout << "pipe failed" << std::endl;
-        exit(1);
+        _state = ERROR;
+        return;
     }
     fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
     fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
@@ -272,13 +219,16 @@ void    CGI::setup_connection() {
     _pid = fork();
     if (_pid == -1) {
         std::cout << "fork failed" << std::endl;
-        exit (1);
+        _state = ERROR;
+        return;
     }
     if (_pid == 0) {
         cgiProcess();
     }
     if (close(_pipeIn[0]) == -1 || close(_pipeOut[1])) {
-        std::cout << "internal server error" << std::endl;
+        std::cout << "closing pipe failed" << std::endl;
+        _state = ERROR;
+        return;
     }
     if (_method == "POST") {
         _state = WRITE;
@@ -304,10 +254,16 @@ void    CGI::waiting() {
     if (duration.count() >= CGI_TIMEOUT) {
         std::cout << "CGI_TIMEOUT after " << duration.count() << std::endl;
         kill(_pid, SIGKILL);
-        setCgiState(FINISH);
+        _state = ERROR;
+        // setCgiState(FINISH);
         // _is_finished = true;
     } else if (process == _pid) {
         std::cout << "Script finished in " << duration.count() << std::endl;
         _state = READ;
+    }
+    else if (_wpidstatus != 0) {
+        std::cout << coloring("Script execution failed", BLUE) << std::endl;
+        std::cout << coloring("wpidstatus: " + std::to_string(_wpidstatus), BLUE) << std::endl;
+        _state = ERROR;
     }
 }

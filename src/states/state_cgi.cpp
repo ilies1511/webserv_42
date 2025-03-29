@@ -85,37 +85,59 @@ void	Connection::setup_cgi() {
 
 void	Connection::entry_cgi()
 {
+	switch (_cgi->getCgiState()) {
+		case INIT:
+			setup_cgi();
+			break;
+		case WRITE:
+			_cgi->writing();
+			break;
+		case WAIT:
+			_cgi->waiting();
+			break;
+		case READ:
+			_cgi->readCgiOutput();
+			break;
+		case FINISH:
+			_state = State::SEND;
+			break;
+		case ERROR:
+			set_full_status_code(500);
+			break;
+	}
 	// access all necessary data
-	if (_cgi->getCgiState() == INIT) {
-		// std::cout << coloring("CGI INIT", BLUE) << std::endl;
-		setup_cgi();
-		// _cgi->setup_connection();
-		// std::cout << coloring("CGI INIT FINISHED", BLUE) << std::endl;
-		// std::cout << coloring("NEXT STATE: " + std::to_string(_cgi->getCgiState()), BLUE) << std::endl;;
-	}
-	else if (_cgi->getCgiState() == WRITE) {
-		// std::cout << coloring("CGI WRITING", BLUE) << std::endl;
-		_cgi->writing();
-		// std::cout << coloring("CGI WRITING FINISHED", BLUE) << std::endl;
-	}
-    else if (_cgi->getCgiState() == WAIT) {
-		// std::cout << coloring("CGI WAITING", BLUE) << std::endl;
-		_cgi->waiting();
-		// std::cout << coloring("CGI WAITING FINISHED", BLUE) << std::endl;
-    }
-	else if (_cgi->getCgiState() == READ) {
-		// std::cout << coloring("CGI READ", BLUE) << std::endl;
-		_cgi->readCgiOutput();
-		// std::cout << coloring("CGI READ FINISHED", BLUE) << std::endl;
-	}
-	else if (_cgi->getCgiState() == FINISH) {
-		std::cout << coloring("CGI FINISH CHECK", BLUE) << std::endl;
-		this->_state = State::SEND;
-		// TODO HARDCODED ERROR to avoid endless loop
-		// set_full_status_code(404);
-		// return;
-		return;
-	}
+	// if (_cgi->getCgiState() == INIT) {
+	// 	// std::cout << coloring("CGI INIT", BLUE) << std::endl;
+	// 	setup_cgi();
+	// 	// _cgi->setup_connection();
+	// 	// std::cout << coloring("CGI INIT FINISHED", BLUE) << std::endl;
+	// 	// std::cout << coloring("NEXT STATE: " + std::to_string(_cgi->getCgiState()), BLUE) << std::endl;;
+	// }
+	// else if (_cgi->getCgiState() == WRITE) {
+	// 	// std::cout << coloring("CGI WRITING", BLUE) << std::endl;
+	// 	_cgi->writing();
+	// 	// std::cout << coloring("CGI WRITING FINISHED", BLUE) << std::endl;
+	// }
+ //    else if (_cgi->getCgiState() == WAIT) {
+	// 	// std::cout << coloring("CGI WAITING", BLUE) << std::endl;
+	// 	_cgi->waiting();
+	// 	// std::cout << coloring("CGI WAITING FINISHED", BLUE) << std::endl;
+ //    }
+	// else if (_cgi->getCgiState() == READ) {
+	// 	// std::cout << coloring("CGI READ", BLUE) << std::endl;
+	// 	_cgi->readCgiOutput();
+	// 	// std::cout << coloring("CGI READ FINISHED", BLUE) << std::endl;
+	// }
+	// else if (_cgi->getCgiState() == FINISH) {
+	// 	std::cout << coloring("CGI FINISH CHECK", BLUE) << std::endl;
+	// 	this->_state = State::SEND;
+	// 	// TODO HARDCODED ERROR to avoid endless loop
+	// 	// set_full_status_code(404);
+	// 	// return;
+	// 	return;
+	// } else if (_cgi->getCgiState() == ERROR) {
+	// 	set_full_status_code(500);
+	// }
 	// TODO implement CGI error handling
 	/*
 	if (run_cgi is finished)

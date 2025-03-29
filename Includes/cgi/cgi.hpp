@@ -21,7 +21,8 @@ enum CGI_STATE {
     WAIT,
     WRITE,
     READ,
-    FINISH
+    FINISH,
+    ERROR
 };
 
 class CGI {
@@ -38,14 +39,14 @@ private:
 
     std::string                 _output;
 
-    std::string                _method;
-    std::string                _script;
-    std::string                _content_type;
-    std::string                _content_length;
-    std::string                _query_string;
-    std::string                _path_info;
-    std::string                _cgi_engine;
-    std::string                _script_name;
+    std::string                 _method;
+    std::string                 _script;
+    std::string                 _content_type;
+    std::string                 _content_length;
+    std::string                 _query_string;
+    std::string                 _path_info;
+    std::string                 _cgi_engine;
+    std::string                 _script_name;
 
 
 public:
@@ -56,7 +57,7 @@ public:
     // CGI(const Request& request);
     ~CGI();
 
-    CGI_STATE           getCgiState() const;
+    CGI_STATE    getCgiState() const;
     std::string  getMethod() const;
     std::string  getScript() const;
     std::string  getContentType() const;
