@@ -18,7 +18,9 @@
 #include <fcntl.h>
 #include "Connection.hpp"
 #include "serverConfig.hpp"
+#include "serverConfig.hpp"
 #include <chrono> // std::chrono
+#include "Core.hpp"
 
 #define TIMEOUT 1000
 
@@ -31,29 +33,31 @@
 		builderPattern --> server with port, with config, server with parser, server with middleware
 */
 
+class Core;
+
 class Server
 {
 	public:
-		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
-		std::vector<int>						_deferred_close_fds;
+		Core&									_core;
+		// std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
+		// std::vector<int>						_deferred_close_fds;
 	private:
 		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
-		const std::string						_port;
+		std::string						_port;
 		//OCF -- BEGIN
 	public:
 		serverConfig							_config;
 	public:
-		Server(const serverConfig &conf);
-		Server(const std::string &port);
-		~Server(void);
-	private:
-		Server(void) = delete;
-		Server& operator=(const Server& other) = delete;
-		Server(const Server& other) = delete;
+		Server(const serverConfig& conf, Core& core);
+		Server(Server&& other) noexcept = default;			// Move-Konstruktor
+		~Server();
+		Server(const Server&) = delete;						// Copy verbieten
+		Server& operator=(const Server&) = delete;			// Copy-Zuweisung verbieten
+		Server& operator=(Server&&) noexcept = delete;		// Move-Zuweisung verbieten (wegen _core
 	//OCF -- END
 
 	//Methodes -- BEGIN
