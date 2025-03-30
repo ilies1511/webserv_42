@@ -28,12 +28,23 @@ bool Connection::is_cgi(std::string &path) {
 
 void	Connection::setup_cgi() {
 	// setValues();
-	if (!std::filesystem::exists(_expanded_path) || !std::filesystem::is_regular_file(_expanded_path)) {
+	// if (!std::filesystem::exists(_expanded_path) || !std::filesystem::is_regular_file(_expanded_path)) {
+	// 	set_full_status_code(404);
+	// 	_cgi->setCgiState(FINISH);
+	// 	return;
+	// }
+	// if (access(_expanded_path.data(), X_OK)) {
+	// 	std::cout << coloring("CGI TEST 3", BLUE) << std::endl;
+	// 	set_full_status_code(403);
+	// 	_cgi->setCgiState(FINISH);
+	// 	return;
+	// }
+	if (!std::filesystem::exists(_absolute_path) || !std::filesystem::is_regular_file(_absolute_path)) {
 		set_full_status_code(404);
 		_cgi->setCgiState(FINISH);
 		return;
 	}
-	if (access(_expanded_path.data(), X_OK)) {
+	if (access(_absolute_path.data(), X_OK)) {
 		std::cout << coloring("CGI TEST 3", BLUE) << std::endl;
 		set_full_status_code(403);
 		_cgi->setCgiState(FINISH);
@@ -41,7 +52,7 @@ void	Connection::setup_cgi() {
 	}
 
 	_cgi->setMethod(request.method.value());
-	_cgi->setScript(_expanded_path);
+	_cgi->setScript(_absolute_path);
 	// _cgi->setQueryString(request.uri->query);
 	// _cgi->setCgiEngine(cgiEngine);
 	// _cgi->setContentLength(std::to_string(request.body.value().length()));
@@ -51,8 +62,8 @@ void	Connection::setup_cgi() {
 	// }
 	// std::vector<std::string> env;
 	_cgi->_env.emplace_back("REQUEST_METHOD=" + request.method.value());
-    _cgi->_env.emplace_back("SCRIPT_NAME=" + _expanded_path);
-	_cgi->_env.emplace_back("PATH_INFO=" + _expanded_path); // TODO add actual path info
+    _cgi->_env.emplace_back("SCRIPT_NAME=" + _absolute_path);
+	_cgi->_env.emplace_back("PATH_INFO=" + _absolute_path); // TODO add actual path info
 	_cgi->_env.emplace_back("QUERY_STRING=" + request.uri->query);
 	auto it = request.headers.find("content-type");
 	if (it != request.headers.end()) {
@@ -74,9 +85,9 @@ void	Connection::setup_cgi() {
 		_cgi->_env.emplace_back(key + "=" += snd);
 	}
 
-	std::cout << coloring("CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI", BLUE) << std::endl;;
+	// std::cout << coloring("CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI", BLUE) << std::endl;;
 	for (auto& environment : _cgi->_env) {
-		std::cout << coloring(environment, BLUE) << std::endl;;
+		// std::cout << coloring(environment, BLUE) << std::endl;;
 		_cgi->setEnvp(environment);
 	}
 	_cgi->setup_connection();

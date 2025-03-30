@@ -208,7 +208,6 @@ void    CGI::setup_connection() {
     }
     _argv.emplace_back(_script_name.data());
     _argv.emplace_back(nullptr);
-    std::cout << coloring("Environment", BLUE) << std::endl;
     // for (auto word : _envp) {
     //     std::cout << coloring(word, BLUE) << std::endl;
     // }

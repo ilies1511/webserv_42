@@ -236,7 +236,12 @@ void update_routes(std::vector<serverConfig>& server_configs) {
                if (aliasPath.back() == '/') {
                    aliasPath.pop_back();
                }
-               raw_actual_path = aliasPath;
+               // if (aliasPath.front() != '/') {
+               //     raw_actual_path = '/' + aliasPath;
+               // }
+               else {
+                   raw_actual_path = aliasPath;
+               }
                // temp.setActualPath(aliasPath);
                // route with root
            } else if(!server_config.getRoute(uri).getRoot().empty()) {
@@ -247,12 +252,32 @@ void update_routes(std::vector<serverConfig>& server_configs) {
                raw_actual_path = routeRoot + uri;
                // temp.setActualPath(routeRoot + uri);
            }
+           std::filesystem::path raw_path = raw_actual_path;
            if (raw_actual_path.back() != '/') {
-               if (!std::filesystem::is_regular_file(raw_actual_path)) {
+               if (!is_regular_file(raw_path)) {
+                   // std::cout << raw_actual_path << " is dir" << std::endl;
                    raw_actual_path.push_back('/');
                }
+               // if (!std::filesystem::is_regular_file(raw_actual_path)) {
+               //     raw_actual_path.push_back('/');
+               // }
            }
-           temp.setActualPath(raw_actual_path);
+           std::string currPath = std::filesystem::current_path();
+           // std::cout << "currPath: " << currPath << std::endl;
+           if (temp.getRoot().empty() && temp.getAlias().empty())  {
+               temp.setActualPath(currPath  + raw_actual_path);
+           } else if (is_regular_file(raw_path)) {
+               temp.setActualPath(currPath + "/" + raw_actual_path);
+           }
+           else if (raw_path.is_absolute()) {
+               temp.setActualPath(raw_actual_path);
+           } else if (raw_path.is_relative()) {
+               temp.setActualPath(currPath + "/" + raw_actual_path);
+
+           }
+           // std::cout << "raw actual path: " << raw_actual_path << std::endl;
+           // std::cout << "ACTUAL PATH: " << temp.getActualPath() << std::endl;
+           // temp.setActualPath(raw_actual_path);
            //  route without index - try to get index from server block
            if (server_config.getRoute(uri).getIndex().empty()) {
               temp.setIndex(server_config.getIndex());
