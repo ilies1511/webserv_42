@@ -21,7 +21,7 @@ bool	Connection::is_redirect() {
 		const auto& it = request.headers.find("host");
 		if (it != request.headers.end()) {
 			const std::string mod = request.uri->path.append("/");
-			redirect(301, it->second + mod);
+			redirect(301,"http://" + it->second + mod);
 		} else {
 			set_full_status_code(400); // INVALID REQUEST
 		}
@@ -85,15 +85,16 @@ void	Connection::validate_match(std::string& longest_match) {
 	if (!currPath.empty() && currPath.back() == '/') {
 		currPath.pop_back();
 	}
-	std::filesystem::path path = _expanded_path;
-	if (is_directory(path) && path.is_absolute()) {
-		std::cout << coloring("is absolute", BLUE) << std::endl;
-		_absolute_path = _expanded_path;
-	} else if (!_expanded_path.empty() && _expanded_path.front() == '/') {
-		_absolute_path = currPath + _expanded_path;
-	} else {
-		_absolute_path = currPath + "/" + _expanded_path;
-	}
+	// std::filesystem::path path = _expanded_path;
+	// if (is_directory(path) && path.is_absolute()) {
+	// 	std::cout << coloring("is absolute", BLUE) << std::endl;
+	// 	_absolute_path = _expanded_path;
+	// } else if (!_expanded_path.empty() && _expanded_path.front() == '/') {
+	// 	_absolute_path = currPath + _expanded_path;
+	// } else {
+	// 	_absolute_path = currPath + "/" + _expanded_path;
+	// }
+	_absolute_path = _expanded_path;
 
 	std::cout << coloring("Absolute Path: " + _absolute_path, BLUE)  << std::endl;
 
@@ -103,13 +104,13 @@ void	Connection::validate_match(std::string& longest_match) {
 	_autoindex_enabled =_matching_route->getAutoIndex();
 
 	std::cout << coloring(request.uri->path, BLUE) << std::endl;
-	if (is_cgi(_expanded_path)) {
-		size_t pos = _expanded_path.rfind('.');
+	if (is_cgi(_absolute_path)) {
+		size_t pos = _absolute_path.rfind('.');
 		std::string cgi_identifier;
 		if (pos != std::string::npos) {
-			cgi_identifier = _expanded_path.substr(pos, _expanded_path.length() -1);
+			cgi_identifier = _absolute_path.substr(pos, _absolute_path.length() -1);
 		} else {
-			cgi_identifier = _expanded_path;
+			cgi_identifier = _absolute_path;
 		}
 		std::cout << coloring("CGI identifier: " + cgi_identifier, BLUE) << std::endl;
 		for (const auto& [fst, snd] :_matching_route->getCgi()) {
@@ -158,13 +159,19 @@ void	Connection::entry_process(void)
 		if (temp1.back() != '/') {
 			temp1.push_back('/');
 		}
-		if (temp2.find(temp1) != std::string::npos) {
+		if (temp2.compare(0, temp1.size(), temp1) == 0) {
 			if (location_names.size() > count) {
-				// longest_match = temp1;
 				longest_match = location_names;
 				count = location_names.size();
 			}
 		}
+		// if (temp2.find(temp1) != std::string::npos) {
+		// 	if (location_names.size() > count) {
+		// 		// longest_match = temp1;
+		// 		longest_match = location_names;
+		// 		count = location_names.size();
+		// 	}
+		// }
 		// if (temp2.find(location_names) != std::string::npos) {
 			// if (location_names.size() > count) {
 				// longest_match = location_names;

@@ -85,9 +85,9 @@ void	Connection::setup_cgi() {
 		_cgi->_env.emplace_back(key + "=" += snd);
 	}
 
-	std::cout << coloring("CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI", BLUE) << std::endl;;
+	// std::cout << coloring("CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI CGI", BLUE) << std::endl;;
 	for (auto& environment : _cgi->_env) {
-		std::cout << coloring(environment, BLUE) << std::endl;;
+		// std::cout << coloring(environment, BLUE) << std::endl;;
 		_cgi->setEnvp(environment);
 	}
 	_cgi->setup_connection();
