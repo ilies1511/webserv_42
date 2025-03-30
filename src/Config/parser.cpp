@@ -247,12 +247,28 @@ void update_routes(std::vector<serverConfig>& server_configs) {
                raw_actual_path = routeRoot + uri;
                // temp.setActualPath(routeRoot + uri);
            }
+           std::filesystem::path raw_path = raw_actual_path;
            if (raw_actual_path.back() != '/') {
-               if (!std::filesystem::is_regular_file(raw_actual_path)) {
+               if (is_regular_file(raw_path)) {
                    raw_actual_path.push_back('/');
                }
+               // if (!std::filesystem::is_regular_file(raw_actual_path)) {
+               //     raw_actual_path.push_back('/');
+               // }
            }
-           temp.setActualPath(raw_actual_path);
+           std::string currPath = std::filesystem::current_path();
+           std::cout << "currPath: " << currPath << std::endl;
+           if (temp.getRoot().empty()) {
+               temp.setActualPath(currPath  + raw_actual_path);
+           } else if (raw_path.is_absolute()) {
+               temp.setActualPath(raw_actual_path);
+           } else if (raw_path.is_relative()) {
+               temp.setActualPath(currPath + "/" + raw_actual_path);
+
+           }
+           std::cout << "raw actual path: " << raw_actual_path << std::endl;
+           std::cout << "ACTUAL PATH: " << temp.getActualPath() << std::endl;
+           // temp.setActualPath(raw_actual_path);
            //  route without index - try to get index from server block
            if (server_config.getRoute(uri).getIndex().empty()) {
               temp.setIndex(server_config.getIndex());

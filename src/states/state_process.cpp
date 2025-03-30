@@ -80,8 +80,21 @@ void	Connection::validate_match(std::string& longest_match) {
 	if (is_redirect()) return;
 
 	std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
+	// TODO this logic sucks - need improvement
 	std::string currPath = std::filesystem::current_path();
-	_absolute_path = currPath + "/" + _expanded_path;
+	if (!currPath.empty() && currPath.back() == '/') {
+		currPath.pop_back();
+	}
+	std::filesystem::path path = _expanded_path;
+	if (is_directory(path) && path.is_absolute()) {
+		std::cout << coloring("is absolute", BLUE) << std::endl;
+		_absolute_path = _expanded_path;
+	} else if (!_expanded_path.empty() && _expanded_path.front() == '/') {
+		_absolute_path = currPath + _expanded_path;
+	} else {
+		_absolute_path = currPath + "/" + _expanded_path;
+	}
+
 	std::cout << coloring("Absolute Path: " + _absolute_path, BLUE)  << std::endl;
 
 	if (!method_is_allowed(_matching_route->getAllowedMethods())) return;
