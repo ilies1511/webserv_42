@@ -40,18 +40,20 @@ class Server
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
 		int										listener_fd;
-		const std::string						_port;
+		std::string						_port;
 		//OCF -- BEGIN
 	public:
 		serverConfig							_config;
 	public:
-		Server(const serverConfig &conf);
+		Server(serverConfig &conf);
 		Server(const std::string &port);
+		Server& operator=(const Server& other) = default;
+		Server(const Server& other) = default;
+		Server& operator=(Server&& other);
 		~Server(void);
 	private:
 		Server(void) = delete;
-		Server& operator=(const Server& other) = delete;
-		Server(const Server& other) = delete;
+
 	//OCF -- END
 
 	//Methodes -- BEGIN

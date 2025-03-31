@@ -25,7 +25,8 @@ class serverConfig {
 	public:
 		serverConfig();
 		~serverConfig();
-
+		serverConfig(serverConfig&& other);
+		serverConfig& operator=(serverConfig&& other);
 		void	printData();
 
 		//getters

@@ -15,20 +15,26 @@ int	main(void)
 	getToken("configFiles/default.conf", tokenList);
 	// printToken(tokenList);
 
-	std::vector<serverConfig> servers;
+	std::vector<serverConfig> configs;
+	std::vector<Server> servers;
 	try {
-		servers = parsing(tokenList);
+		configs = parsing(tokenList);
 		// servers[0].getPort();
 		// Server alo("9035");
 		// Server alo(std::to_string(servers[0].getPort()));
-		Server alo(servers[0]);
-		alo.poll_loop(); //MAIN LOOP
+		for (size_t i = 0; i < configs.size(); i++) {
+			Server tmp(configs[i]);
+			servers.push_back(std::move(tmp));
+		}
+		// // Server alo(configs[0]);
+
+		// servers[0].poll_loop(); //MAIN LOOP
 	} catch (const std::exception& e) {
 		std::cout << coloring("Error: " + std::string(e.what()), RED) << std::endl;
 		return 1;
 	}
 	// const std::string request = exampleGetRequest();
-	// requestParser request_parser(request, servers);
+	// requestParser request_parser(request, configs);
 	// request_parser.parseMessage();
 
 

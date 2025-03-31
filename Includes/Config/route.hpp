@@ -25,6 +25,11 @@ class route {
 
     public:
         route();
+		route(const route &other) = default;
+		route& operator=(const route &other);
+		route(route &&other);
+		route& operator=(route &&other);
+
         ~route();
 
         void PrintRoute();

@@ -13,12 +13,12 @@ Server::Server(const std::string &port)
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
 	init_listener_socket();
 }
-Server::Server(const serverConfig &conf)
+Server::Server(serverConfig &conf)
 	:	_pollfds{},
 		_connections{},
 		listener_fd(-1),
 		_port(std::to_string(conf.getPort())),
-		_config(conf)
+		_config(std::move(conf))
 {
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
 	init_listener_socket();
@@ -29,12 +29,33 @@ Server::~Server(void)
 	printer::ocf_printer("Server", printer::OCF_TYPE::D);
 	for (auto& pfd : _pollfds)
 	{
-		close(pfd.fd);
+		if (pfd.fd >= 0)
+			close(pfd.fd);
 	}
-	close(listener_fd);
+	if (listener_fd >= 0)
+		close(listener_fd);
 }
+
 // OCF -- END
 
+
+Server& Server::operator=(Server&& other) {
+	if (this == &other) {
+		return (*this);
+	}
+	this->_pollfds = std::move(other._pollfds);
+	this->_deferred_close_fds = std::move(other._deferred_close_fds);
+	this->_connections = std::move(other._connections);
+
+	this->listener_fd = other.listener_fd;
+	other.listener_fd = -1;
+	this->_port = std::move(other._port);
+	this->_config = std::move(other._config);
+	return (*this);
+}
+
+
+// Server(const Server& other) = delete;
 // Methodes -- BEGIN
 void	Server::new_connection_handler(void)
 {

@@ -66,7 +66,7 @@ void	Connection::validate_match(std::string& longest_match) {
 
 	std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
 
-	_matching_route = _server._config.getLocation()[longest_match];
+	*_matching_route = _server._config.getLocation()[longest_match];
 	if (longest_match.back() != '/') {
 		longest_match.push_back('/');
 	}

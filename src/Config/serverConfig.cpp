@@ -156,9 +156,33 @@ void serverConfig::printData() {
 
 }
 
+serverConfig::serverConfig(serverConfig&& other)
+    : _ip(std::move(other._ip)),
+      _port(other._port),
+      _server_name(std::move(other._server_name)),
+      _error_pages(std::move(other._error_pages)),
+      _client_max_body_size(other._client_max_body_size),
+      _root(std::move(other._root)),
+      _index(std::move(other._index)),
+      _timeout(other._timeout),
+      _location(std::move(other._location))
+{
+}
 
-
-
+serverConfig& serverConfig::operator=(serverConfig&& other) {
+    if (this != &other) {
+        _ip                 = std::move(other._ip);
+        _port               = other._port;
+        _server_name        = std::move(other._server_name);
+        _error_pages        = std::move(other._error_pages);
+        _client_max_body_size = other._client_max_body_size;
+        _root               = std::move(other._root);
+        _index              = std::move(other._index);
+        _timeout            = other._timeout;
+        _location           = std::move(other._location);
+    }
+    return *this;
+}
 
 
 

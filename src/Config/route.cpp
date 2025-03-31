@@ -222,14 +222,48 @@ std::ostream& operator<<(std::ostream& os, const route& r) {
 
 
 
+route::route(route&& other)
+    : _allowed_methods(std::move(other._allowed_methods)),
+      _root(std::move(other._root)),
+      _redirect(std::move(other._redirect)),
+      _autoindex(other._autoindex),
+      _index(std::move(other._index)),
+      _alias(std::move(other._alias)),
+      _actual_path(std::move(other._actual_path)),
+      _cgi(std::move(other._cgi)),
+      _routeIsRedirect(other._routeIsRedirect)
+{
+}
 
+route& route::operator=(route&& other) {
+    if (this != &other) {
+        _allowed_methods = std::move(other._allowed_methods);
+        _root            = std::move(other._root);
+        _redirect        = std::move(other._redirect);
+        _autoindex       = other._autoindex;
+        _index           = std::move(other._index);
+        _alias           = std::move(other._alias);
+        _actual_path     = std::move(other._actual_path);
+        _cgi             = std::move(other._cgi);
+        _routeIsRedirect = other._routeIsRedirect;
+    }
+    return *this;
+}
 
-
-
-
-
-
-
+route& route::operator=(const route& other) {
+    if (this != &other) {
+        _allowed_methods = other._allowed_methods;
+        _root            = other._root;
+        _redirect        = other._redirect;
+        _autoindex       = other._autoindex;
+        _index           = other._index;
+        _alias           = other._alias;
+        _actual_path     = other._actual_path;
+        _cgi             = other._cgi;
+        _routeIsRedirect = other._routeIsRedirect;
+    }
+    return *this;
+}
 
 
 
