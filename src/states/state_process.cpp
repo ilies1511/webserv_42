@@ -23,9 +23,9 @@ bool	Connection::is_redirect() {
 		if (it != request.headers.end()) {
 			P_DEBUG("is_redirect pre 301\n");
 			const std::string mod = request.uri->path.append("/");
-			if (request.method == "GET") //TODO: check with Steffen
+			if (request.method.value() == "GET") //TODO: check with Steffen
 				redirect(301,"http://" + it->second + mod);
-			else if (request.method == "DELETE") {
+			else if (request.method.value() == "DELETE") {
 				P_DEBUG("In pre-exit: is_redirect\n");
 				std::cout << "_expanded_path: " << _expanded_path << "\n";
 				set_full_status_code(409);

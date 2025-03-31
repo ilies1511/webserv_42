@@ -39,8 +39,8 @@
 // }
 
 CGI::CGI() :    _state(INIT),
-                _wpidstatus(0),
-                _output("HTTP/1.1 200 OK\r\n") {
+                _wpidstatus(0) {
+
 
 }
 
@@ -147,10 +147,9 @@ void CGI::setBody(const std::string &str) {
     _body = str;
 }
 
-
-
-
-
+void CGI::setOutput(const std::string &str) {
+    _output = str;
+}
 
 
 

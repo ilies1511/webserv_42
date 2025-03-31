@@ -78,6 +78,7 @@ public:
     void    setCgiEngine(const std::string& engine);
     void    setEnvp(std::string& env);
     void    setBody(const std::string& str);
+    void    setOutput(const std::string& str);
 
 
 
