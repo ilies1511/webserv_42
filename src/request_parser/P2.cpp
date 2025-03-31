@@ -293,35 +293,52 @@ bool RequestParser::parse_uri(void) {
 		this->setStatus(400); //todo: is 400 correct?
 		return (true);
 	}
-	//for (size_t i = 0; i < match.size(); i++) {
-	//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
-	//}
-	if (match[14].matched) {
+	for (size_t i = 0; i < match.size(); i++) {
+		std::cout << "match[" << i << "]: |" << match[i].str() << "|\n";
+	}
+	if (match[16].matched) {
+		// asterisk-form
 		this->request.status_code = 501;
 		std::cout << "Asterisk form uri: OPTIONS method not implemented\n";
 		this->request.uri->path = "*";
 		return (true);
 	}
 	if (match[1].matched) {
+		// origin-form
 		request.uri->form.is_origin_form = 1;
 		request.uri->path = match[2].str();
 		request.uri->query = match[3].str();
 		PARSE_ASSERT(!match[4].matched);
-		PARSE_ASSERT(!match[7].matched);
+		PARSE_ASSERT(!match[8].matched);
 	} else if (match[4].matched) {
+	//} else if (match[10].matched) {
+		// authority-form
 		request.uri->form.is_authority_form = 1;
 		request.uri->authority = match[4].str();
-		request.uri->host = match[5].str();
-		request.uri->port = match[6].str();
+		if (match[6].matched) {
+			//IPv6
+			request.uri->host = match[6].str();
+		} else {
+			request.uri->host = match[5].str();
+		}
+		//request.uri->host = match[5].str();
+		request.uri->port = match[7].str();
 		PARSE_ASSERT(!match[1].matched);
-		PARSE_ASSERT(!match[7].matched);
-	} else if (match[7].matched) {
+		PARSE_ASSERT(!match[8].matched);
+	} else if (match[8].matched) {
+		// absolute-form
 		request.uri->form.is_absolute_form = 1;
-		request.uri->authority = match[8].str();
-		request.uri->host = match[9].str();
-		request.uri->port = match[10].str();
-		request.uri->path = match[12].str();
-		request.uri->query = match[13].str();
+		request.uri->authority = match[9].str();
+		if (match[11].matched) {
+			//IPv6
+			request.uri->host = match[11].str();
+		} else {
+			request.uri->host = match[10].str();
+		}
+		//request.uri->host = match[9].str();
+		request.uri->port = match[12].str();
+		request.uri->path = match[14].str();
+		request.uri->query = match[15].str();
 		PARSE_ASSERT(!match[1].matched);
 		PARSE_ASSERT(!match[4].matched);
 	}
@@ -684,7 +701,8 @@ Request &&RequestParser::getRequest(void) {
 
 #ifdef SOLO
 const char *dummy_input =
-"POST http://example.com:443/test/path/file.txt HTTP/1.1\r\n" "Host: www.example.re\r\n"
+"POST http://example.com:443/test/path/file.txt?test%20query HTTP/1.1\r\n" "Host: www.example.re\r\n"
+//"POST http://[a:2:3:1]:443/test/path/file.txt?test%20query HTTP/1.1\r\n" "Host: www.example.re\r\n"
 "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.1)\r\n"
 "Accept: text/html\r\n"
 "Accept-Language: en-US, en; q=0.5\r\n"
