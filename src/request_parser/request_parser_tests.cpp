@@ -61,7 +61,6 @@ public:
 	}
 
 	// todo:
-	// URI test cases
 	// make hardcoded whitespace in this function part of the testcases
 	// body, content-length, chunked-encoding
 	void run_combination_tests() {
@@ -97,12 +96,6 @@ public:
 					std::string before_headers_str = request_str;
 					Request before_headers = expect;
 					for (size_t h = 0; h < headers.size(); h++) {
-						expect = before_headers;
-						request_str = before_headers_str;
-						comb_headers(h);
-						for (int i = 0; i < 1; i++ /*todo: bodys/encoding later */) {
-							run_test();
-						}
 						expect = before_headers;
 						request_str = before_headers_str;
 						comb_headers(h);
