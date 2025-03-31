@@ -224,7 +224,7 @@ void update_routes(std::vector<serverConfig>& server_configs) {
            // route without root and alias
            if (server_config.getRoute(uri).getRoot().empty() && server_config.getRoute(uri).getAlias().empty()) {
                std::string serverRoot = server_config.getRoot();
-               if (serverRoot.back() == '/') {
+               if (!serverRoot.empty() && serverRoot.back() == '/') {
                    serverRoot.pop_back();
                }
                temp.setRoot(serverRoot);
