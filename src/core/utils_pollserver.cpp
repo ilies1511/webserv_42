@@ -105,13 +105,6 @@ void Server::add_to_pollfds_prefilled(pollfd &new_element)
 	this->_pollfds.emplace_back(new_element);
 }
 
-// void Server::del_from_pollfds(int index)
-// {
-// 	if (index < 0 || static_cast<size_t>(index) >= _pollfds.size())
-// 		return ;
-// 	_pollfds.erase(_pollfds.begin() + index);
-// }
-
 //Improved Stand: 08.03.2025
 void Server::del_from_pollfds(int fd)
 {
@@ -189,21 +182,6 @@ void	Server::del_from_map(int fd)
 	}
 }
 
-//Improved Version: fd based handling
-// void Server::ft_closeNclean(int fd)
-// {
-// 	del_from_map(fd);
-// 	auto it = std::find_if(_pollfds.begin(), _pollfds.end(),
-// 		[fd](const pollfd& pfd) { return pfd.fd == fd; });
-// 	if (it != _pollfds.end())
-// 	{
-// 		close(it->fd);
-// 		_pollfds.erase(it);
-// 		_connections.erase(fd); // Entferne aus der Map
-// 	}
-// 	del_from_pollfds();
-// }
-
 // Obsoletes (new: ft_closeNclean(int fd))
 void Server::ft_closeNclean(int fd)
 {
@@ -214,54 +192,6 @@ void Server::ft_closeNclean(int fd)
 	// }
 	// Markiere den fd zur späteren Entfernung aus _pollfds und _connections
 	_deferred_close_fds.push_back(fd);
-}
-
-// Back-Up Stand: 24.03.25 03:07
-// void Server::ft_closeNclean(int fd)
-// {
-// 	// 1. Schließe den Socket
-// 	if (fd != -1)
-// 	{
-// 		std::cout << "Closing fd: " << fd << "\n";
-// 		close(fd);
-// 	}
-// 	// 2. Entferne aus der Connection-Map
-// 	// if (_connections.count(fd)) {
-// 	//     std::cout << "Removing from connections map\n";
-// 	//     _connections.erase(fd);
-// 	// }
-// 	del_from_map(fd);
-// 	// 3. Entferne aus pollfds
-// 	del_from_pollfds(fd);
-// 	// 4. Setze FD auf ungültigen Wert
-// 	fd = -1;
-// }
-
-// Obsoletes (new: ft_closeNclean(int fd))
-void	Server::ft_closeNclean(size_t i)
-{
-	// close(_pollfds[i].fd); // Bye!
-
-	printer::debug_putstr("alo", __FILE__, __FUNCTION__, __LINE__);
-	if (i >= _pollfds.size())
-	{
-		std::cerr << "Error: Invalid index " << i
-				  << " for _pollfds (size = " << _pollfds.size() << ")\n";
-		del_from_map(_pollfds[i].fd);
-		return ;
-	}
-	const int fd = _pollfds[i].fd;
-	if (fd >= 0)
-	{
-		close(fd);
-		std::cout << "Closed connection on fd " << fd << "\n";
-	}
-	else
-	{
-		std::cerr << "Warning: Invalid fd " << fd << " at index " << i << "\n";
-	}
-	del_from_pollfds(i);
-	del_from_map(_pollfds[i].fd);
 }
 
 void	Server::add_to_map(int fd)
@@ -298,15 +228,6 @@ pollfd* Server::getPollFdElement(int fd)
 	}
 	return (nullptr);
 }
-
-// void	Server::cleanup_connections(void)
-// {
-// 	for (int fd : connections_to_remove) {
-// 		del_from_map(fd);
-// 		del_from_pollfds(fd);
-// 	}
-// 	connections_to_remove.clear();
-// }
 
 void Server::cleanup_deferred(void)
 {
@@ -357,22 +278,3 @@ void Server::check_connection_timeouts(void)
 		}
 	}
 }
-
-
-// void Server::cleanup_deferred(void)
-// {
-// 	for (int fd : _deferred_close_fds)
-// 	{
-// 		// dell from _pollfds:
-// 		auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
-// 			[fd](const pollfd& pfd) { return pfd.fd == fd; });
-// 		if (it != _pollfds.end())
-// 		{
-// 			_pollfds.erase(it, _pollfds.end());
-// 			std::cout << "Removed fd: " << fd << " from pollfds\n";
-// 		}
-// 		//dell form Connection-Map
-// 		del_from_map(fd);
-// 	}
-// 	_deferred_close_fds.clear();
-// }

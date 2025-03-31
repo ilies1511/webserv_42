@@ -37,10 +37,8 @@ class Server
 		std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
 		std::vector<int>						_deferred_close_fds;
 	private:
-		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
-		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
 		const std::string						_port;
 		//OCF -- BEGIN
@@ -71,9 +69,7 @@ class Server
 		void	setup_non_blocking(int fd);
 		void	add_to_map(int fd);
 		void	del_from_map(int fd);
-		void	ft_closeNclean(size_t i);
 		pollfd	*getPollFd(void);
-		void	handle_output(int fd);
 		void	enable_output(int fd);
 		void	ft_closeNclean(int fd);
 		void	del_from_pollfds(int fd);
@@ -82,8 +78,6 @@ class Server
 		void	execute();
 		void	cleanup_deferred(void);
 		void	check_connection_timeouts(void);
-		//TODO:
-		// void	check_timeouts(void);
 	//Methodes -- END
 
 };
