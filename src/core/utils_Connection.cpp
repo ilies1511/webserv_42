@@ -24,26 +24,10 @@ bool	Connection::check_revent(int &fd, short rrevent)
 	pollfd	*pfd = getPollFdElementRoot(fd);
 
 	return (pfd && pfd->revents & rrevent);
-
-	// if (pfd && pfd->revents & rrevent) {
-	// 	return (true);
-	// }
-	// return (false);
 }
 
 void	Connection::ft_closeNcleanRoot(int &fd)
 {
-	// // 1. Schließe den Socket
-	// if (fd != -1)
-	// {
-	// 	std::cout << "Closing fd: " << fd << "\n";
-	// 	close(fd);
-	// }
-	// _server.del_from_map(fd);
-	// // 3. Entferne aus pollfds
-	// _server.del_from_pollfds(fd);
-	// // 4. Setze FD auf ungültigen Wert
-	// // fd = -1;
 	_server.ft_closeNclean(fd);
 }
 
@@ -154,47 +138,6 @@ void	Connection::prepare_ErrorFile(void)
 	_state = State::READ_FILE;
 	_next_state = State::ASSEMBLE;
 	return ;
-}
-
-// void	Connection::assemble_response2(Response &response)
-// {
-// 	(void)response;
-// 	// response.http_version = "HTTP/1.1";
-// 	// response.status_code = "200";
-// 	// response.reason_phrase = "OK";
-
-// 	// // Header-Felder setzen
-// 	// response.headers["Content-Type"] = "text/html";
-// 	// // Hier wäre 137 die Gesamtzahl der Bytes im Body – in der Praxis berechnest du das dynamisch:
-// 	// response.headers["Content-Length"] = "137";
-// 	// response.headers["Connection"] = "close";
-
-// 	// // Den Body der Antwort definieren
-// 	// response.body = "<html>\r\n"
-// 	//             "  <head><title>Example</title></head>\r\n"
-// 	//             "  <body><h1>Hello, World!</h1></body>\r\n"
-// 	            // "</html>";
-// }
-
-void Connection::assemble_response2(void)
-{
-	const std::map<std::string, std::string> status_texts =
-		{
-			{"200", "OK"},
-			{"400", "Bad Request"},
-			{"403", "Forbidden"},
-			{"404", "Not Found"},
-			{"500", "Internal Server Error"}};
-	_current_response.response_inzemaking =
-								_current_response.http_version + _current_response.status_code + " " +
-								status_texts.at(_current_response.status_code) + "\r\n"
-								"Content-Type: text/html\r\n"
-								"Content-Length: " +
-								std::to_string(_current_response.body.size()) + "\r\n"
-								"\r\n"
-								"<html><body><h1>" +
-								_current_response.status_code + " - " +
-								status_texts.at(_current_response.status_code) + "</h1></body></html>";
 }
 
 void	Connection::generate_internal_server_error_response(void)
