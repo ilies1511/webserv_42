@@ -53,9 +53,9 @@ void	Connection::redirect(size_t input_status_code, std::string New_Location)
 	_current_response.headers["Location"] = New_Location;
 	_current_response.headers["Connection"] = "close";
 	_system_path = _server._config.getErrorPages()[input_status_code];
-	for (auto v : _server._config.getErrorPages()) {
-		std::cout << v.second << std::endl;
-	}
+	// for (auto v : _server._config.getErrorPages()) {
+	// 	std::cout << v.second << std::endl;
+	// }
 	prepare_fdFile_param(std::to_string(input_status_code));
 }
 
@@ -85,9 +85,9 @@ void	Connection::no_trailing_slash_case(void)
 	else
 	{
 		std::cout << "Asehr\n";
-		for (auto v : _server._config.getErrorPages()) {
-			std::cout << v.second << std::endl;
-		}
+		// for (auto v : _server._config.getErrorPages()) {
+		// 	std::cout << v.second << std::endl;
+		// }
 		set_full_status_code(404);
 		// _system_path = "errorPages/404.html";
 		// prepare_fdFile_param("404");

@@ -126,6 +126,7 @@ void Connection::is_file_Case()
 */
 void	Connection::handle_delete(void)
 {
+	P_DEBUG("ALLOOOO aus handle_delete entry");
 	/*	TODO: Eearly Exit mit Steffens Part
 		if (_server._config.getLocation()["/"].getAllowedMethods())
 		{
@@ -136,11 +137,12 @@ void	Connection::handle_delete(void)
 	// Wichtig: request.uri sollte hier nur den URI-Teil enthalten, z. B. "/files/sample.txt"
 	// _full_path = std::filesystem::weakly_canonical(_server_root + request.uri->path);
 
-	auto root = "/Users/iziane/42/repo_webserv/webserv/";
-	_full_path = std::filesystem::weakly_canonical(root + request.uri->path);
-	std::cout << "DELETE - Full path: " << _full_path << "\n";
+	// auto root = "/Users/iziane/42/repo_webserv/webserv/";
+	// _full_path = std::filesystem::weakly_canonical(root + request.uri->path);
+	// std::cout << "DELETE - Full path: " << _full_path << "\n";
 
-	P_DEBUG("alo");
+	_full_path = _absolute_path;
+	std::cout << "_full_path: " << _absolute_path << "\n";
 	try
 	{
 		bool has_trailing_slash = \

@@ -65,7 +65,7 @@ class Connection
 		//Timeout-Feature
 	public:
 		std::chrono::steady_clock::time_point _last_activity;
-		static constexpr std::chrono::seconds TIMEOUT_DURATION{5}; // 30 Sekunden
+		static constexpr std::chrono::seconds TIMEOUT_DURATION{10}; // 30 Sekunden
 
 		//TODO:
 		// int					_fdWrite;

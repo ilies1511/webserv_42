@@ -10,6 +10,7 @@
 #include <sstream>
 
 bool	Connection::is_redirect() {
+	P_DEBUG("is_redirect\n");
 	if (_matching_route->getRouteIsRedirect()) {
 		std::cout << coloring("Location is a redirect", BLUE) << std::endl;
 		auto [typeOfRedirect, newLocation] =_matching_route->getRedirect();
@@ -20,8 +21,15 @@ bool	Connection::is_redirect() {
 		&& request.uri->path.back() != '/') {
 		const auto& it = request.headers.find("host");
 		if (it != request.headers.end()) {
+			P_DEBUG("is_redirect pre 301\n");
 			const std::string mod = request.uri->path.append("/");
-			redirect(301,"http://" + it->second + mod);
+			if (request.method == "GET") //TODO: check with Steffen
+				redirect(301,"http://" + it->second + mod);
+			else if (request.method == "DELETE") {
+				P_DEBUG("In pre-exit: is_redirect\n");
+				std::cout << "_expanded_path: " << _expanded_path << "\n";
+				set_full_status_code(409);
+			}
 		} else {
 			set_full_status_code(400); // INVALID REQUEST
 		}
@@ -44,6 +52,7 @@ bool	Connection::method_is_allowed(const std::vector<std::string>& methods) {
 }
 
 bool	Connection::malicious_request() {
+	P_DEBUG("malicious_request\n");
 	if (_expanded_path.find("/..") != std::string::npos
 		|| _expanded_path.find("/../") != std::string::npos
 		|| _expanded_path.find("../") != std::string::npos) {
@@ -138,6 +147,7 @@ void	Connection::entry_process(void)
 {
 	//0:
 	if (request.status_code.has_value()) {
+		P_DEBUG("Early-Exit in entry_process\n");
 		set_full_status_code((size_t)*request.status_code);
 		return;
 	}

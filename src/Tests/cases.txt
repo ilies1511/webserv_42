@@ -13,3 +13,12 @@ dir ist leeres Repo:
 
 Valid Path zur file + /: -> 404
 	run_client localhost 9035 DELETE /var/www/data/files/alo.txt/
+
+
+31.03 7:33
+
+Request:
+	run_client DELETE /var/www/data/files
+
+Response:
+	301 - Moved Permanently
