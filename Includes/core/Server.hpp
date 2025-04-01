@@ -41,9 +41,9 @@ class Server
 		Core&									_core;
 		// std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
 		// std::vector<int>						_deferred_close_fds;
+		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 	private:
 		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
-		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
 		// std::unordered_map< int, std::unique_ptr<Connection> >	_connections;
 		int										listener_fd;
@@ -84,7 +84,7 @@ class Server
 		pollfd* getPollFdElement(int fd);
 		void	add_to_pollfds_prefilled(pollfd &new_element);
 		void	execute();
-		void	cleanup_deferred(void);
+		// void	cleanup_deferred(void);
 		void	check_connection_timeouts(void);
 		//TODO:
 		// void	check_timeouts(void);

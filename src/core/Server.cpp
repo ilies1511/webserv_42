@@ -36,7 +36,7 @@ Server::~Server(void)
 	// {
 	// 	close(pfd.fd);
 	// }
-	close(listener_fd);
+	// close(listener_fd);
 }
 // OCF -- END
 
@@ -124,7 +124,7 @@ void	Server::execute(void)
 		}
 	}
 	check_connection_timeouts();
-	cleanup_deferred();
+	// cleanup_deferred();
 
 	// if (_pollfds[_i].revents & (POLLIN)) //Die Condition muss angepasst werden, da ich nicht mehr global mit durchiteriere
 	// {

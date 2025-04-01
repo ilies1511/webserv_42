@@ -26,6 +26,7 @@ class Core
 	public:
 		static Core&	getInstance();
 		void			poll_loop(void);
+		void			cleanup_deferred(void);
 		void			add_to_pollfds_Root(int new_fd);
 		void			del_from_pollfds_Root(int fd);
 		void			ft_closeNclean_Root(int fd);
