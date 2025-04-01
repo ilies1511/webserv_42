@@ -6,15 +6,20 @@
 #define PORT "9034"   // Port we're listening on
 
 // OCF -- BEGIN
-Server::Server(const std::string &port)
-	: _pollfds{}, _connections{}, listener_fd(-1) , _port(port)
-{
-	(void)port;
-	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
-	init_listener_socket();
-}
-Server::Server(const serverConfig &conf)
-	:	_pollfds{},
+// Server::Server(const std::string &port)
+// 	:	_core
+// 		_pollfds{},
+// 		_connections{},
+// 		listener_fd(-1),
+// 		_port(port)
+// {
+// 	(void)port;
+// 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
+// 	init_listener_socket();
+// }
+Server::Server(const serverConfig &conf, Core &core)
+	:	_core(core),
+		// _pollfds{},
 		_connections{},
 		listener_fd(-1),
 		_port(std::to_string(conf.getPort())),
@@ -27,11 +32,11 @@ Server::Server(const serverConfig &conf)
 Server::~Server(void)
 {
 	printer::ocf_printer("Server", printer::OCF_TYPE::D);
-	for (auto& pfd : _pollfds)
-	{
-		close(pfd.fd);
-	}
-	close(listener_fd);
+	// for (auto& pfd : _pollfds)
+	// {
+	// 	close(pfd.fd);
+	// }
+	// close(listener_fd);
 }
 // OCF -- END
 
@@ -68,19 +73,19 @@ void	Server::new_connection_handler(void)
 	// }
 }
 
-void Server::poll_loop(void)
-{
-	for (;;)
-	{
-		int poll_count = poll(_pollfds.data(), static_cast<nfds_t>(_pollfds.size()), 0);
-		if (poll_count < 0)
-		{
-			perror("poll");
-			exit(1);
-		}
-		execute(); //Kuenftiger Refactor wird einen Loop haben, der durch die Server durchiteriert
-	}
-}
+// void Server::poll_loop(void)
+// {
+// 	for (;;)
+// 	{
+// 		int poll_count = poll(_pollfds.data(), static_cast<nfds_t>(_pollfds.size()), 0);
+// 		if (poll_count < 0)
+// 		{
+// 			perror("poll");
+// 			exit(1);
+// 		}
+// 		execute(); //Kuenftiger Refactor wird einen Loop haben, der durch die Server durchiteriert
+// 	}
+// }
 
 void	Server::execute(void)
 {
@@ -104,11 +109,12 @@ void	Server::execute(void)
 
 	//Check for New-Connection Bewusst unten und nicht als aller erstes
 	//TODO: check in function that retuns a bool if listener_fd was triggert with revent POLLIN
-	for (auto& p : _pollfds)
+	for (auto& p : _core._pollfds)
 	{
 		if (p.fd == listener_fd)
 		{
 			if (p.revents & POLLIN) {
+				P_DEBUG("In Server Execute Loop pre new_connection_handler\n");
 				new_connection_handler();
 			}
 			// if (p.revents & POLLHUP) {
@@ -118,7 +124,7 @@ void	Server::execute(void)
 		}
 	}
 	check_connection_timeouts();
-	cleanup_deferred();
+	// cleanup_deferred();
 
 	// if (_pollfds[_i].revents & (POLLIN)) //Die Condition muss angepasst werden, da ich nicht mehr global mit durchiteriere
 	// {

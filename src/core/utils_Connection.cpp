@@ -11,7 +11,7 @@
 //Utils -- BEGIN
 pollfd*	Connection::getPollFdElementRoot(int &fd)
 {
-	for (auto& p : _server._pollfds) {
+	for (auto& p : _server._core._pollfds) {
 		if (p.fd == fd) {
 			return &p;
 		}
