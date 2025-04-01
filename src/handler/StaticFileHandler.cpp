@@ -55,7 +55,7 @@ bool StaticFileHandler::read_file_content(const std::string &path, size_t file_s
 	if (!file)
 		return false;
 
-	response.headers["Content-Type"] = get_mime_type(path);
+	// response.headers["Content-Type"] = get_mime_type(path);
 	response.headers["Content-Length"] = std::to_string(file_size);
 
 	response.body.resize(file_size);

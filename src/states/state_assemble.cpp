@@ -14,7 +14,17 @@ void Connection::assemble_response()
 
 	_current_response.http_version = "HTTP/1.1";
 	_current_response.headers["Connection"] = "close";
-	_current_response.headers["Content-Type"] = "text/html";
+	// _current_response.headers["Content-Type"] = "text/html";
+	auto it = _current_response.headers.find("Content-Type");
+	std::string tmp = "mime_type: " + \
+		_current_response.headers["Content-Type"] +"\n";
+	P_DEBUG(tmp.c_str());
+	if (it == _current_response.headers.end()) {
+		std::string tmp = "mime_type: " + \
+							 _current_response.headers["Content-Type"] +"\n";
+		P_DEBUG(tmp.c_str());
+		_current_response.headers["Content-Type"] = get_mime_type(_system_path);
+	}
 	_current_response.headers["Content-Length"] = \
 		std::to_string(this->_current_response.file_data.size());
 

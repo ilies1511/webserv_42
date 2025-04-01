@@ -139,6 +139,7 @@ class Connection
 		void	is_file_Case(void);
 		void	is_dir_Case(void);
 		bool	is_timed_out() const;
+		std::string	get_mime_type(const std::string &path);
 	//Methodes -- ENDL
 };
 
