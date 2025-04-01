@@ -88,6 +88,7 @@ CORE_REPO_FILES :=	Server.cpp \
 					Core.cpp \
 					Connection.cpp \
 					utils_pollserver.cpp \
+					utils_Core.cpp \
 					utils_Connection.cpp
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 

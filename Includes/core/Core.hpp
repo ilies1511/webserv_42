@@ -3,6 +3,8 @@
 
 #include "webserv.hpp"
 
+extern std::atomic<bool> running;
+
 class Core
 {
 	private:
@@ -32,7 +34,10 @@ class Core
 		void						addPollFdPrefilled(const pollfd &pfd);
 		void						removePollFd(int fd);
 		pollfd						*getPollFdElement(int fd);
-	//Methodes -- END
-};
+		//Methodes -- END
+	};
+
+
+void	sig_handler(int);
 
 #endif

@@ -1,7 +1,10 @@
 #include "Core.hpp"
 
+std::atomic<bool> running(true);
+
 int main(void)
 {
+	signal(SIGINT, sig_handler);
 	Log	log("webserv");
 	try
 	{
@@ -13,5 +16,6 @@ int main(void)
 	{
 		printer::LogException(e, __FILE__, __FUNCTION__, __LINE__);
 	}
+	std::cout << "\nReturn from main" << std::endl;
 	return (0);
 }
