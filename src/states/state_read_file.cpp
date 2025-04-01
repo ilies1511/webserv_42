@@ -39,7 +39,7 @@ void	Connection::read_file(void)
 	//TODO: 23.03 Improve hotfix
 	Buffer	read_file_buffer;
 	static char buf[BUFFER_SIZE];
-	memset(buf, 0, sizeof(buf));
+	// memset(buf, 0, sizeof(buf));
 	ssize_t bytes_read = read(_fdFile, buf, sizeof buf);
 	if (bytes_read <= 0)
 	{

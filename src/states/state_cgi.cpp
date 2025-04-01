@@ -61,6 +61,10 @@ void	Connection::setup_cgi() {
 	// 	_cgi->setContentType(it->second);
 	// }
 	// std::vector<std::string> env;
+
+	// //TODO: 02.04.25
+	// if (request.headers.find("cookie") != request.headers.end()) {
+	// }
 	_cgi->_env.emplace_back("REQUEST_METHOD=" + request.method.value());
     _cgi->_env.emplace_back("SCRIPT_NAME=" + _absolute_path);
 	_cgi->_env.emplace_back("PATH_INFO=" + _absolute_path); // TODO add actual path info
