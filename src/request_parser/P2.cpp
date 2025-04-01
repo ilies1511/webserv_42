@@ -293,9 +293,9 @@ bool RequestParser::parse_uri(void) {
 		this->setStatus(400); //todo: is 400 correct?
 		return (true);
 	}
-	for (size_t i = 0; i < match.size(); i++) {
-		std::cout << "match[" << i << "]: |" << match[i].str() << "|\n";
-	}
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "match[" << i << "]: |" << match[i].str() << "|\n";
+	//}
 	if (match[16].matched) {
 		// asterisk-form
 		this->request.status_code = 501;
