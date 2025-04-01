@@ -34,16 +34,14 @@ void	Connection::recv_data(void)
 	}
 	_last_activity = std::chrono::steady_clock::now();
 	//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
-	static char buf[10000000];
+	static char buf[BUFFER_SIZE];
 	// ssize_t bytes = recv(_fdConnection, _InputBuffer._buffer.data(), \
 	// 					_InputBuffer._buffer.capacity() - 1, 0);
 	//_InputBuffer._buffer[(size_t)bytes] = 0;
 	memset(buf, 0, sizeof(buf));
 	ssize_t bytes = recv(_fdConnection, buf, \
-						sizeof buf - 1, 0);
-	buf[(size_t)bytes] = 0;
-	std::string str(buf);
-	_InputBuffer._buffer.assign(str.begin(), str.end());
+						sizeof buf, MSG_DONTWAIT);
+
 	printer::debug_putstr("Post recv", __FILE__, __FUNCTION__, __LINE__);
 	if (bytes <= 0) //TODO: 12.03 check if return of 0 is valid
 	{
@@ -59,6 +57,10 @@ void	Connection::recv_data(void)
 		ft_closeNcleanRoot(_fdConnection);
 		return ;
 	}
+	//buf[(size_t)bytes] = 0;
+	//std::string str(buf);
+	_InputBuffer._buffer.append(buf, (size_t)bytes);
+	//_InputBuffer._buffer.assign(str.begin(), str.end());
 	std::cout << "Received Data:\n"
 				<< std::string(_InputBuffer.data(), (size_t)bytes) << "\n";
 	this->entry_parse();

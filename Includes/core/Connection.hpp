@@ -1,6 +1,11 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 10 * 1000 * 1000
+#endif
+
+
 #include <iostream>
 #include <string>
 #include <sys/socket.h>

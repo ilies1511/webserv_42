@@ -38,13 +38,9 @@ void	Connection::read_file(void)
 
 	//TODO: 23.03 Improve hotfix
 	Buffer	read_file_buffer;
-	static char buf[10000];
-
+	static char buf[BUFFER_SIZE];
 	memset(buf, 0, sizeof(buf));
-	// ssize_t bytes_read = read(_fdFile, read_file_buffer._buffer.data(), 4090);
 	ssize_t bytes_read = read(_fdFile, buf, sizeof buf);
-	std::string str(buf);
-	read_file_buffer._buffer.assign(str.begin(), str.end());
 	if (bytes_read <= 0)
 	{
 		printer::debug_putstr("bytes_read <= 0 Case", __FILE__, __FUNCTION__, __LINE__);
@@ -70,6 +66,7 @@ void	Connection::read_file(void)
 	}
 	else
 	{
+		read_file_buffer._buffer.append(buf, (size_t)bytes_read);
 		//TODO: file not fully read
 		printer::debug_putstr("bytes_read > 0 Case PRE SEND", __FILE__, __FUNCTION__, __LINE__);
 		_state = _next_state;

@@ -35,29 +35,28 @@ void	Connection::send_data(void)
 	}
 	_last_activity = std::chrono::steady_clock::now();
 	_OutputBuffer._buffer.assign(_current_response.response_inzemaking.begin(), _current_response.response_inzemaking.end());
-	ssize_t sent = send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+	size_t	left_to_send = _OutputBuffer._buffer.length() - (size_t)sent_bytes;
+	ssize_t	sent = send(this->_fdConnection, this->_OutputBuffer.data() + \
+					sent_bytes, left_to_send, MSG_DONTWAIT);
 	if (sent > 0)
 	{
 		this->sent_bytes = sent_bytes + sent;
 		printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
 		std::cout << "Sent Response:\n"
-				  << std::string(_OutputBuffer.data(), (size_t)sent) << "\n";
+				  << std::string(_OutputBuffer.data() + sent_bytes - sent, (size_t)sent) << "\n";
 		this->_OutputBuffer._buffer.clear();
-		// if (sent == (ssize_t)_current_response.response_inzemaking.size()) {
 		if (sent_bytes == (ssize_t)_current_response.response_inzemaking.size()) {
 			finished_sending = true;
 			std::cout << "sent_bytes: " << sent_bytes << ", sent: " << sent << "\n";
-			// _state = State::CLOSING; // Oder READ_HEADER für Keep-Alive damit circular ist
 			printer::debug_putstr("sent == response_inzemaking.size() 'case'",\
 				__FILE__, __FUNCTION__, __LINE__);
-			// if (this->request.readFile) {
-			// }
-			ft_closeNcleanRoot(_fdFile); //TODO: 22.03.2025 add check if initial was there like before fusion
+			ft_closeNcleanRoot(_fdFile);
 			ft_closeNcleanRoot(this->_fdConnection);
 			return ;
 		}
-	} // TODO HOTFIX should be fixed !!!!
+	} // TODO: 01.04.25 --> mv _OutputBuffer._buffer = _cgi->getOutput(); in CGI part damit handling uebrlall gleich bleibt HOTFIX should be fixed !!!!
 	else if (_cgi.has_value()) {
+		//TODO: mv in CGI Part // _OutputBuffer._buffer = _cgi->getOutput();
 		const std::string tmp = _cgi->getOutput();
 		_OutputBuffer._buffer.assign(tmp.begin(), tmp.end());
 		send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);

@@ -148,7 +148,7 @@ void Server::setup_non_blocking(int fd)
 			close(listener_fd);
 			return ;
 	}
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) == -1)
 	{
 		std::cerr << "fcntl(F_SETFL) failed: " << strerror(errno) << std::endl;
 			close(listener_fd);
