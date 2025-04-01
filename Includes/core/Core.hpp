@@ -14,6 +14,7 @@ class Core
 		std::vector<serverConfig>	_server_confs;
 		std::vector< struct pollfd>	_pollfds; //Stores FD of Connections
 		std::vector<int>			_deferred_close_fds;
+		std::vector<int>			_listener_fds;
 	public:
 		Core(void);
 		~Core(void);
@@ -24,16 +25,13 @@ class Core
 
 	//Methodes -- BEGIN
 	public:
-		static Core&	getInstance();
-		void			poll_loop(void);
-		void			cleanup_deferred(void);
-		void			add_to_pollfds_Root(int new_fd);
-		void			del_from_pollfds_Root(int fd);
-		void			ft_closeNclean_Root(int fd);
-		pollfd*			getPollFdElement_Root(int fd);
-		void			add_to_pollfds_prefilled_Root(pollfd &new_element);
-		void			cleanup_deferred_Root(void);
-		void			check_connection_timeouts_Root(void);
+		void						poll_loop(void);
+		void						cleanup_deferred(void);
+		std::vector<struct pollfd>&	getPollFds(void);
+		void						addPollFd(int new_fd);
+		void						addPollFdPrefilled(const pollfd &pfd);
+		void						removePollFd(int fd);
+		pollfd						*getPollFdElement(int fd);
 	//Methodes -- END
 };
 

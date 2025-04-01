@@ -7,13 +7,67 @@ Core::Core(void)
 		_servers(),
 		_server_confs(),
 		_pollfds{},
-		_deferred_close_fds{}
+		_deferred_close_fds{},
+		_listener_fds{}
 {}
 
-Core::~Core(void) {}
+Core::~Core(void)
+{
+	for (const auto& pfd : _pollfds) {
+		if (pfd.fd >= 0) {
+			::close(pfd.fd);
+		}
+	}
+	_pollfds.clear();
+}
 //OCF -- END
 
 //METHODS -- BEGIN
+
+std::vector<struct pollfd>&	Core::getPollFds()
+{
+	return (_pollfds);
+}
+
+void	Core::addPollFd(int new_fd)
+{
+	struct pollfd	new_element;
+
+	new_element.fd = new_fd;
+	new_element.events = POLLIN | POLLOUT;
+	new_element.revents = 0;
+	this->_pollfds.emplace_back(new_element);
+}
+
+void	Core::addPollFdPrefilled(const pollfd &pfd)
+{
+	_pollfds.emplace_back(pfd);
+}
+
+void Core::removePollFd(int fd)
+{
+	_pollfds.erase(
+		std::remove_if(_pollfds.begin(), _pollfds.end(),
+			[fd](const pollfd &p) {
+				if (p.fd == fd) {
+					::close(p.fd);
+					return (true);
+				}
+				return (false);
+			}),
+		_pollfds.end()
+	);
+}
+
+pollfd	*Core::getPollFdElement(int fd)
+{
+	for (auto &p : _pollfds) {
+		if (p.fd == fd) {
+			return (&p);
+		}
+	}
+	return (nullptr);
+}
 
 void Core::cleanup_deferred(void)
 {

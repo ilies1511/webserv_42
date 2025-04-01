@@ -81,6 +81,7 @@ void Server::init_listener_socket(void)
 	printer::Header("In Init_Listener_Socket");
 	std::cout << "PRE emplace back " << _core._pollfds.size() << "\n";
 	_core._pollfds.emplace_back(init_listener);
+	_core._listener_fds.emplace_back(init_listener.fd);
 	std::cout << "POST emplace back " << _core._pollfds.size() << "\n";
 	// Der Listener-FD ist jetzt korrekt in _core._pollfds vorhanden.
 	// int flags = fcntl(_core._pollfds.at(0).fd, F_GETFL, 0);
