@@ -11,7 +11,7 @@
 //Utils -- BEGIN
 pollfd*	Connection::getPollFdElementRoot(int &fd)
 {
-	for (auto& p : _server._pollfds) {
+	for (auto& p : _server._core._pollfds) {
 		if (p.fd == fd) {
 			return &p;
 		}
@@ -195,6 +195,40 @@ bool Connection::is_timed_out() const
 {
 	auto now = std::chrono::steady_clock::now();
 	return (now - _last_activity) > TIMEOUT_DURATION;
+}
+
+std::string Connection::get_mime_type(const std::string &path)
+{
+	size_t dot = path.find_last_of('.');
+	if (dot == std::string::npos)
+		return "application/octet-stream";
+
+	std::string ext = path.substr(dot);
+	std::transform(ext.begin(), ext.end(), ext.begin(),
+					[](unsigned char c) { return std::tolower(c); });
+
+	static const std::unordered_map<std::string, std::string> mimeTypes = {
+		{".html", "text/html"},
+		{".txt",  "text/plain"},
+		{".css",  "text/css"},
+		{".js",   "application/javascript"},
+		{".png",  "image/png"},
+		{".jpg",  "image/jpeg"},
+		// Videoformate
+		{".mp4",  "video/mp4"},
+		{".webm", "video/webm"},
+		{".ogg",  "video/ogg"},
+		{".mov",  "video/quicktime"},
+		{".ico",  "image/vnd.microsoft.icon"},
+		{".avi",  "video/x-msvideo"}
+	};
+
+	auto it = mimeTypes.find(ext);
+	if (it != mimeTypes.end()) {
+		return it->second;
+	}
+	// Default: entweder text/plain oder application/octet-stream
+	return "application/octet-stream";
 }
 
 //Utils -- END

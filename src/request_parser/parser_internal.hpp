@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Includes/request_parser/RequestParser.hpp"
+#include <cstring>
 
 #define PARSE_ASSERT(cond) parse_assertion_exec(cond, #cond, __FILE__, __LINE__, __FUNCTION__)
 
@@ -34,7 +35,14 @@
 
 #define ORIGIN_FORM "(" PATH QUERY "?" URI_TERM ")"
 
-#define HOST "([\\w\\.]+)"
+#define IPV6_SEG "[0-9a-zA-Z]{1,4}"
+#define IPV6_FULL "(?:(?:" IPV6_SEG "\\:){7}" IPV6_SEG ")"
+//not full sure about ipv6 syntax for mixed/compressed
+#define IPV6_COMPRESSED "(?:(?:" IPV6_SEG "(?::" IPV6_SEG "){0,5})?::(?:" IPV6_SEG "(?::" IPV6_SEG "){0,5})?)"
+#define IPV6_MIX "(?:" IPV6_SEG "(?::" IPV6_SEG "){5}:(?:[0-9]{1,3}\\.){3}[0-9]{1,3})"
+#define IPV6 "(?:\\[(" IPV6_FULL "|" IPV6_COMPRESSED "|" IPV6_MIX ")\\])"
+
+#define HOST "((?:[\\w\\.]+)|" IPV6 ")"
 #define PORT "([1-9]\\d{0,3})"
 
 #define AUTHORITY_FORM "(^" HOST ":" PORT "$)"

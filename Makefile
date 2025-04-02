@@ -85,10 +85,11 @@ PLAYGROUND_REPO_FILES := play.cpp
 PLAYGROUND_REPO := $(addprefix playground/, $(PLAYGROUND_REPO_FILES))
 
 CORE_REPO_FILES :=	Server.cpp \
+					Core.cpp \
 					Connection.cpp \
 					utils_pollserver.cpp \
+					utils_Core.cpp \
 					utils_Connection.cpp
-
 CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 
 UTILS_REPO_FILES := Buffer.cpp

@@ -1,6 +1,11 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 10 * 1000 * 1000
+#endif
+
+
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
@@ -134,6 +139,7 @@ class Connection
 		void	is_file_Case(void);
 		void	is_dir_Case(void);
 		bool	is_timed_out() const;
+		std::string	get_mime_type(const std::string &path);
 	//Methodes -- ENDL
 };
 

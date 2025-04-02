@@ -61,7 +61,6 @@ public:
 	}
 
 	// todo:
-	// URI test cases
 	// make hardcoded whitespace in this function part of the testcases
 	// body, content-length, chunked-encoding
 	void run_combination_tests() {
@@ -97,12 +96,6 @@ public:
 					std::string before_headers_str = request_str;
 					Request before_headers = expect;
 					for (size_t h = 0; h < headers.size(); h++) {
-						expect = before_headers;
-						request_str = before_headers_str;
-						comb_headers(h);
-						for (int i = 0; i < 1; i++ /*todo: bodys/encoding later */) {
-							run_test();
-						}
 						expect = before_headers;
 						request_str = before_headers_str;
 						comb_headers(h);
@@ -324,18 +317,16 @@ private:
 			uri_strs.push_back(uri.full);
 			uri_codes.push_back(std::nullopt);
 		}
-		//{
-		////todo: what should the parser actually do in this case
-		//	Uri uri;
-		//	uri.full = "?query=empty-path";
-		//	uri.path = "/"; // should normalize empty path to "/" ?
-		//	uri.query = "query=empty-path";
-		//	uri.form.is_origin_form = 1;
-		//	uris.push_back(uri);
-		//	uri_strs.push_back(uri.full);
-		//	uri_codes.push_back(std::nullopt);
-		//}
-
+		{
+			Uri uri;
+			uri.full = "?query%20emptypath";
+			uri.path = "/"; // should normalize empty path to "/" ?
+			uri.query = "query=empty-path";
+			uri.form.is_origin_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(400);
+		}
 		// 2. VALID ABSOLUTE FORM (RFC 7230 §5.3.2)
 		{
 			Uri uri;
@@ -362,19 +353,20 @@ private:
 			uri_strs.push_back(uri.full);
 			uri_codes.push_back(400);
 		}
-		//{
-		////todo: Ipv6 parser support
-		//	Uri uri;  // IPv6 address
-		//	uri.full = "http://[2001:db8::1]:8080/path";
-		//	uri.authority = "[2001:db8::1]:8080";
-		//	uri.host = "2001:db8::1";
-		//	uri.port = "8080";
-		//	uri.path = "/path";
-		//	uri.form.is_absolute_form = 1;
-		//	uris.push_back(uri);
-		//	uri_strs.push_back(uri.full);
-		//	uri_codes.push_back(std::nullopt);
-		//}
+		
+		{
+		//todo: Ipv6 parser support
+			Uri uri;  // IPv6 address
+			uri.full = "http://[2001:db8::1]:8080/path";
+			uri.authority = "[2001:db8::1]:8080";
+			uri.host = "2001:db8::1";
+			uri.port = "8080";
+			uri.path = "/path";
+			uri.form.is_absolute_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
 
 		// 3. VALID AUTHORITY FORM (RFC 7230 §5.3.3)
 		{
@@ -388,18 +380,18 @@ private:
 			uri_strs.push_back(uri.full);
 			uri_codes.push_back(std::nullopt);
 		}
-		//{
-		////todo: IPv6 parser support
-		//	Uri uri;  // IPv6 authority
-		//	uri.full = "[::1]:443";
-		//	uri.authority = "[::1]:443";
-		//	uri.host = "::1";
-		//	uri.port = "443";
-		//	uri.form.is_authority_form = 1;
-		//	uris.push_back(uri);
-		//	uri_strs.push_back(uri.full);
-		//	uri_codes.push_back(std::nullopt);
-		//}
+		{
+		//todo: IPv6 parser support
+			Uri uri;  // IPv6 authority
+			uri.full = "[::1]:443";
+			uri.authority = "[::1]:443";
+			uri.host = "::1";
+			uri.port = "443";
+			uri.form.is_authority_form = 1;
+			uris.push_back(uri);
+			uri_strs.push_back(uri.full);
+			uri_codes.push_back(std::nullopt);
+		}
 
 		// 4. VALID ASTERISK FORM (RFC 7230 §5.3.4)
 		// not implemented
@@ -439,11 +431,11 @@ private:
 			uri_codes.push_back(400);
 		}
 		{
-			//// Invalid IPv6
-			//// todo: IPv6 parser support
-			//uri_strs.push_back("http://[::1/");
-			//uris.push_back(Uri());
-			//uri_codes.push_back(400);
+			// Invalid IPv6
+			// todo: IPv6 parser support
+			uri_strs.push_back("http://[::1/");
+			uris.push_back(Uri());
+			uri_codes.push_back(400);
 		}
 		{
 			// Multiple query markers

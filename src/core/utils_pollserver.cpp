@@ -28,6 +28,7 @@ void Server::get_listener_socket(void)
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		std::cout << "socket: " << listener_fd << std::endl;
 		if (listener_fd < 0)
 			continue ;
 		setup_non_blocking(listener_fd);
@@ -62,30 +63,39 @@ void Server::get_listener_socket(void)
 	}
 }
 
-void	Server::init_listener_socket(void)
+void Server::init_listener_socket(void)
 {
 	// Set up and get a listening socket
 	get_listener_socket();
 	if (listener_fd == -1)
 	{
-		// fprintf(stderr, "error getting listening socket\n");
-		// exit(1);
 		throw (std::runtime_error("error getting listening socket\n"));
 	}
-	struct pollfd	init_listener;
-
+	struct pollfd init_listener;
 	init_listener.fd = listener_fd;
-	// Add the listener to set
+	init_listener.events = POLLIN;
+	init_listener.revents = 0;
+
+	P_DEBUG("INIT_LISTENER");
+	std::cout << this->_config.getPort() << "\n";
 	printer::Header("In Init_Listener_Socket");
-	std::cout << "PRE emplace back " << _pollfds.size() << "\n";
-	this->_pollfds.emplace_back(init_listener);
-	std::cout << "POST emplace back " << _pollfds.size() << "\n";
-	_pollfds.at(0).events = POLLIN;
-	// _pollfds[0].events = POLLIN; // Report ready to read on incoming connection
-	// Main loop
-	int flags = fcntl(_pollfds.at(0).fd, F_GETFL, 0);
-	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << _pollfds.at(0).fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
+	std::cout << "PRE emplace back " << _core._pollfds.size() << "\n";
+	_core._pollfds.emplace_back(init_listener);
+	_core._listener_fds.emplace_back(init_listener.fd);
+	std::cout << "POST emplace back " << _core._pollfds.size() << "\n";
+	// Der Listener-FD ist jetzt korrekt in _core._pollfds vorhanden.
+	// int flags = fcntl(_core._pollfds.at(0).fd, F_GETFL, 0);
+	int flags = fcntl(_core._pollfds.back().fd, F_GETFL, 0);
+	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket "
+				<< _core._pollfds.back().fd << " flags: " << flags
+				<< " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
+	for (size_t i = 0; i < _core._pollfds.size(); i++)
+	{
+		printf("FD: %d\n", _core._pollfds.at(i).fd);
+		printf("Event: %d\n", _core._pollfds.at(i).events);
+	}
 }
+
 
 void Server::add_to_pollfds(int new_fd)
 {
@@ -95,38 +105,28 @@ void Server::add_to_pollfds(int new_fd)
 	new_element.fd = new_fd;
 	new_element.events = POLLIN | POLLOUT; // Check ready-to-read
 	new_element.revents = 0;
-	this->_pollfds.emplace_back(new_element);
+	_core._pollfds.emplace_back(new_element);
 }
 
 void Server::add_to_pollfds_prefilled(pollfd &new_element)
 {
 	printer::Header("[STATUS]: Add new pollfd prefilled element to pollfd with fd: " \
 			+ std::to_string(new_element.fd));
-	this->_pollfds.emplace_back(new_element);
+	_core._pollfds.emplace_back(new_element);
 }
 
 //Improved Stand: 08.03.2025
 void Server::del_from_pollfds(int fd)
 {
-	auto it = std::remove_if(_pollfds.begin(), _pollfds.end(),
+	auto it = std::remove_if(_core._pollfds.begin(), _core._pollfds.end(),
 		[fd](const pollfd& pfd) { return pfd.fd == fd; });
-	if (it != _pollfds.end())
+	if (it != _core._pollfds.end())
 	{
-		_pollfds.erase(it, _pollfds.end());
+		_core._pollfds.erase(it, _core._pollfds.end());
 		std::cout << "Removed fd: " << fd << " from pollfds\n";
 	}
 }
 
-//Replaced by del_from_pollfds(int fd)
-void Server::del_from_pollfds(size_t index)
-{
-	if (index >= _pollfds.size())
-		return;
-	std::cout << RED << "In " << __FUNCTION__ << " " << __LINE__ << " Size pre Del: " << _pollfds.size() << NC << "\n";
-	std::swap(_pollfds[index], _pollfds.back());
-	_pollfds.pop_back();
-	std::cout << RED << "In " << __FUNCTION__ << " " << __LINE__ << " Size POST Del: " << _pollfds.size() << NC << "\n";
-}
 
 // Get sockaddr, IPv4 or IPv6:
 void *Server::get_in_addr(struct sockaddr *sa)
@@ -148,7 +148,7 @@ void Server::setup_non_blocking(int fd)
 			close(listener_fd);
 			return ;
 	}
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) == -1)
 	{
 		std::cerr << "fcntl(F_SETFL) failed: " << strerror(errno) << std::endl;
 			close(listener_fd);
@@ -191,7 +191,8 @@ void Server::ft_closeNclean(int fd)
 	// 	close(fd);
 	// }
 	// Markiere den fd zur späteren Entfernung aus _pollfds und _connections
-	_deferred_close_fds.push_back(fd);
+	_core._deferred_close_fds.push_back(fd);
+	// _deferred_close_fds.push_back(fd);
 }
 
 void	Server::add_to_map(int fd)
@@ -204,12 +205,12 @@ void	Server::add_to_map(int fd)
 
 pollfd	*Server::getPollFd()
 {
-	return (_pollfds.data());
+	return (_core._pollfds.data());
 }
 
 void Server::enable_output(int fd)
 {
-	for(auto& pfd : this->_pollfds)
+	for(auto& pfd : _core._pollfds)
 	{
 		if(pfd.fd == fd)
 		{
@@ -221,50 +222,12 @@ void Server::enable_output(int fd)
 
 pollfd* Server::getPollFdElement(int fd)
 {
-	for (auto& p : _pollfds) {
+	for (auto& p : _core._pollfds) {
 		if (p.fd == fd) {
 			return &p;
 		}
 	}
 	return (nullptr);
-}
-
-void Server::cleanup_deferred(void)
-{
-	// Baue eine Hash-Set aus den FDs, die geschlossen werden sollen
-	std::unordered_set<int> to_close(_deferred_close_fds.begin(), _deferred_close_fds.end());
-	// Entferne alle pollfd-Einträge, deren fd in to_close enthalten ist
-	_pollfds.erase(
-		std::remove_if(_pollfds.begin(), _pollfds.end(),
-			[&to_close](const pollfd& pfd) {
-				if (to_close.count(pfd.fd) > 0) {
-					close(pfd.fd);
-					return (true);
-				} else {
-					return (false);
-				}
-			}),
-		_pollfds.end()
-	);
-	// _pollfds.erase(
-	// 	std::remove_if(_pollfds.begin(), _pollfds.end(),
-	// 		[&to_close](const pollfd& pfd) {
-	// 			return to_close.count(pfd.fd) > 0;
-	// 		}),
-	// 	_pollfds.end()
-	// );
-	// Entferne alle Einträge aus der Connection-Map, deren Key in to_close ist
-	for (auto it = _connections.begin(); it != _connections.end(); ) {
-		if (to_close.count(it->first) > 0) {
-			std::cout << "Removed fd: " << it->first << " from connections\n";
-			it = _connections.erase(it);
-		}
-		else {
-			++it;
-		}
-	}
-	// Leere den Vektor für deferred closures
-	_deferred_close_fds.clear();
 }
 
 void Server::check_connection_timeouts(void)
@@ -274,7 +237,7 @@ void Server::check_connection_timeouts(void)
 		if (conn->is_timed_out()) {
 			std::cout << coloring("Timeout: Queueing connection " + \
 					std::to_string(fd) + " for closure\n", LIGHT_RED);
-			_deferred_close_fds.push_back(fd);
+			_core._deferred_close_fds.push_back(fd);
 		}
 	}
 }
