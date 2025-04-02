@@ -127,7 +127,8 @@ void	Connection::validate_match(std::string& longest_match) {
 			if (fst == cgi_identifier) {
 				const std::string cgiExec = snd; // TODO maybe check if cgi executable is valid
 				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
-				_cgi.emplace();
+
+				_cgi.emplace(*this);
 				this->_state = State::CGI;
 				this->_next_state = State::SEND;
 				_cgi->setCgiEngine(snd);

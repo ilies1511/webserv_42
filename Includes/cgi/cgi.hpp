@@ -11,10 +11,13 @@
 #include <signal.h>
 #include <iostream>
 #include <filesystem>
+#include "Connection.hpp"
 
 #ifndef CGI_TIMEOUT
 #define CGI_TIMEOUT 3000
 #endif
+
+class Connection;
 
 enum CGI_STATE {
     INIT,
@@ -48,15 +51,24 @@ private:
     std::string                 _cgi_engine;
     std::string                 _script_name;
     std::string                 _body;
+    Connection&					_connection;
 
 
 public:
 
     std::vector<std::string>    _env;
 
-    CGI();
+    // CGI();
+
+
+
+    CGI(Connection &connection);
+	//CGI(CGI&& other) noexcept = default;			// Move-Konstruktor
+	~CGI();
+	// CGI(const CGI&) = delete;						// Copy verbieten
+	// CGI& operator=(const CGI&) = delete;			// Copy-Zuweisung verbieten
+	// CGI& operator=(CGI&&) noexcept = delete;		// Move-Zuweisung verbieten (wegen _core
     // CGI(const Request& request);
-    ~CGI();
 
     CGI_STATE    getCgiState() const;
     std::string  getMethod() const;

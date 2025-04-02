@@ -38,11 +38,18 @@
 //     // _script = "/Users/sparth/Documents/Tests/webservTests/TestCgiPath/Test/getPath.py";
 // }
 
-CGI::CGI() :    _state(INIT),
-                _wpidstatus(0),
-                _output("HTTP/1.1 200 OK\r\n") {
+// CGI::CGI() :    _state(INIT),
+//                 _wpidstatus(0),
+//                 _output("HTTP/1.1 200 OK\r\n") {
 
-}
+// }
+
+CGI::CGI(Connection &connection)
+	:	_state(INIT),
+		_wpidstatus(0),
+		_output("HTTP/1.1 200 OK\r\n"),
+		_connection(connection)
+{}
 
 CGI::~CGI() = default;
 
@@ -216,8 +223,11 @@ void    CGI::setup_connection() {
         _state = ERROR;
         return;
     }
-    fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
-    fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
+	//TODO: setup_non_blocking
+	_connection._server.setup_non_blocking(_pipeIn[1]);
+	_connection._server.setup_non_blocking(_pipeOut[0]);
+    // fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
+    // fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
 
     _pid = fork();
     if (_pid == -1) {
@@ -233,6 +243,9 @@ void    CGI::setup_connection() {
         _state = ERROR;
         return;
     }
+	//Add
+	_connection._server.add_to_pollfds(_pipeIn[1]);
+	_connection._server.add_to_pollfds(_pipeOut[0]);
     if (_method == "POST") {
         _state = WRITE;
     } else {
