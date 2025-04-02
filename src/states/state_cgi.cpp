@@ -99,7 +99,7 @@ void	Connection::setup_cgi() {
 		// std::cout << coloring(environment, BLUE) << std::endl;;
 		_cgi->setEnvp(environment);
 	}
-	_cgi->setup_connection();
+	_cgi->setup_connection(*this);
 }
 
 void	Connection::entry_cgi()
@@ -109,13 +109,13 @@ void	Connection::entry_cgi()
 			setup_cgi();
 			break;
 		case WRITE:
-			_cgi->writing();
+			_cgi->writing(*this);
 			break;
 		case WAIT:
-			_cgi->waiting();
+			_cgi->waiting(*this);
 			break;
 		case READ:
-			_cgi->readCgiOutput();
+			_cgi->readCgiOutput(*this);
 			break;
 		case FINISH:
 			_state = State::SEND;

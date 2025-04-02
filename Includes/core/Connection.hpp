@@ -19,9 +19,11 @@
 #include <filesystem>
 #include <route.hpp>
 
+
 class Buffer;
 class Server;
 class Response;
+class CGI;
 // class MiddlewareChain;
 
 class Connection

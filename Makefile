@@ -98,8 +98,8 @@ UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
 HTTP_REPO_FILES := Request.cpp Response.cpp HTTP_Parser.cpp
 HTTP_REPO := $(addprefix http/, $(HTTP_REPO_FILES))
 
-HANDLER_REPO_FILES := StaticFileHandler.cpp
-HANDLER_REPO := $(addprefix handler/, $(HANDLER_REPO_FILES))
+#HANDLER_REPO_FILES := StaticFileHandler.cpp
+#HANDLER_REPO := $(addprefix handler/, $(HANDLER_REPO_FILES))
 
 CONFIG_DIR_FILES := serverConfig.cpp \
 					route.cpp \

@@ -22,6 +22,7 @@ pollfd*	Connection::getPollFdElementRoot(int &fd)
 bool	Connection::check_revent(int &fd, short rrevent)
 {
 	pollfd	*pfd = getPollFdElementRoot(fd);
+	assert(pfd);
 
 	return (pfd && pfd->revents & rrevent);
 }

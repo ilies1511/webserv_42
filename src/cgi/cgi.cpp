@@ -2,7 +2,8 @@
 #include <vector>
 #include <filesystem>
 #include <printer.hpp>
-
+#include <Server.hpp>
+#include "Connection.hpp"
 // CGI::CGI() :    _is_finished(false),
 //                 _state(INIT) {
 //     _method = "GET";
@@ -45,7 +46,11 @@ CGI::CGI() :    _state(INIT),
 
 }
 
-CGI::~CGI() = default;
+CGI::~CGI() {
+    if (_pid > 0) {
+        kill(_pid, SIGKILL);
+    }
+}
 
 std::string toUpperCase(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
@@ -176,24 +181,32 @@ void CGI::cgiProcess() {
     exit(1);
 }
 
-void CGI::readCgiOutput() {
-    constexpr size_t BUFFER_SIZE = 52428800; // 50 MB
-    // constexpr size_t BUFFER_SIZE = 5242880; // 5 MB
-    // constexpr size_t BUFFER_SIZE = 96; // 50 MB
-    // std::vector<char> buffer(BUFFER_SIZE);
+void CGI::readCgiOutput(Connection& con) {
+    constexpr size_t BUFFER_S = 52428800; // 50 MB
+    // constexpr size_t BUFFER_S = 5242880; // 5 MB
+    // constexpr size_t BUFFER_S = 96; // 50 MB
+    // std::vector<char> buffer(BUFFER_S);
     // std::vector<char> buffer;
-    static char buffer[BUFFER_SIZE];
+    static char buffer[BUFFER_S];
+    ssize_t bytesRead = 0;
 
-    ssize_t bytesRead = read(_pipeOut[0], buffer, BUFFER_SIZE);
+    if (!con.check_revent(_pipeOut[0], POLLIN)) {
+        std::cout << "!poll in" << std::endl;
+        return ;
+    }
+        std::cout << "poll in" << std::endl;
+    bytesRead = read(_pipeOut[0], buffer, BUFFER_S);
     if (bytesRead < 0) {
         std::cerr << "Error reading from pipe." << std::endl;
-        close(_pipeOut[0]);
+        // close(_pipeOut[0]);
+        con._server.ft_closeNclean(_pipeOut[0]);
         _state = FINISH;
         // _is_finished = true;
     }
     if (bytesRead == 0) {
         std::cout << "Finish reading" << std::endl;
-        close(_pipeOut[0]);
+        con._server.ft_closeNclean(_pipeOut[0]);
+        // close(_pipeOut[0]);
         _state = FINISH;
         // _is_finished = true;
         std::cout << "read Data: " << _output << std::endl;
@@ -201,7 +214,7 @@ void CGI::readCgiOutput() {
     _output.append(buffer, static_cast<size_t>(bytesRead));
 }
 
-void    CGI::setup_connection() {
+void    CGI::setup_connection(Connection& con) {
     _envp.emplace_back(nullptr);
     _argv.emplace_back(_cgi_engine.data());
     size_t pos = _script.rfind('/');
@@ -220,8 +233,8 @@ void    CGI::setup_connection() {
         _state = ERROR;
         return;
     }
-    fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
-    fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
+    // fcntl(_pipeIn[1], F_SETFD, O_NONBLOCK); // write end
+    // fcntl(_pipeOut[0], F_SETFD, O_NONBLOCK); // read end
 
     _pid = fork();
     if (_pid == -1) {
@@ -237,33 +250,50 @@ void    CGI::setup_connection() {
         _state = ERROR;
         return;
     }
+    con._server.add_to_pollfds(_pipeIn[1]);
+    con._server.add_to_pollfds(_pipeOut[0]);
+    con._server.setup_non_blocking(_pipeIn[1]);
+    con._server.setup_non_blocking(_pipeOut[0]);
+
     if (_method == "POST") {
         _state = WRITE;
     } else {
         _state = WAIT;
+        con._server.ft_closeNclean(_pipeIn[1]);
         _start = std::chrono::high_resolution_clock::now();
     }
 }
 
-#include <poll.h>
+// #include <poll.h>
 #include <cassert>
-int placeholder_poll = 0;
-void    CGI::writing() {
-    // struct pollfd poll_val = {0};
-    if (placeholder_poll < 0) {
-    // if (poll_val.revents & POLL_HUP) {
+// TODO: check useful events for pipefds
+void    CGI::writing(Connection& con) {
+    if (con.check_revent(_pipeIn[1], POLLNVAL)) {
+        std::cout << "wpoll perr" << std::endl;
         _state = ERROR;
         return ;
-    } else if (placeholder_poll < 10) {
-    // } else if (!poll_val.revents & POLL_IN) {
-        placeholder_poll++;
+    }
+    if (con.check_revent(_pipeIn[1], POLLERR)) {
+        std::cout << "wpoll perr" << std::endl;
+        _state = ERROR;
+
         return ;
     }
-    placeholder_poll = 0;
+    if (con.check_revent(_pipeIn[1], POLLHUP)) {
+        std::cout << "wpoll phup" << std::endl;
+
+        _state = ERROR;
+        return ;
+    } else if (!con.check_revent(_pipeIn[1], POLLOUT)) {
+        std::cout << "!wpoll pout" << std::endl;
+        return ;
+    }
+        std::cout << "wpoll pout" << std::endl;
     // Todo Should be non-blocking !!!
     //write(_pipeIn[1], _body.data(), _body.length());
     ssize_t written = write(_pipeIn[1], _body.data() + _write_progress, 7 < _body.length() - _write_progress ? 7 : _body.length() - _write_progress);
     if (written == -1) {
+        con._server.ft_closeNclean(_pipeIn[1]);
         _state = ERROR;
         return;
     } else {
@@ -271,28 +301,33 @@ void    CGI::writing() {
     }
 
     if (_body.length() == _write_progress) {
+        con._server.ft_closeNclean(_pipeIn[1]);
         _state = WAIT;
         _start = std::chrono::high_resolution_clock::now();
     } //else if() {
        // std::cout << coloring("TO MUCH WRITTEN", BLUE) << std::endl;
     //}
 
-    assert(_body.length() >= _write_progress && "TO MUCH WRITTEN");
+    // assert(_body.length() >= _write_progress && "TO MUCH WRITTEN");
 }
 
-void    CGI::waiting() {
+void    CGI::waiting(Connection& con) {
+    (void)con;
     // auto start = std::chrono::high_resolution_clock::now();
     pid_t process = waitpid(_pid, &_wpidstatus, WNOHANG);
+
     auto current = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current - _start);
     // std::cout << "duration: " << duration.count() << std::endl;
     if (duration.count() >= CGI_TIMEOUT) {
         std::cout << "CGI_TIMEOUT after " << duration.count() << std::endl;
         kill(_pid, SIGKILL);
+        _pid  = -1;
         _state = ERROR;
         // setCgiState(FINISH);
         // _is_finished = true;
     } else if (process == _pid) {
+        _pid  = -1;
         std::cout << "Script finished in " << duration.count() << std::endl;
         _state = READ;
     }
