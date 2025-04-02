@@ -45,13 +45,18 @@ void	Connection::setup_cgi() {
 		return;
 	}
 	if (access(_absolute_path.data(), X_OK)) {
-		std::cout << coloring("CGI TEST 3", BLUE) << std::endl;
+		std::cout << coloring("CGI PERMISSION DENIED", BLUE) << std::endl;
 		set_full_status_code(403);
 		_cgi->setCgiState(FINISH);
 		return;
 	}
 
 	_cgi->setMethod(request.method.value());
+	if (request.method.value() == "GET") {
+		_cgi->setOutput("HTTP/1.1 200 OK\r\n");
+	} else if (request.method.value() == "POST") {
+		_cgi->setOutput("HTTP/1.1 201 CREATED\r\n");
+	}
 	_cgi->setScript(_absolute_path);
 	// _cgi->setQueryString(request.uri->query);
 	// _cgi->setCgiEngine(cgiEngine);
