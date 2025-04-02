@@ -197,28 +197,6 @@ bool Connection::is_timed_out() const
 	return (now - _last_activity) > TIMEOUT_DURATION;
 }
 
-// std::string	Connection::get_mime_type(const std::string &path)
-// {
-// 	size_t dot = path.find_last_of('.');
-// 	if (dot == std::string::npos) {
-// 		return "application/octet-stream";
-// 	}
-// 	std::string ext = path.substr(dot);
-// 	if (ext == ".html")
-// 		return "text/html";
-// 	if (ext == ".txt")
-// 		return "text/plain";
-// 	if (ext == ".css")
-// 		return "text/css";
-// 	if (ext == ".js")
-// 		return "application/javascript";
-// 	if (ext == ".png")
-// 		return "image/png";
-// 	if (ext == ".jpg")
-// 		return "image/jpeg";
-// 	return "text/plain";
-// }
-
 std::string Connection::get_mime_type(const std::string &path)
 {
 	size_t dot = path.find_last_of('.');
@@ -241,6 +219,7 @@ std::string Connection::get_mime_type(const std::string &path)
 		{".webm", "video/webm"},
 		{".ogg",  "video/ogg"},
 		{".mov",  "video/quicktime"},
+		{".ico",  "image/vnd.microsoft.icon"},
 		{".avi",  "video/x-msvideo"}
 	};
 
