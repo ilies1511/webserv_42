@@ -39,7 +39,8 @@
 // }
 
 CGI::CGI() :    _state(INIT),
-                _wpidstatus(0) {
+                _wpidstatus(0),
+                _write_progress(0) {
 
 
 }
@@ -176,8 +177,12 @@ void CGI::cgiProcess() {
 }
 
 void CGI::readCgiOutput() {
-    constexpr size_t BUFFER_SIZE = 96;
-    char buffer[BUFFER_SIZE];
+    constexpr size_t BUFFER_SIZE = 52428800; // 50 MB
+    // constexpr size_t BUFFER_SIZE = 5242880; // 5 MB
+    // constexpr size_t BUFFER_SIZE = 96; // 50 MB
+    // std::vector<char> buffer(BUFFER_SIZE);
+    // std::vector<char> buffer;
+    static char buffer[BUFFER_SIZE];
 
     ssize_t bytesRead = read(_pipeOut[0], buffer, BUFFER_SIZE);
     if (bytesRead < 0) {
@@ -240,11 +245,39 @@ void    CGI::setup_connection() {
     }
 }
 
+#include <poll.h>
+#include <cassert>
+int placeholder_poll = 0;
 void    CGI::writing() {
+    // struct pollfd poll_val = {0};
+    if (placeholder_poll < 0) {
+    // if (poll_val.revents & POLL_HUP) {
+        _state = ERROR;
+        return ;
+    } else if (placeholder_poll < 10) {
+    // } else if (!poll_val.revents & POLL_IN) {
+        placeholder_poll++;
+        return ;
+    }
+    placeholder_poll = 0;
     // Todo Should be non-blocking !!!
-    write(_pipeIn[1], _body.data(), _body.length());
-    _state = WAIT;
-    _start = std::chrono::high_resolution_clock::now();
+    //write(_pipeIn[1], _body.data(), _body.length());
+    ssize_t written = write(_pipeIn[1], _body.data() + _write_progress, 7 < _body.length() - _write_progress ? 7 : _body.length() - _write_progress);
+    if (written == -1) {
+        _state = ERROR;
+        return;
+    } else {
+        _write_progress += static_cast<size_t>(written);
+    }
+
+    if (_body.length() == _write_progress) {
+        _state = WAIT;
+        _start = std::chrono::high_resolution_clock::now();
+    } //else if() {
+       // std::cout << coloring("TO MUCH WRITTEN", BLUE) << std::endl;
+    //}
+
+    assert(_body.length() >= _write_progress && "TO MUCH WRITTEN");
 }
 
 void    CGI::waiting() {

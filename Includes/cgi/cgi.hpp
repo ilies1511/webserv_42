@@ -52,6 +52,7 @@ private:
 
 public:
 
+    size_t                     _write_progress;
     std::vector<std::string>    _env;
 
     CGI();

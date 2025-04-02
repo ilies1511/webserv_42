@@ -113,7 +113,7 @@ void	Connection::validate_match(std::string& longest_match) {
 	_autoindex_enabled =_matching_route->getAutoIndex();
 
 	std::cout << coloring(request.uri->path, BLUE) << std::endl;
-	if (is_cgi(_absolute_path)) {
+	if (is_cgi(_absolute_path) && request.method.value() != "DELETE") {
 		size_t pos = _absolute_path.rfind('.');
 		std::string cgi_identifier;
 		if (pos != std::string::npos) {
@@ -135,7 +135,7 @@ void	Connection::validate_match(std::string& longest_match) {
 				return ;
 			}
 		}
-		std::cout << coloring("TESTETSETSET\n", BLUE) << std::endl;
+		// std::cout << coloring("TESTETSETSET\n", BLUE) << std::endl;
         set_full_status_code(415); // unsupported media tpe
 		return ;
 	}
