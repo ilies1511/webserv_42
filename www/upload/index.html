@@ -1,15 +1,67 @@
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Test POST Request</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h2>POST Request Test</h2>-->
+<!--<form action="postScript.py" method="post">-->
+<!--    <label for="text">Enter Text:</label>-->
+<!--    <input type="text" id="text" name="text" required>-->
+<!--    <button type="submit">Send</button>-->
+<!--</form>-->
+<!--</body>-->
+<!--</html>-->
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test POST Request</title>
+    <title>TESTING METHODS</title>
 </head>
 <body>
-<h2>POST Request Test</h2>
-<form action="/cgi-bin/script.php" method="post">
+<h2>CGI POST Request</h2>
+<form action="postScript.py" method="post">
     <label for="text">Enter Text:</label>
     <input type="text" id="text" name="text" required>
     <button type="submit">Send</button>
 </form>
+
+<h2>CGI GET Request</h2>
+<a href="getData.py"
+   style="display: inline-block;
+          background: #ccffcc;
+          padding: 8px 15px;
+          text-decoration: none;
+          color: black;
+          border-radius: 4px;
+          border: 1px solid #999;
+          margin: 10px 0;">
+    View Stored Data
+</a>
+
+<h2>DELETE Request</h2>
+<button onclick="deleteFile()"
+        style="display: inline-block;
+               background: #ffcccc;
+               padding: 8px 15px;
+               color: black;
+               border-radius: 4px;
+               border: 1px solid #999;
+               margin: 10px 0;
+               cursor: pointer;">
+    Delete data
+</button>
+
+<script>
+    function deleteFile() {
+        if (confirm('Delete data permanently?')) {
+            fetch('/upload/data/data.json', { method: 'DELETE' })
+                .then(res => alert(res.ok ? 'Deleted!' : 'Error: ' + res.status))
+                .catch(err => alert('Failed: ' + err));
+        }
+    }
+</script>
 </body>
 </html>

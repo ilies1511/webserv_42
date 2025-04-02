@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete File</title>
+</head>
+<body>
+<button onclick="deleteFile()">Delete data.json</button>
+
+<script>
+    function deleteFile() {
+        if (confirm('Really delete data.json?')) {
+            fetch('/upload/data/data.json', {
+                method: 'DELETE'
+            })
+                .then(response => alert(response.ok ? 'Deleted!' : 'Error: ' + response.status))
+                .catch(error => alert('Failed: ' + error));
+        }
+    }
+</script>
+</body>
+</html>
