@@ -34,7 +34,8 @@ void	Connection::send_data(void)
 		return ;
 	}
 	_last_activity = std::chrono::steady_clock::now();
-	_OutputBuffer._buffer.assign(_current_response.response_inzemaking.begin(), _current_response.response_inzemaking.end());
+	// _OutputBuffer._buffer.assign(_current_response.response_inzemaking.begin(), _current_response.response_inzemaking.end());
+	_OutputBuffer._buffer = _current_response.response_inzemaking;
 	size_t	left_to_send = _OutputBuffer._buffer.length() - (size_t)sent_bytes;
 	ssize_t	sent = send(this->_fdConnection, this->_OutputBuffer.data() + \
 					sent_bytes, left_to_send, MSG_DONTWAIT);
@@ -55,14 +56,14 @@ void	Connection::send_data(void)
 			return ;
 		}
 	} // TODO: 01.04.25 --> mv _OutputBuffer._buffer = _cgi->getOutput(); in CGI part damit handling uebrlall gleich bleibt HOTFIX should be fixed !!!!
-	else if (_cgi.has_value()) {
-		//TODO: mv in CGI Part // _OutputBuffer._buffer = _cgi->getOutput();
-		const std::string tmp = _cgi->getOutput();
-		_OutputBuffer._buffer.assign(tmp.begin(), tmp.end());
-		send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
-		ft_closeNcleanRoot(this->_fdConnection);
-		return;
-	}
+	// else if (_cgi.has_value()) {
+	// 	//TODO: mv in CGI Part // _OutputBuffer._buffer = _cgi->getOutput();
+	// 	const std::string tmp = _cgi->getOutput();
+	// 	_OutputBuffer._buffer.assign(tmp.begin(), tmp.end());
+	// 	send(this->_fdConnection, this->_OutputBuffer.data(), _OutputBuffer._buffer.size(), 0);
+	// 	ft_closeNcleanRoot(this->_fdConnection);
+	// 	return;
+	// }
 	_state = State::SEND;
 	// /*
 	// 	TODO: 17.03.25

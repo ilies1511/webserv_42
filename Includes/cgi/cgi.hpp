@@ -11,10 +11,13 @@
 #include <signal.h>
 #include <iostream>
 #include <filesystem>
+// #include "Connection.hpp"
 
 #ifndef CGI_TIMEOUT
 #define CGI_TIMEOUT 3000
 #endif
+
+class Connection;
 
 enum CGI_STATE {
     INIT,
@@ -84,10 +87,10 @@ public:
 
 
 
-    void    runCgi();
+    // void    runCgi();
     void    cgiProcess();
-    void    readCgiOutput();
-    void    setup_connection();
-    void    writing();
-    void    waiting();
+    void    readCgiOutput(Connection& con);
+    void    setup_connection(Connection& con);
+    void    writing(Connection& con);
+    void    waiting(Connection& con);
 };
