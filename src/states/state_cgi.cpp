@@ -119,6 +119,7 @@ void	Connection::entry_cgi()
 			break;
 		case FINISH:
 			_state = State::SEND;
+			_current_response.response_inzemaking = _cgi->getOutput();
 			break;
 		case ERROR:
 			set_full_status_code(500);
