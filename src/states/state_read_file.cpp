@@ -5,7 +5,6 @@
 #include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-#include "StaticFileHandler.hpp"
 #include <map>
 
 void	Connection::read_file(void)
@@ -78,14 +77,4 @@ void	Connection::read_file(void)
 		_fdFile = -1;
 		return ;
 	}
-
-	/* TODO: 17.03.25 - Improve Handling, sieh structur file
-		// if (finished)
-		// {
-		// 	close(file_fd);
-		// 	// _server.ft_closeNclean(_fdFile); // --> ist das gut, hier den Clean-Up zu machen
-		// 	_state = State::PROCESS
-		// 	return ;
-		// }
-	*/
 }

@@ -7,7 +7,6 @@
 
 Server::Server(const serverConfig &conf, Core &core)
 	:	_core(core),
-		// _pollfds{},
 		_connections{},
 		listener_fd(-1),
 		_port(std::to_string(conf.getPort())),
@@ -70,7 +69,7 @@ void	Server::execute(void)
 	for (const auto& [key, conn] : _connections) {
 		conn->execute_layer2();
 	}
-	for (auto& p : _core._pollfds) //TODO: 01.04.2025 Core Class std::vector<int> _listener_fds hinzufuegen
+	for (auto& p : _core._pollfds)
 	{
 		if (p.fd == listener_fd)
 		{

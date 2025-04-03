@@ -40,18 +40,14 @@ class Server
 {
 	public:
 		Core&									_core;
-		// std::vector< struct pollfd> 			_pollfds; //Stores FD of Connections
-		// std::vector<int>						_deferred_close_fds;
 		std::unordered_map< int, std::unique_ptr<Connection> > _connections;
 	private:
-		// std::unordered_map<int, std::chrono::steady_clock::time_point> _last_activity;
-		//TODO: _connections als vector, da sowieso durch die Connection durchiteriert werden muss
 		int										listener_fd;
-		std::string						_port;
-		//OCF -- BEGIN
+		std::string								_port;
 	public:
 		serverConfig							_config;
 		std::vector<Cookie>						_cookies;
+	//OCF -- BEGIN
 	public:
 		Server(const serverConfig& conf, Core& core);
 		Server(Server&& other) noexcept = default;			// Move-Konstruktor
@@ -62,8 +58,6 @@ class Server
 	//OCF -- END
 
 	//Methodes -- BEGIN
-	public:
-		void	poll_loop(void);
 	//Utils
 	// Get sockaddr, IPv4 or IPv6:
 		void	init_listener_socket(void);
@@ -83,7 +77,6 @@ class Server
 		pollfd* getPollFdElement(int fd);
 		void	add_to_pollfds_prefilled(pollfd &new_element);
 		void	execute();
-		// void	cleanup_deferred(void);
 		void	check_connection_timeouts(void);
 		bool	is_valid_cookie(const std::string& cookie_string);
 	//Methodes -- END

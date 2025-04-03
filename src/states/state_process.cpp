@@ -4,7 +4,6 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-// #include "StaticFileHandler.hpp"
 #include <map>
 #include <filesystem>
 #include <sstream>

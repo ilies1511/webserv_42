@@ -5,16 +5,12 @@
 #include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-#include "StaticFileHandler.hpp"
 #include <map>
 
 bool	Connection::entry_parse(void) {
 	if (_request_parser.parse_request_line()) {
 		if (_request_parser.parse_headers()) {
-			// in real webserv would select config here
-			// 100 is a placeholder for value from the config
 			if (_request_parser.parse_body(_server._config.getClientMaxBodySize())) {
-				// save to get request here
 				this->request = _request_parser.getRequest();
 				std::cout << this->request << std::endl;
 				printer::debug_putstr("Aloo In RECV State - request finished", __FILE__, __FUNCTION__, __LINE__);
@@ -33,12 +29,7 @@ void	Connection::recv_data(void)
 		return ;
 	}
 	_last_activity = std::chrono::steady_clock::now();
-	//Empfehlung: von dem Buffer in einen permanten reinkopieren --> simpler, Problem: _InputBuffer._buffer.capacity
 	static char buf[BUFFER_SIZE];
-	// ssize_t bytes = recv(_fdConnection, _InputBuffer._buffer.data(), \
-	// 					_InputBuffer._buffer.capacity() - 1, 0);
-	//_InputBuffer._buffer[(size_t)bytes] = 0;
-
 	// memset(buf, 0, sizeof(buf));
 	ssize_t bytes = recv(_fdConnection, buf, \
 						sizeof buf, MSG_DONTWAIT);
@@ -54,34 +45,12 @@ void	Connection::recv_data(void)
 			printer::debug_putstr("Pre perror Connection", __FILE__, __FUNCTION__, __LINE__);
 			perror("recv");
 		}
-		std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);//TODO: statt clean hier, erst nach der current loop interation z.B mit clean_after
+		std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
 		return ;
 	}
-	//buf[(size_t)bytes] = 0;
-	//std::string str(buf);
 	_InputBuffer._buffer.append(buf, (size_t)bytes);
-	//_InputBuffer._buffer.assign(str.begin(), str.end());
 	std::cout << "Received Data:\n"
 				<< std::string(_InputBuffer.data(), (size_t)bytes) << "\n";
 	this->entry_parse();
-	// //ENTRY-Point Parser --> fills Request Instance (Instance belongs to Connection)
-	// parser.entry_parse(this->_InputBuffer, request);
-	// printer::debug_putstr("In RECV State - Parser finished", __FILE__, __FUNCTION__, __LINE__);
-	// std::cout << " Method: " \
-	// 			<< request._method << " URI:" \
-	// 			<< request._uri \
-	// 			<< " Version: " << request._version \
-	// 			<< " Finished: " << request.is_finished \
-	// 			<< "\n";
-	// if (this->request.is_finished)
-	// {
-	// 	printer::debug_putstr("Aloo In RECV State - request finished", __FILE__, __FUNCTION__, __LINE__);
-	// 	_state = State::PROCESS;
-	// 	return ;
-	// }
-	// else {
-	// 	std::cout << "Enough, Request finished\n";
-	// 	return ;
-	// }
 }

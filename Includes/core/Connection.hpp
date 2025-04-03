@@ -91,17 +91,9 @@ class Connection
 
 
 	public:
-		// State	state() const;
 		bool	process_request(const Request &request);
-		// std::string	process_request(const Request &request);
-
-		void	handle_input(const int &fd); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
-		void	handle_input(void); // --> Koennte auch in den jeweiligen Klassen definiert werden. (Request)
-		void	handle_output(void);
 		int		getFdConnection(void);
-
 		void	generate_error_response(Response& response);
-		void	generate_response(Response& response);
 		void	execute_layer2(void);
 		pollfd*	getPollFdElementRoot(int &fd);
 		bool	check_revent(int &fd, short rrevent);
@@ -109,7 +101,6 @@ class Connection
 		void	print_request_data(Request &request);
 		void	prepare_fdFile(void);
 		void	prepare_ErrorFile(void);
-		// void	assemble_response(Response &response);
 		void	assemble_response(void);
 		void	generate_internal_server_error_response(void);
 		void	entry_process(void);

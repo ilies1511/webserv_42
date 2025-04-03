@@ -4,7 +4,6 @@
 // #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-#include "StaticFileHandler.hpp"
 #include <map>
 #include <optional>
 
@@ -51,26 +50,14 @@ void Connection::generate_error_response(Response &response)
 					status_texts.at(response.status_code) + "</h1></body></html>";
 }
 
-// void	Connection::print_request_data(Request &request)
-// {
-// 	std::cout << " Method: " \
-// 					<< request._method << " URI:" \
-// 					<< request._uri \
-// 					<< " Version: " << request._version \
-// 					<< " Finished: " << request.is_finished \
-// 					<< "\n";
-// }
-
 void	Connection::prepare_fdFile_param(const std::string status_code)
 {
 	_current_response.status_code = status_code;
 
-	// _system_path = "errorPages/403.html";
 	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
-		//std::cout << _system_path << std::endl;
 		prepare_ErrorFile();
 		printer::debug_putstr("In open index.html failed", __FILE__, __FUNCTION__, __LINE__);
 		return ;
@@ -116,9 +103,6 @@ void	Connection::prepare_fdFile(void)
 */
 void	Connection::prepare_ErrorFile(void)
 {
-	// volatile int *p = NULL;
-
-	// *p = 123;
 	_fdFile = open("html/error.html", O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
@@ -185,10 +169,6 @@ void	Connection::set_full_status_code(size_t status, \
 		_system_path = _server._config.getErrorPages()[status]; //TODO: use getErrorPages().at(status) --> but throws exception
 		std::cout << "System Path: " << _system_path << "\n";
 	}
-	// key = static_cast<size_t>(std::stoull(status_code));
-	// _system_path = _server._config.getErrorPages()[key];
-	// _system_path = _server._config.getErrorPages()[status];
-	// prepare_fdFile_param(std::to_string(status));
 	prepare_fdFile();
 }
 
@@ -235,6 +215,7 @@ std::string Connection::get_mime_type(const std::string &path)
 		{".gz", "application/gzip"},
 		{".gif", "image/gif"},
 		{".htm", "text/html"},
+		{".html", "text/html"},
 		{".ico", "image/vnd.microsoft.icon"},
 		{".ics", "text/calendar"},
 		{".jar", "application/java-archive"},
@@ -284,8 +265,11 @@ std::string Connection::get_mime_type(const std::string &path)
 		{".xul", "application/vnd.mozilla.xul+xml"},
 		{".zip", "application/zip"},
 		{".3gp", "video/3gpp"},
-		{".3g2", "video/3gpp2; audio/3gpp2 if it doesn't contain video"},
+		{".3g2", "video/3gpp2"},
 		{".7z", "application/x-7z-compressed"},
+		{".flac", "audio/flac"},
+		{".m4a", "audio/mp4"},
+		{".mkv", "video/x-matroska"}
 	};
 
 	auto it = mimeTypes.find(ext);
@@ -293,6 +277,7 @@ std::string Connection::get_mime_type(const std::string &path)
 		return it->second;
 	}
 	// Default: entweder text/plain oder application/octet-stream
+	// return "application/octet-stream";
 	return "application/octet-stream";
 }
 

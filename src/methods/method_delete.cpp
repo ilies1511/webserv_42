@@ -8,33 +8,8 @@
 #include <filesystem>
 #include <sstream>
 
-// //Working Backup without errno handling
-// void	Connection::is_dir_Case(void)
-// {
-// 	if (!std::filesystem::exists(_full_path)) {
-// 		P_DEBUG("2nd 404 in is_dir_Case");
-// 		// set_full_status_code(409);
-// 		set_full_status_code(404);
-// 		return ;
-// 	}
-// 	if (!std::filesystem::is_empty(_full_path)) {
-// 		// Verzeichnis ist nicht leer, daher kann es nicht gelöscht werden – Conflict
-// 		set_full_status_code(409);
-// 	}
-// 	else {
-// 		if (rmdir(_full_path.c_str()) == 0) {
-// 			set_full_status_code(204);
-// 		}
-// 		else {
-// 			//TODO: add more precise error checks with errno
-// 			set_full_status_code(403);
-// 		}
-// 	}
-// }
-
 void	Connection::is_dir_Case(void)
 {
-	// Prüfe explizit auf Verzeichnis (auch wenn Slash vorhanden ist)
 	const bool path_exists = std::filesystem::exists(_full_path);
 
 	if (!std::filesystem::is_directory(_full_path)) {
@@ -80,42 +55,6 @@ void Connection::is_file_Case()
 	}
 }
 
-// //Working Backup without errno handling
-// void	Connection::is_file_Case(void)
-// {
-// 	if (!std::filesystem::exists(_full_path)) {
-// 		P_DEBUG("3nd 404 in is_file_Case");
-// 		set_full_status_code(404);
-// 		return ;
-// 	}
-// 	if (std::filesystem::is_regular_file(_full_path))
-// 	{
-// 		if (unlink(_full_path.c_str()) == 0) {
-// 			// Löschung erfolgreich: 204 No Content
-// 			set_full_status_code(204);
-// 		}
-// 		else {
-// 			//TODO: add more precise error checks with errno
-// 			// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
-// 			set_full_status_code(403);
-// 		}
-// 	}
-// 	else if (std::filesystem::is_directory(_full_path))
-// 	{
-// 		P_DEBUG("conflict case");
-// 		set_full_status_code(409);
-// 		return ;
-// 	}
-// 	// if (unlink(_full_path.c_str()) == 0) {
-// 	// 	// Löschung erfolgreich: 204 No Content
-// 	// 	set_full_status_code(204);
-// 	// } else {
-// 	// 	//TODO: add more precise error checks with errno
-// 	// 	// Löschen schlug fehl (z.B. Berechtigungsproblem): 403 Forbidden
-// 	// 	set_full_status_code(403);
-// 	// }
-// }
-
 /*
 	Testcases:
 		curl -v -X DELETE http://localhost:9035/files/sample.txt
@@ -160,15 +99,6 @@ void	Connection::handle_delete(void)
 		else if (!has_trailing_slash) {
 			is_file_Case();
 		}
-		// else if (std::filesystem::is_regular_file(_full_path)) {
-		// 	std::cout << "In is_regular_file() Case\n";
-		// 	is_file_Case();
-		// }
-		// else if (std::filesystem::is_directory(_full_path)) {
-		// 	std::cout << "In is_directory() Case\n";
-		// 	is_dir_Case();
-		// }
-		// // Falls die Ressource weder Datei noch Verzeichnis ist, gib 404 zurück:
 		else {
 			assert(0);
 			set_full_status_code(404);

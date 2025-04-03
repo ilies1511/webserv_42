@@ -5,7 +5,6 @@
 #include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-#include "StaticFileHandler.hpp"
 #include <map>
 
 void	Connection::write_file(void)
