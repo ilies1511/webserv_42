@@ -52,11 +52,11 @@ void	Connection::setup_cgi() {
 	}
 
 	_cgi->setMethod(request.method.value());
-	if (request.method.value() == "GET") {
-		_cgi->setOutput("HTTP/1.1 200 OK\r\n");
-	} else if (request.method.value() == "POST") {
-		_cgi->setOutput("HTTP/1.1 201 CREATED\r\n");
-	}
+	// if (request.method.value() == "GET") {
+	// 	_cgi->setOutput("HTTP/1.1 200 OK\r\n");
+	// } else if (request.method.value() == "POST") {
+	// 	_cgi->setOutput("HTTP/1.1 201 CREATED\r\n");
+	// }
 	_cgi->setScript(_absolute_path);
 	// _cgi->setQueryString(request.uri->query);
 	// _cgi->setCgiEngine(cgiEngine);
@@ -118,8 +118,10 @@ void	Connection::entry_cgi()
 			_cgi->readCgiOutput(*this);
 			break;
 		case FINISH:
+			_current_response.response_inzemaking = _cgi->parseCgiOutput();
+			// std::cout << coloring("CGI OUTPUT: " + _cgi->getOutput(),BLUE) << std::endl;
 			_state = State::SEND;
-			_current_response.response_inzemaking = _cgi->getOutput();
+			// _current_response.response_inzemaking = _cgi->getOutput();
 			break;
 		case ERROR:
 			set_full_status_code(500);
