@@ -20,7 +20,7 @@ void Server::get_listener_socket(void)
 		// exit(1);
 		throw (std::runtime_error("pollserver: " + std::string(gai_strerror(rv))));
 	}
-	// 🔴 RAII: Smart Pointer mit Custom-Deleter für addrinfo (nun keine Notwendigkeit mehr, freeaddrinfo(ai) manuell zu callen)
+	// RAII: Smart Pointer mit Custom-Deleter für addrinfo (nun keine Notwendigkeit mehr, freeaddrinfo(ai) manuell zu callen)
 	std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> ai_raii(
 		ai,				// Übergebe das allokierte addrinfo-Objekt
 		&freeaddrinfo  	// Custom-Deleter-Funktion
@@ -52,14 +52,12 @@ void Server::get_listener_socket(void)
 		// this->listener_fd = -1;
 		// return ;
 	}
-	// freeaddrinfo(ai); // All done with this --> not needed since 🔴 RAII: Smart Pointer mit Custom-Deleter für addrinfo
+	// freeaddrinfo(ai); // All done with this --> not needed since RAII: Smart Pointer mit Custom-Deleter für addrinfo
 	// Listen
 	if (listen(listener_fd, 10) == -1)
 	{
 		close(listener_fd);
 		throw (std::runtime_error("Failed to listen"));
-		// this->listener_fd = -1;
-		// return ;
 	}
 }
 
@@ -83,8 +81,6 @@ void Server::init_listener_socket(void)
 	_core._pollfds.emplace_back(init_listener);
 	_core._listener_fds.emplace_back(init_listener.fd);
 	std::cout << "POST emplace back " << _core._pollfds.size() << "\n";
-	// Der Listener-FD ist jetzt korrekt in _core._pollfds vorhanden.
-	// int flags = fcntl(_core._pollfds.at(0).fd, F_GETFL, 0);
 	int flags = fcntl(_core._pollfds.back().fd, F_GETFL, 0);
 	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket "
 				<< _core._pollfds.back().fd << " flags: " << flags
@@ -167,11 +163,6 @@ void Server::setup_non_blocking(int fd)
 	#endif
 	errno = old_err;
 }
-
-////TODO: TimeOuts
-// void	Server::check_timeouts(void)
-// {}
-
 
 void	Server::del_from_map(int fd)
 {

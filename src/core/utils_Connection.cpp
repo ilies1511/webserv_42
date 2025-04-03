@@ -1,7 +1,6 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-// #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
 #include <map>
@@ -309,7 +308,6 @@ std::vector<std::string> Connection::cookie_split(const std::string& cookie_head
 	{
 		std::string trimmed = trim(token);
 		if (!trimmed.empty()) {
-			// cookies.push_back("");
 			cookies.emplace_back(trimmed);
 		}
 	}

@@ -4,11 +4,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-
-// #include "Request.hpp"
 #include "RequestParser.hpp"
-
-//class Request;
 
 class Response
 {
@@ -28,20 +24,12 @@ class Response
 	private:
 	public:
 	//OCF -- BEGIN
-		// Response(void);
 		Response(void);
-		// Response(const Request &request);
 		~Response(void);
 		Response(const Response& other);
 		Response& operator=(const Response& other);
 	private:
 	//OCF -- END
-
-	//Methodes -- BEGIN
-	public:
-		// std::string	process_request(void);
-		std::string	process_request(Request &request);
-	//Methodes -- END
 };
 
 #endif

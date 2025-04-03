@@ -1,7 +1,6 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-// #include "Request.hpp"
 #include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"

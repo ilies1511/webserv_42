@@ -27,3 +27,9 @@ log
 src/core/stash_Core.cpp
 var/www/data/files/video.MOV
 www/upload/data/data.json
+src/core/stash/stash_Server.cpp
+src/core/stash/stash_Connection.cpp
+src/core/stash/stash_Core.cpp
+src/core/stash/HTTP_Parser.cpp
+src/http/HTTP_Parser.cpp
+src/core/stash/Request.cpp

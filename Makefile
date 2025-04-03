@@ -94,7 +94,7 @@ CORE_REPO := $(addprefix core/, $(CORE_REPO_FILES))
 UTILS_REPO_FILES := Buffer.cpp
 UTILS_REPO := $(addprefix utils/, $(UTILS_REPO_FILES))
 
-HTTP_REPO_FILES := Request.cpp Response.cpp HTTP_Parser.cpp
+HTTP_REPO_FILES := Response.cpp
 HTTP_REPO := $(addprefix http/, $(HTTP_REPO_FILES))
 
 CONFIG_DIR_FILES := serverConfig.cpp \
@@ -110,7 +110,6 @@ FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
 STATE_DIR_FILES :=	state_process.cpp \
 					state_assemble.cpp \
 					state_read_file.cpp \
-					state_write_file.cpp \
 					state_send_data.cpp \
 					state_cgi.cpp \
 					state_recv.cpp
@@ -125,11 +124,8 @@ CGI_DIR := $(addprefix cgi/, $(CGI_DIR_FILES))
 COOKIES_DIR_FILES := Cookie.cpp
 COOKIE_DIR := $(addprefix Cookies/, $(COOKIES_DIR_FILES))
 
-SRC := src_file.cpp
-
 #Combines all
-MELTING_POT :=	$(SRC) \
-				$(EXTRA) \
+MELTING_POT :=	$(EXTRA) \
 				$(TEST) \
 				$(PLAYGROUND_REPO) \
 				$(CORE_REPO) \

@@ -1,7 +1,6 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 #include "HTTP_Parser.hpp"
-// #include "Request.hpp"
 #include "RequestParser.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
@@ -19,20 +18,12 @@ void	Connection::read_file(void)
 			Alternativ:
 			auch mit stat() moelgich
 	*/
-	/*
-		//TODO: Imrove Handling --> File should be opened somewhere else already
-		For example in Process, where first it's checked whether File should
-		be opened
-	*/
+
 	if (!check_revent(_fdFile, POLLIN)) {
 		printer::debug_putstr("Event failed", __FILE__, __FUNCTION__, __LINE__);
 		return ;
 	}
-	// response->file_data = read(file_fd);
-	/*
-		TODO: gelesenen bytes sollen irgendwie in das response.file_data rein
-	*/
-	// char read_file_buffer[4090];
+
 	printer::Header("In READ_FILE + next_state" + Connection::to_string(_next_state));
 
 	//TODO: 23.03 Improve hotfix
@@ -47,10 +38,8 @@ void	Connection::read_file(void)
 			_server.ft_closeNclean(_fdFile);
 			std::cout << "Set _fdFile: " << _fdFile << " to -1\n";
 			_fdFile = -1;
-			// close (_fdFile);
 			_state = State::PROCESS;
 			_current_response.FileData = true;
-			// _state = State::SEND;
 			_current_response.file_data.assign(read_file_buffer._buffer.begin(), read_file_buffer._buffer.end());
 			_state = _next_state;
 			return ;

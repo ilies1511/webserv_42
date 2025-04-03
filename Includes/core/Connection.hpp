@@ -30,13 +30,12 @@ class Connection
 {
 	public:
 		// enum class State { RECV, READ_HEADER, READ_BODY, PROCESS, READ_FILE, WRITE, SEND, CLOSING };
-		enum class State { RECV, PROCESS, READ_FILE, WRITE, CGI, SEND, ASSEMBLE};
+		enum class State { RECV, PROCESS, READ_FILE, CGI, SEND, ASSEMBLE};
 		static std::string to_string(State state) {
 			switch (state) {
 				case State::RECV: return "RECV";
 				case State::PROCESS: return "PROCESS";
 				case State::READ_FILE: return "READ_FILE";
-				case State::WRITE: return "WRITE";
 				case State::SEND: return "SEND";
 				case State::ASSEMBLE: return "ASSEMBLE";
 				default: return "UNKNOWN";
@@ -109,7 +108,6 @@ class Connection
 		void	handle_post(void);
 		void	handle_delete(void);
 		void	read_file(void);
-		void	write_file(void);
 		void	send_data(void);
 		void	recv_data(void);
 		bool	file_exists_and_readable(const std::filesystem::path& p);

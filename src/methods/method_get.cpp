@@ -89,8 +89,6 @@ void	Connection::no_trailing_slash_case(void)
 		// 	std::cout << v.second << std::endl;
 		// }
 		set_full_status_code(404);
-		// _system_path = "errorPages/404.html";
-		// prepare_fdFile_param("404");
 		return ;
 	}
 }
@@ -104,9 +102,6 @@ void	Connection::trailing_slash_case(void)
 	if (!std::filesystem::exists(_full_path))//Case tritt auf, wenn path nicht existiert
 	{
 		std::cout << "CR7\n";
-		_system_path = "errorPages/404.html";
-		// prepare_fdFile_param("404");
-		// set_full_status_code(404, "errorPages/404.html");
 		set_full_status_code(404);
 		return ;
 	}
@@ -116,12 +111,9 @@ void	Connection::trailing_slash_case(void)
 		_system_path = index_file;
 		std::cout << "im here\n";
 		set_full_status_code(200, index_file);
-		// prepare_fdFile_param("200"); //Setzt READ_FILE und next_state
 		return ;
 	}
 	else if (_autoindex_enabled) {
-		// printer::debug_putstr("In handle_get() trailing case autoindex on", __FILE__, __FUNCTION__, __LINE__);
-		// prepare_fdFile(); // Setzt READ_FILE und next_state
 		generate_autoindex(_full_path);
 		_state = State::ASSEMBLE;
 		return ;
@@ -129,8 +121,6 @@ void	Connection::trailing_slash_case(void)
 	else
 	{
 		printer::debug_putstr("403 CASE", __FILE__, __FUNCTION__, __LINE__);
-		// _system_path = "errorPages/403.html";
-		// prepare_fdFile_param("403"); // Setzt READ_FILE und next_state
 		set_full_status_code(403);
 		return ;
 	}
@@ -150,29 +140,12 @@ void	Connection::handle_get(void)
 {
 	std::cout << "\nALLOOOO aus handle_get entry\n";
 
-
-	// _full_path = "/Users/sparth/Documents/Projects/webserv2/www" + request.uri->path;
 	_full_path = _absolute_path;
-	// std::filesystem::path full_path = std::filesystem::path("/Users/iziane/42/repo_webserv/webserv/") / this->request.uri;
-
-
-	// std::cout << "\nPRE weakly_canonical - full_path: " << full_path << "\n";
-	/*
-		Prevents crashes: with fs::canonical() --> throw exception if any part
-		of the path didn't exist.
-	*/
 	_full_path = std::filesystem::weakly_canonical(_full_path);
-	//TODO: 22.03 testen wie nginx das macht -->  "GET /" Request
 	std::cout << "\nPOST weakly_canonical - _full_path: " << _full_path << "\n";
 	this->_system_path = _full_path;
 
-	//TODO: setStatusCode
-	//TODO: prepare_fdFile_param(status_code)
 	bool has_trailing_slash = !request.uri->path.empty() && request.uri->path.back() == '/';
-	// bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	// bool autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	// _autoindex_enabled = true; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
-	// _autoindex_enabled = false; // TODO: 22.03 mit Steffens Part zsm - LAter via Config
 	if (has_trailing_slash) {//nginx assumes this is dir
 		trailing_slash_case();
 	}

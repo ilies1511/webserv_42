@@ -4,7 +4,6 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "printer.hpp"
-// #include "StaticFileHandler.hpp"
 #include <map>
 
 Connection::Connection(int fd, Server &server)
@@ -77,17 +76,10 @@ void	Connection::execute_layer2(void)
 			read_file();
 			return ;
 		}
-		case State::WRITE:
-		{
-			write_file();
-			return ;
-			//siehe Kommentar oben
-		}
 		case State::CGI:
 		{
 			entry_cgi();
 			return ;
-			//siehe Kommentar oben
 		}
 		case State::SEND:
 		{

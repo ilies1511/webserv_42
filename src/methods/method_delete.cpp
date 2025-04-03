@@ -66,19 +66,6 @@ void Connection::is_file_Case()
 void	Connection::handle_delete(void)
 {
 	P_DEBUG("ALLOOOO aus handle_delete entry");
-	/*	TODO: Eearly Exit mit Steffens Part
-		if (_server._config.getLocation()["/"].getAllowedMethods())
-		{
-		}
-	*/
-
-	// Erzeuge den vollständigen Pfad aus Root und Request URI.
-	// Wichtig: request.uri sollte hier nur den URI-Teil enthalten, z. B. "/files/sample.txt"
-	// _full_path = std::filesystem::weakly_canonical(_server_root + request.uri->path);
-
-	// auto root = "/Users/iziane/42/repo_webserv/webserv/";
-	// _full_path = std::filesystem::weakly_canonical(root + request.uri->path);
-	// std::cout << "DELETE - Full path: " << _full_path << "\n";
 
 	_full_path = _absolute_path;
 	std::cout << "_full_path: " << _absolute_path << "\n";
@@ -86,12 +73,7 @@ void	Connection::handle_delete(void)
 	{
 		bool has_trailing_slash = \
 			!request.uri->path.empty() && request.uri->path.back() == '/';
-		// if (!std::filesystem::exists(_full_path)) {
-		// 	std::cout << "In doesnt exist  Case\n";
-		// 	P_DEBUG("1er 404");
-		// 	set_full_status_code(404); // Ressource existiert nicht
-		// 	return;
-		// }
+
 		if(has_trailing_slash)
 		{
 			is_dir_Case();
