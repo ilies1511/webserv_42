@@ -7,7 +7,7 @@ import datetime
 
 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # Print the required HTTP headers
-# print("HTTP/1.1 200 OK")
+print("Status: 200 OK")
 print("Content-type: text/html\n")
 
 # Print the HTML content

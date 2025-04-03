@@ -93,4 +93,6 @@ public:
     void    setup_connection(Connection& con);
     void    writing(Connection& con);
     void    waiting(Connection& con);
+
+    std::string parseCgiOutput();
 };

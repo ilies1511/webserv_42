@@ -5,81 +5,33 @@ import json
 import os
 import sys
 
-cgitb.enable()  # Debugging
+cgitb.enable()  # Debugging (outputs errors to the browser)
 
 file_path = 'data/data.json'
 
-# Set HTTP response headers
-print("Content-Type: text/html; charset=utf-8\n")
-
 try:
-    # Check if the JSON file exists
+    # Check if the JSON file exists and load data
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
                 data = json.load(f)
             except json.JSONDecodeError:
-                data = []  # Reset to empty list if file is corrupted
+                data = []  # Reset if corrupted
     else:
         data = []
 
-    # Generate HTML table rows
-    table_rows = ""
-    for entry in data:
-        text = entry.get("text", "No text")
-        timestamp = entry.get("timestamp", "Unknown time")
-        table_rows += f"<tr><td>{text}</td><td>{timestamp}</td></tr>"
+    # Generate HTML content
+    table_rows = "".join(
+        f"<tr><td>{entry.get('text', 'No text')}</td><td>{entry.get('timestamp', 'Unknown')}</td></tr>"
+        for entry in data
+    )
 
-    # Generate full HTML page with Go Back button
-    print(f"""
+    html_content = f"""
     <html>
     <head>
         <title>Stored Data</title>
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                padding: 20px;
-            }}
-            h1 {{
-                color: #333;
-                text-align: center;
-            }}
-            table {{
-                width: 80%;
-                margin: 20px auto;
-                border-collapse: collapse;
-                background: white;
-                border-radius: 8px;
-                overflow: hidden;
-                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            }}
-            th, td {{
-                padding: 12px;
-                border-bottom: 1px solid #ddd;
-                text-align: left;
-            }}
-            th {{
-                background-color: #007BFF;
-                color: white;
-            }}
-            tr:hover {{
-                background-color: #f1f1f1;
-            }}
-            .container {{
-                text-align: center;
-            }}
-            .go-back {{
-                display: inline-block;
-                background: #cce5ff;
-                padding: 8px 15px;
-                text-decoration: none;
-                color: black;
-                border-radius: 4px;
-                border: 1px solid #999;
-                margin: 20px 0;
-                cursor: pointer;
-            }}
+            /* ... (keep your existing styles) ... */
         </style>
     </head>
     <body>
@@ -96,8 +48,30 @@ try:
         </div>
     </body>
     </html>
-    """)
+    """
 
-except Exception as e:
-    sys.exit(1)
-    print(f"<h1>Error</h1><p>Unable to read data: {e}</p>")
+    # Successful response (200 OK)
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(html_content)
+
+except json.JSONDecodeError as e:
+    # Handle corrupt JSON specifically
+    print("Status: 400 Bad Request")
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(f"<h1>Invalid Data Format</h1><p>Corrupted JSON file: {str(e)}</p>")
+
+except PermissionError as e:
+    # Handle file permission issues
+    print("Status: 403 Forbidden")
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print("<h1>Access Denied</h1><p>Check file permissions</p>")
+
+except FileNotFoundError as e:
+    # Handle missing file
+    print("Status: 404 Not Found")
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print("<h1>Data File Missing</h1>")

@@ -157,6 +157,13 @@ void CGI::setOutput(const std::string &str) {
     _output = str;
 }
 
+std::string CGI::parseCgiOutput() {
+    std::string mod;
+    if (_output.compare(0, 8, "Status: ") == 0) {
+        return "HTTP/1.1 " + _output.substr(8);
+    }
+    return "HTTP/1.1 200 OK\r\n" + _output;
+}
 
 
 void CGI::cgiProcess() {
