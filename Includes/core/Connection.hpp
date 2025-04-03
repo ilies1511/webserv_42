@@ -12,7 +12,6 @@
 #include "Buffer.hpp"
 #include "RequestParser.hpp"
 #include "Response.hpp"
-#include "HTTP_Parser.hpp"
 #include <cgi.hpp>
 #include <unistd.h>
 #include <poll.h>
