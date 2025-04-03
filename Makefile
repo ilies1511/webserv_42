@@ -21,7 +21,8 @@ INC_DIRS := Includes \
 			Includes/StatusCodes \
 			Includes/Request \
 			Includes/request_parser \
-			Includes/cgi
+			Includes/cgi \
+			Includes/Cookies
 
 SRC_DIRS := src \
 			src/Extra \
@@ -126,6 +127,9 @@ METHODS_REPO := $(addprefix methods/, $(METHODS_FILES))
 CGI_DIR_FILES := cgi.cpp
 CGI_DIR := $(addprefix cgi/, $(CGI_DIR_FILES))
 
+COOKIES_DIR_FILES := Cookie.cpp
+COOKIE_DIR := $(addprefix Cookies/, $(COOKIES_DIR_FILES))
+
 SRC := src_file.cpp
 
 #Combines all
@@ -141,6 +145,7 @@ MELTING_POT :=	$(SRC) \
 				$(STATE_DIR) \
 				$(METHODS_REPO) \
 				$(CONFIG_DIR) \
+				$(COOKIE_DIR) \
 				$(CGI_DIR)
 
 SRCS := $(MAIN_FILE) $(addprefix src/, $(MELTING_POT))

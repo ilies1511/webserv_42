@@ -21,6 +21,7 @@
 #include "serverConfig.hpp"
 #include <chrono> // std::chrono
 #include "Core.hpp"
+#include "Cookie.hpp"
 
 #define TIMEOUT 1000
 
@@ -50,6 +51,7 @@ class Server
 		//OCF -- BEGIN
 	public:
 		serverConfig							_config;
+		std::vector<Cookie>						_cookies;
 	public:
 		Server(const serverConfig& conf, Core& core);
 		Server(Server&& other) noexcept = default;			// Move-Konstruktor
@@ -83,6 +85,7 @@ class Server
 		void	execute();
 		// void	cleanup_deferred(void);
 		void	check_connection_timeouts(void);
+		bool	is_valid_cookie(const std::string& cookie_string);
 	//Methodes -- END
 
 };

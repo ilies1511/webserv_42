@@ -26,3 +26,4 @@ test.c
 log
 src/core/stash_Core.cpp
 var/www/data/files/video.MOV
+www/upload/data/data.json

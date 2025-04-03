@@ -55,7 +55,8 @@ void	Connection::send_data(void)
 			ft_closeNcleanRoot(this->_fdConnection);
 			return ;
 		}
-	} // TODO: 01.04.25 --> mv _OutputBuffer._buffer = _cgi->getOutput(); in CGI part damit handling uebrlall gleich bleibt HOTFIX should be fixed !!!!
+	}
+	// TODO: 01.04.25 --> mv _OutputBuffer._buffer = _cgi->getOutput(); in CGI part damit handling uebrlall gleich bleibt HOTFIX should be fixed !!!!
 	// else if (_cgi.has_value()) {
 	// 	//TODO: mv in CGI Part // _OutputBuffer._buffer = _cgi->getOutput();
 	// 	const std::string tmp = _cgi->getOutput();

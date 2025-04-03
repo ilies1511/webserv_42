@@ -232,6 +232,42 @@ std::string Connection::get_mime_type(const std::string &path)
 	return "application/octet-stream";
 }
 
+//Cookie-Specific HelperFncs --BEGIN
+void	Connection::check_cgi_response_for_cookies(void)
+{
+	for (;;)
+	{
+		break ;
+	}
+}
+
+static std::string trim(const std::string& s) {
+	auto start = std::find_if_not(s.begin(), s.end(), [](unsigned char ch) {
+		return (std::isspace(ch));
+	});
+	auto end = std::find_if_not(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return (std::isspace(ch));
+	}).base();
+	return ((start < end) ? std::string(start, end) : std::string());
+}
+
+std::vector<std::string> Connection::cookie_split(const std::string& cookie_header) {
+	std::vector<std::string> cookies;
+	std::istringstream tokenStream(cookie_header);
+	std::string token;
+
+	while (std::getline(tokenStream, token, ';'))
+	{
+		std::string trimmed = trim(token);
+		if (!trimmed.empty()) {
+			// cookies.push_back("");
+			cookies.emplace_back(trimmed);
+		}
+	}
+	return (cookies);
+}
+//Cookie-Specific HelperFncs --BEGIN
+
 //Utils -- END
 
 

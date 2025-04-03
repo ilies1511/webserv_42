@@ -11,7 +11,8 @@ Server::Server(const serverConfig &conf, Core &core)
 		_connections{},
 		listener_fd(-1),
 		_port(std::to_string(conf.getPort())),
-		_config(conf)
+		_config(conf),
+		_cookies{}
 {
 	printer::ocf_printer("Server", printer::OCF_TYPE::DC);
 	init_listener_socket();
@@ -82,4 +83,19 @@ void	Server::execute(void)
 	}
 	check_connection_timeouts();
 }
+
+bool	Server::is_valid_cookie(const std::string& cookie_string)
+{
+	(void)cookie_string;
+	// for (size_t i = 0; i < _cookies.size(); i++)
+	// {
+	// 	P_DEBUG("PRE Condition check\n");
+	// 	if (_cookies.at(i).cookie_string == cookie_string) {
+	// 		return (true);
+	// 	}
+	// }
+	// return (false);
+	return (true);
+}
+
 // Methodes -- END

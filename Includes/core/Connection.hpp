@@ -142,6 +142,8 @@ class Connection
 		void	is_dir_Case(void);
 		bool	is_timed_out() const;
 		std::string	get_mime_type(const std::string &path);
+		void	check_cgi_response_for_cookies(void);
+		std::vector<std::string> cookie_split(const std::string& cookie_header);
 	//Methodes -- ENDL
 };
 

@@ -70,6 +70,44 @@ void	Connection::setup_cgi() {
 	// //TODO: 02.04.25
 	// if (request.headers.find("cookie") != request.headers.end()) {
 	// }
+
+	auto cookie_finder = request.headers.find("cookie");
+	if (cookie_finder != request.headers.end()) {
+		std::vector<std::string> res_split = cookie_split(request.headers["cookie"]);
+		std::cout << res_split.size() << "== size\n";
+		// for (size_t i = 0; res_split.size(); i++) {
+		// 	// _cgi->_env.emplace_back(request.headers["cookie"]);
+		// 	// std::cout << "res_split: " << res_split.at(i) << "\n";
+		// 	//std::coi
+		// 	std::cout << i << "==i\n";
+		// 	std::cout << "res_split: " << res_split[i] << "\n";
+		// 	// _cgi->_env.emplace_back(res_split.at(i));
+		// }
+
+		for (const auto& cookie : res_split) {
+			if (_server.is_valid_cookie(cookie)) { // Annahme: Server-Validierung
+				_cgi->_env.emplace_back(cookie);
+			}
+		}
+
+		//TODO: split following string --> split bases on ';' delimiter
+		/*
+			std::string cookies = "cookies: key1=val1; key2=val2";
+			_cgi->_env.emplace_back("key1=val1");
+			_cgi->_env.emplace_back("key2=val2");
+
+			1. split oder substring (den Cookies Header aus dem Response)
+
+			2. Checken ob z.B folgender String in der Datenstruktur(pro Server)
+				ist: "1=1" --> wird erstellt wenn CGI fertig ist
+				check with: bool Server::is_valid_cookie(const std::string& cookie_string)
+			3. CGI fuegt es bei erfolgreicher Validierung hinzu:
+				gemaeß : _cgi->_env.emplace_back("key2=val2"); (vgl. mit env)
+				_cgi->_env.emplace_back("1=1");
+
+				request.headers["cookie"]  == "1=1; 2=321"
+		*/
+	}
 	_cgi->_env.emplace_back("REQUEST_METHOD=" + request.method.value());
     _cgi->_env.emplace_back("SCRIPT_NAME=" + _absolute_path);
 	_cgi->_env.emplace_back("PATH_INFO=" + _absolute_path); // TODO add actual path info
@@ -120,6 +158,7 @@ void	Connection::entry_cgi()
 		case FINISH:
 			_state = State::SEND;
 			_current_response.response_inzemaking = _cgi->getOutput();
+			check_cgi_response_for_cookies();
 			break;
 		case ERROR:
 			set_full_status_code(500);
