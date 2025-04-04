@@ -34,7 +34,12 @@ void	Core::poll_loop(int argc, char *argv[])
 		throw std::runtime_error("Usage: ./webserv <ConfigFile>(optional)");
 	}
 	getToken(config_file, tokenList);
-	_server_confs = parsing(tokenList);
+	try {
+		_server_confs = parsing(tokenList);
+	} catch (const std::exception& e) {
+		throw std::runtime_error(config_file + ": " + e.what());
+	}
+	// _server_confs = parsing(tokenList);
 	for (auto conf : _server_confs) {
 		// _servers.push_back(Server(conf)); //TODO: In Servers eine Reference zur Core instanz geben
 		_servers.emplace_back(Server(conf, *this));

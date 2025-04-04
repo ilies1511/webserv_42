@@ -10,13 +10,12 @@ int main(int argc, char *argv[])
 	Log	log("webserv");
 	try
 	{
-		std::cout << coloring("ALO\n", LIGHT_RED);
 		Core core;
 		core.poll_loop(argc, argv); //MAIN LOOP
 	}
 	catch(const std::exception& e)
 	{
-		printer::LogException(e, __FILE__, __FUNCTION__, __LINE__);
+		std::cout << coloring(e.what(),RED) << std::endl;
 	}
 	std::cout << "\nReturn from main" << std::endl;
 	return (0);
