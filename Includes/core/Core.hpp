@@ -28,7 +28,7 @@ class Core
 
 	//Methodes -- BEGIN
 	public:
-		void						poll_loop(void);
+		void						poll_loop(int argc, char *argv[]);
 		void						cleanup_deferred(void);
 		std::vector<struct pollfd>&	getPollFds(void);
 		void						addPollFd(int new_fd);

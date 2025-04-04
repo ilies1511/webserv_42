@@ -51,6 +51,7 @@ void	Connection::execute_layer2(void)
 		State-Machnine -- BEGIN
 		Manages the Request->Respone cycle
 	*/
+
 	switch (_state)
 	{
 		case State::RECV:
@@ -81,6 +82,7 @@ void	Connection::execute_layer2(void)
 		}
 		case State::SEND:
 		{
+			std::cout << _server._cookies.size() << "==size\n";
 			send_data();
 			return ;
 		}

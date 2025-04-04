@@ -17,6 +17,7 @@
 #include <poll.h>
 #include <filesystem>
 #include <route.hpp>
+#include <Cookie.hpp>
 
 
 class Buffer;
@@ -51,6 +52,8 @@ class Connection
 		std::string				_absolute_path;
 		std::optional<route>	_matching_route;
 		std::optional<CGI>		_cgi;
+
+		// std::vector<Cookie>		_cookies;
 	private:
 		int						_fdConnection;
 		int						_fdFile; //TODO: add error_fd

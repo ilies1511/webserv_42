@@ -3,15 +3,16 @@
 
 std::atomic<bool> running(true);
 
-int main(void)
+int main(int argc, char *argv[])
 {
+
 	signal(SIGINT, sig_handler);
 	Log	log("webserv");
 	try
 	{
 		std::cout << coloring("ALO\n", LIGHT_RED);
 		Core core;
-		core.poll_loop(); //MAIN LOOP
+		core.poll_loop(argc, argv); //MAIN LOOP
 	}
 	catch(const std::exception& e)
 	{

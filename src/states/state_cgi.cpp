@@ -146,9 +146,7 @@ void	Connection::entry_cgi()
 			break;
 		case FINISH:
 			_current_response.response_inzemaking = _cgi->parseCgiOutput();
-			// std::cout << coloring("CGI OUTPUT: " + _cgi->getOutput(),BLUE) << std::endl;
 			_state = State::SEND;
-			// _current_response.response_inzemaking = _cgi->getOutput();
 			check_cgi_response_for_cookies();
 			break;
 		case ERROR:

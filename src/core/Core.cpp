@@ -23,9 +23,17 @@ Core::~Core(void)
 }
 //OCF -- END
 
-void	Core::poll_loop(void)
+void	Core::poll_loop(int argc, char *argv[])
 {
-	getToken("configFiles/default.conf", tokenList);
+	std::string config_file;
+	if (argc == 1) {
+		config_file = "configFiles/default.conf";
+	} else if (argc == 2) {
+		config_file = argv[1];
+	} else {
+		throw std::runtime_error("Usage: ./webserv <ConfigFile>(optional)");
+	}
+	getToken(config_file, tokenList);
 	_server_confs = parsing(tokenList);
 	for (auto conf : _server_confs) {
 		// _servers.push_back(Server(conf)); //TODO: In Servers eine Reference zur Core instanz geben
