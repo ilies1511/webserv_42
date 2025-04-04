@@ -33,3 +33,5 @@ src/core/stash/stash_Core.cpp
 src/core/stash/HTTP_Parser.cpp
 src/http/HTTP_Parser.cpp
 src/core/stash/Request.cpp
+var/www/data/files/300MB_file
+webserv.ld_eHQ3hH
