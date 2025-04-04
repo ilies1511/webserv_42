@@ -43,7 +43,6 @@ void	Server::new_connection_handler(void)
 		setup_non_blocking(newfd);
 		add_to_pollfds(newfd);
 		add_to_map(newfd);
-		//TODO: Mit Connection Instance arbeiten --> neues Objekt
 		printf("pollserver: new connection from %s on "
 			"socket %d\n",
 			inet_ntop(remoteaddr.ss_family,

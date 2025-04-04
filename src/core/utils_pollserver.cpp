@@ -28,7 +28,7 @@ void Server::get_listener_socket(void)
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		std::cout << "socket: " << listener_fd << std::endl;
+		// std::cout << "socket: " << listener_fd << std::endl;
 		if (listener_fd < 0)
 			continue ;
 		setup_non_blocking(listener_fd);
@@ -61,9 +61,9 @@ void Server::get_listener_socket(void)
 	}
 }
 
+// Set up and get a listening socket
 void Server::init_listener_socket(void)
 {
-	// Set up and get a listening socket
 	get_listener_socket();
 	if (listener_fd == -1)
 	{
@@ -74,12 +74,11 @@ void Server::init_listener_socket(void)
 	init_listener.events = POLLIN;
 	init_listener.revents = 0;
 
-	P_DEBUG("INIT_LISTENER");
-	std::cout << this->_config.getPort() << "\n";
+	P_DEBUG(("INIT_LISTENER - listening on port: " + std::to_string(this->_config.getPort()) + "\n").c_str());
 	printer::Header("In Init_Listener_Socket");
-	std::cout << "PRE emplace back " << _core._pollfds.size() << "\n";
 	_core._pollfds.emplace_back(init_listener);
 	_core._listener_fds.emplace_back(init_listener.fd);
+	#ifdef DEBUG
 	std::cout << "POST emplace back " << _core._pollfds.size() << "\n";
 	int flags = fcntl(_core._pollfds.back().fd, F_GETFL, 0);
 	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket "
@@ -90,6 +89,7 @@ void Server::init_listener_socket(void)
 		printf("FD: %d\n", _core._pollfds.at(i).fd);
 		printf("Event: %d\n", _core._pollfds.at(i).events);
 	}
+	#endif
 }
 
 
@@ -151,7 +151,9 @@ void Server::setup_non_blocking(int fd)
 			return ;
 	}
 	flags = fcntl(fd, F_GETFL, 0);
+	#ifdef DEBUG
 	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
+	#endif
 	// FD_CLOEXEC nur für macOS (F_SETFD)
 	#ifdef __APPLE__
 	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)

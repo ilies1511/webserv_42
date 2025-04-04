@@ -48,9 +48,12 @@ void	Connection::recv_data(void)
 		return ;
 	}
 	size_t old_size = _InputBuffer._buffer.length();
+	(void)old_size;
 	_InputBuffer._buffer.append(buf, (size_t)bytes);
+	#ifdef DEBUG
 	std::cout << "Received Data:\n"
 				<< std::string(_InputBuffer.data() + old_size, (size_t)bytes) << "\n";
 	std::cerr << "cur input:\n" << _InputBuffer._buffer << std::endl;
+	#endif
 	this->entry_parse();
 }

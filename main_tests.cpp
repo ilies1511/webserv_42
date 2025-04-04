@@ -5,7 +5,6 @@ int main(void)
 	Log	log("webserv");
 	try
 	{
-		std::cout << coloring("ALO\n", LIGHT_RED);
 		Core core;
 		core.poll_loop(); //MAIN LOOP
 	}

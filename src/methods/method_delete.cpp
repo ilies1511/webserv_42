@@ -66,7 +66,7 @@ void	Connection::handle_delete(void)
 	P_DEBUG("ALLOOOO aus handle_delete entry");
 
 	_full_path = _absolute_path;
-	std::cout << "_full_path: " << _absolute_path << "\n";
+	P_DEBUGC(("Right Path: " + _absolute_path + "\n").c_str(), LIGHT_BLUE);
 	try
 	{
 		bool has_trailing_slash = \

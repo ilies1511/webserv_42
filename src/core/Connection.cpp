@@ -22,10 +22,7 @@ Connection::Connection(int fd, Server &server)
 		_request_parser(_InputBuffer._buffer),
 		_autoindex_enabled(false),
 		_last_activity(std::chrono::steady_clock::now())
-{
-
-	std::cout << "I'm Connection Constructor: cap of buffer: " << _InputBuffer._buffer.capacity() << "Output Buffer: " << _OutputBuffer._buffer.capacity() << "\n";
-}
+{}
 
 Connection::~Connection(void) {}
 
@@ -42,7 +39,6 @@ void	Connection::execute_layer2(void)
 	if (check_revent(_fdConnection, POLLHUP))
 	{
 		printf("pollserver: socket %d hung up\n", this->_fdConnection);
-		std::cout << coloring("INIT Check: Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
 		return ;
 	}
