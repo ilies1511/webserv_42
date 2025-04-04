@@ -2,6 +2,7 @@
 #define Core_HPP
 
 #include "webserv.hpp"
+#include <atomic>
 
 extern std::atomic<bool> running;
 

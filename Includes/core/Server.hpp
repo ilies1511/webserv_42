@@ -50,7 +50,7 @@ class Server
 	//OCF -- BEGIN
 	public:
 		Server(const serverConfig& conf, Core& core);
-		Server(Server&& other) noexcept = default;			// Move-Konstruktor
+		Server(Server&& other) = default;			// Move-Konstruktor
 		~Server();
 		Server(const Server&) = delete;						// Copy verbieten
 		Server& operator=(const Server&) = delete;			// Copy-Zuweisung verbieten

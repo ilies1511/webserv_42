@@ -1,4 +1,5 @@
 #include "../../Includes/Config/parser.hpp"
+#include <filesystem>
 
 void validateLocationParams(route& current_route, const std::string& keyword, const std::vector<std::string>& params) {
     if (keyword == "index") {

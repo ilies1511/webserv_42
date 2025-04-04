@@ -143,7 +143,7 @@ std::ostream& operator<<(std::ostream& output, Uri uri) {
 	output << "\tURI.path: " << uri.path << "\n";
 	output << "\tURI.query: " << uri.query << "";
 	return (output);
-};
+}
 
 std::ostream& operator<<(std::ostream &output, const Request &request) {
 	output << "Method: " << request.method << "\n";
@@ -254,11 +254,13 @@ static bool is_hex_digit(char c) {
 
 char RequestParser::to_hex(char c) {
 	if (c >= '0' && c <= '9') {
-		return (c - '0');
+		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('0')));
 	} else if (c >= 'A' && c <= 'F') {
-		return (c - 'A' + 10);
+		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('A') + 10));
+		// return (c - 'A' + 10);
 	} else if (c >= 'a' && c <= 'f') {
-		return (c - 'a' + 10);
+		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('a') + 10));
+		// return (c - 'a' + 10);
 	} else {
 		return (PARSE_ASSERT(0));
 	}
@@ -277,7 +279,7 @@ std::string RequestParser::uri_decode(const std::string &str) {
 				this->request.status_code = 400;
 				return (ret);
 			}
-			ret += this->to_hex(str[i]) * 16 + this->to_hex(str[i + 1]);
+			ret += static_cast<char>(static_cast<int>(this->to_hex(str[i])) * 16 + static_cast<int>(this->to_hex(str[i + 1])));
 			i++;
 		}
 	}

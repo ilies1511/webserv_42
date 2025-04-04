@@ -1,4 +1,5 @@
 #include "Core.hpp"
+#include <atomic>
 
 std::atomic<bool> running(true);
 

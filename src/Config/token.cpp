@@ -87,4 +87,4 @@ void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
 		}
 		current_line++;
 	}
-};
+}

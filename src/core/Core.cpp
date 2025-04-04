@@ -1,4 +1,5 @@
 #include "Core.hpp"
+#include <atomic>
 #include <unordered_set>
 
 //OCF -- BEGIN
@@ -30,7 +31,7 @@ void	Core::poll_loop(void)
 		// _servers.push_back(Server(conf)); //TODO: In Servers eine Reference zur Core instanz geben
 		_servers.emplace_back(Server(conf, *this));
 	}
-	while (running)
+	while (running.load())
 	{
 		int poll_count = poll(_pollfds.data(), static_cast<nfds_t>(_pollfds.size()), -1);
 		if (poll_count < 0)

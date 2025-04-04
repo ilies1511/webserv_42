@@ -11,7 +11,7 @@
 //     _root = "configFiles";
 // };
 serverConfig::serverConfig() : _client_max_body_size(1073741824),
-                               _timeout(75) {};
+                               _timeout(75) {}
 
 serverConfig::~serverConfig() = default;
 

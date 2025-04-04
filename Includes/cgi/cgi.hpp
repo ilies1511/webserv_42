@@ -38,7 +38,7 @@ private:
     int                         _pipeIn[2];
     int                         _pipeOut[2];
     int                         _wpidstatus;
-    std::chrono::time_point<std::chrono::steady_clock> _start;
+    std::chrono::time_point<std::chrono::system_clock> _start;
 
     std::string                 _output;
 
