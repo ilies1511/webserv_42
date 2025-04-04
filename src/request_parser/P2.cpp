@@ -422,6 +422,9 @@ bool RequestParser::parse_request_line(void) {
 		return (true);
 	}
 	std::smatch match;
+	//size_t len = std::strlen("HTTP/1.1\r\n");
+	//std::string sub = this->input.substr(this->pos, len);
+	//if (
 	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
 		std::cout << "No match (invlaid version syntax?)\n";
 		//this->setStatus(400);
@@ -463,7 +466,7 @@ bool RequestParser::parse_request_line(void) {
 }
 
 bool RequestParser::parse_headers(void) {
-	if (this->request.status_code.has_value()) {
+	if (this->request.status_code.has_value() || this->finished_headers) {
 		return (true);
 	}
 	std::smatch	match;
