@@ -1,0 +1,28 @@
+*****************************************************************
+04-04 18:17
+RequestParser assertion in file src/request_parser/P2.cpp line 375(function 'parse_method')!
+Assert condion: '(!match[2].matched && !match[3].matched)'
+------------Current input:
+G------------Current request:
+Method: No value
+URI: 
+No value
+Version: No value
+Headers:
+Body: No value
+Stutus code: No value
+-----------------------------------------------------------------
+*****************************************************************
+04-04 18:32
+RequestParser assertion in file src/request_parser/P2.cpp line 375(function 'parse_method')!
+Assert condion: '(!match[2].matched && !match[3].matched)'
+------------Current input:
+G------------Current request:
+Method: No value
+URI: 
+No value
+Version: No value
+Headers:
+Body: No value
+Stutus code: No value
+-----------------------------------------------------------------

@@ -17,7 +17,7 @@ bool	Connection::entry_parse(void) {
 			}
 		}
 	}
-	std::cout << "Enough, Request finished\n";
+	std::cout << "Request not finished\n";
 	return (false);
 }
 
@@ -47,8 +47,10 @@ void	Connection::recv_data(void)
 		ft_closeNcleanRoot(_fdConnection);
 		return ;
 	}
+	size_t old_size = _InputBuffer._buffer.length();
 	_InputBuffer._buffer.append(buf, (size_t)bytes);
 	std::cout << "Received Data:\n"
-				<< std::string(_InputBuffer.data(), (size_t)bytes) << "\n";
+				<< std::string(_InputBuffer.data() + old_size, (size_t)bytes) << "\n";
+	std::cerr << "cur input:\n" << _InputBuffer._buffer << std::endl;
 	this->entry_parse();
 }

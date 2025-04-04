@@ -372,7 +372,7 @@ bool RequestParser::parse_method(void) {
 		this->setStatus(501);
 		return (true);
 	} else if (match[3].matched) {
-		PARSE_ASSERT(!match[2].matched && !match[3].matched);
+		//PARSE_ASSERT(!match[2].matched && !match[3].matched);
 		if (this->input.length() - this->pos > REQUEST_LINE_MAX) { //todo: could add method too long here
 			std::cout << "invalid request: request line too long\n";
 			this->setStatus(400);
@@ -396,6 +396,7 @@ bool RequestParser::parse_request_line(void) {
 	}
 
 	//todo: should be in parse_uri
+	if (!this->request.uri.has_value())
 	{
 		size_t uri_term = this->input.find(' ', this->pos);
 		Uri uri;
@@ -423,8 +424,8 @@ bool RequestParser::parse_request_line(void) {
 	std::smatch match;
 	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
 		std::cout << "No match (invlaid version syntax?)\n";
-		this->setStatus(400);
-		return (true);
+		//this->setStatus(400);
+		return (false);
 	}
 
 	//for (size_t i = 0; i < match.size(); i++) {
@@ -485,6 +486,7 @@ bool RequestParser::parse_headers(void) {
 		//}
 		std::string key;
 		std::string value;
+		size_t old_pos = this->pos;
 		if (match[1].matched) {
 			key = match.str(1);
 			if (std::isspace(key.back())) {
@@ -519,6 +521,7 @@ bool RequestParser::parse_headers(void) {
 		} else {
 			PARSE_ASSERT(match[3].matched);
 			std::cout << "unfinished request header\n";
+			this->pos = old_pos;
 			return (false);
 		}
 		this->request.headers[key] = value;
@@ -673,6 +676,7 @@ bool RequestParser::parse_encoded_body(size_t max_body_len) {
 			this->setStatus(501);
 			return (true);
 		}
+
 	}
 	return (true);
 }
