@@ -38,8 +38,11 @@ private:
     int                         _pipeIn[2];
     int                         _pipeOut[2];
     int                         _wpidstatus;
+#ifndef __APPLE__
     std::chrono::time_point<std::chrono::system_clock> _start;
-
+#else
+	std::chrono::time_point<std::chrono::steady_clock> _start;
+#endif //!__APPLE__
     std::string                 _output;
 
     std::string                 _method;
