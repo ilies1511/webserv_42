@@ -51,7 +51,7 @@ void	Connection::prepare_fdFile_param(const std::string status_code)
 {
 	_current_response.status_code = status_code;
 
-	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
+	P_DEBUGC(("in prepare_fdFile - _system_path: " + _system_path + "\n").c_str(), TURQUOISE);
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
@@ -74,7 +74,7 @@ void	Connection::prepare_fdFile_param(const std::string status_code)
 
 void	Connection::prepare_fdFile(void)
 {
-	std::cout << coloring("\n\nin prepare_fdFile - _system_path: " + _system_path + "\n", TURQUOISE);
+	P_DEBUGC(("in prepare_fdFile - _system_path: " + _system_path + "\n").c_str(), TURQUOISE);
 	_fdFile = open(_system_path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (_fdFile < 0)
 	{
@@ -152,19 +152,15 @@ void	Connection::set_full_status_code(size_t status, \
 {
 	if (_server._config.getErrorPages().find(status) == _server._config.getErrorPages().end()) {
 		status = 500;
-		std::cout << "Alo 1\n";
 	}
 	_current_response.status_code = std::to_string(status);
 	// Wenn custom_path vorhanden ist, benutze es; andernfalls nutze den Standardpfad
 	if (custom_path.has_value()) {
-		std::cout << "Alo 2\n";
 		_system_path = custom_path.value();
 	}
 	else {
-		std::cout << "Alo 3\n";
-		std::cout << "Status: " << status << "PRE System Path: " << _system_path << "\n";
 		_system_path = _server._config.getErrorPages()[status]; //TODO: use getErrorPages().at(status) --> but throws exception
-		std::cout << "System Path: " << _system_path << "\n";
+		P_DEBUGC(("System Path: " + _system_path + "\n").c_str(), PURPLE);
 	}
 	prepare_fdFile();
 }

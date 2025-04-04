@@ -13,16 +13,17 @@ void	Connection::methode_handler(void)
 {
 	if (this->request.method == "GET")
 	{
-		std::cout << coloring("in methode_handler GET", PURPLE);
+		P_DEBUGC("Entry methode_handler GET", PURPLE);
 		handle_get();
 	}
 	else if (this->request.method == "POST")
 	{
-		std::cout << coloring("in methode_handler", PURPLE);
+		P_DEBUGC("Entry methode_handler POST", PURPLE);
 		handle_post();
 	}
 	else if (this->request.method == "DELETE")
 	{
+		P_DEBUGC("Entry methode_handler DELETE", PURPLE);
 		handle_delete();
 	}
 	else {

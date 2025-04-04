@@ -4,7 +4,6 @@
 Buffer::Buffer(void)
 {
 	_buffer.reserve(INITIAL_SIZE);
-	std::cout << "Cap of _buffer: " << _buffer.capacity() << "\n";
 }
 
 Buffer::~Buffer(void) {}

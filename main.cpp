@@ -5,7 +5,6 @@ std::atomic<bool> running(true);
 
 int main(int argc, char *argv[])
 {
-
 	signal(SIGINT, sig_handler);
 	Log	log("webserv");
 	try

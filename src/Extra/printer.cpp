@@ -44,7 +44,10 @@ namespace printer
 
 	void Header(const std::string& Input)
 	{
+		(void)Input;
+		#ifdef DEBUG
 		std::cout << coloring(Input, ORANGE) << "\n";
+		#endif
 	}
 
 	void print_Interactive(const std::string& Input)
@@ -71,16 +74,46 @@ namespace printer
 
 	void	debug_putstr(const char* msg, const char* file, const char* function, int line)
 	{
+		(void)msg;
+		(void)file;
+		(void)function;
+		(void)line;
+		#ifdef DEBUG
 		std::cout << YELLOW <<  "File: " << NC << file << YELLOW << ", Function: " \
 			<< NC << function << YELLOW << ", Line: " << NC << line \
 			<< YELLOW << ", msg: " << NC << msg << "\n";
+		#endif
 	}
 
-	void macro_debug_putstr(const char* msg, const char* file, const char* function, int line)
+	// void macro_debug_putstr(const char* msg, const char* file, const char* function, int line)
+	void macro_debug_putstr(const char* msg, const char* file, \
+			const char* function, int line, const std::string& color)
 	{
-		std::cout << TURQUOISE <<  "File: " << NC << file << TURQUOISE << ", Function: " \
-		<< NC << function << TURQUOISE << ", Line: " << NC << line \
-		<< TURQUOISE << ", msg: " << NC << msg << "\n";
+		(void)msg;
+		(void)file;
+		(void)function;
+		(void)line;
+		(void)color;
+		#ifdef DEBUG
+		std::cout << color <<  "File: " << NC << file << color << ", Function: " \
+		<< NC << function << color << ", Line: " << NC << line \
+		<< color << ", msg: " << NC << msg << "\n";
+		#endif
+	}
+
+	void macro_debug_putstr_full(const char* msg, const char* file, \
+			const char* function, int line, const std::string& color)
+	{
+		(void)msg;
+		(void)file;
+		(void)function;
+		(void)line;
+		(void)color;
+		#ifdef DEBUG
+		std::cout << color <<  "File: " << file << color << ", Function: " \
+		<< function << color << ", Line: " << line \
+		<< color << ", msg: " << NC << msg << "\n";
+		#endif
 	}
 }
 

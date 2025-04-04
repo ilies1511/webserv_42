@@ -96,10 +96,9 @@ void	Connection::no_trailing_slash_case(void)
 */
 void	Connection::trailing_slash_case(void)
 {
-	std::cout << coloring("In has_trailing_slash()\n", TURQUOISE);
+	P_DEBUGC("In has_trailing_slash()\n", TURQUOISE);
 	if (!std::filesystem::exists(_full_path))//Case tritt auf, wenn path nicht existiert
 	{
-		std::cout << "CR7\n";
 		set_full_status_code(404);
 		return ;
 	}
@@ -136,11 +135,8 @@ void	Connection::trailing_slash_case(void)
 */
 void	Connection::handle_get(void)
 {
-	std::cout << "\nALLOOOO aus handle_get entry\n";
-
 	_full_path = _absolute_path;
 	_full_path = std::filesystem::weakly_canonical(_full_path);
-	std::cout << "\nPOST weakly_canonical - _full_path: " << _full_path << "\n";
 	this->_system_path = _full_path;
 
 	bool has_trailing_slash = !request.uri->path.empty() && request.uri->path.back() == '/';

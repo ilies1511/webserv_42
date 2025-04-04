@@ -41,7 +41,6 @@ void	Core::poll_loop(int argc, char *argv[])
 	}
 	// _server_confs = parsing(tokenList);
 	for (auto conf : _server_confs) {
-		// _servers.push_back(Server(conf)); //TODO: In Servers eine Reference zur Core instanz geben
 		_servers.emplace_back(Server(conf, *this));
 	}
 	while (running.load())
@@ -50,7 +49,6 @@ void	Core::poll_loop(int argc, char *argv[])
 		if (poll_count < 0)
 		{
 			perror("poll");
-			std::cout << "alo\n";
 			if (errno != EINTR)
 			{
 				running = false;
