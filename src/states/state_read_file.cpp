@@ -32,6 +32,7 @@ void Connection::read_file(void)
 			MAX_FILE_SIZE < FILE_SIZE_CHECK_THRESHOLD
 			&& get_file_size(this->_system_path) > MAX_FILE_SIZE)) {
 		P_DEBUG("Aloooo In read_file EARLY-Exit Case\n");
+		_server.ft_closeNclean(_fdFile);//TODO: 04.04 Check if correct
 		set_full_status_code(413);
 		return ;
 	}
