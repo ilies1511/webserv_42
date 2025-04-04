@@ -63,8 +63,7 @@ void tokenizer(const std::string& word, std::vector<TOKEN>& tokenList, std::size
 void getToken(const std::string& input, std::vector<TOKEN>& tokenList) {
 	std::ifstream file(input);
 	if (!file) {
-		std::cerr << "Cannot open file!" << std::endl;
-		return ;
+		throw std::runtime_error(input + ": Cannot open file!");
 	}
 	std::string line;
 	std::size_t	current_line = 1;

@@ -1,5 +1,7 @@
 #include "../../Includes/Config/parser.hpp"
 
+#include <unordered_set>
+
 void validateLocationParams(route& current_route, const std::string& keyword, const std::vector<std::string>& params) {
     if (keyword == "index") {
         if (current_route.getRouteIsRedirect() == true) {
@@ -213,9 +215,21 @@ void validateParam(serverConfig& server_config, const std::string &keyword, cons
     }
 }
 
+bool    hasDuplicate(const std::vector<size_t>& vec) {
+    std::unordered_set<size_t> seen;
+    for (const auto& num : vec) {
+        if (seen.count(num)) {
+            return true;
+        }
+        seen.insert(num);
+    }
+    return false;
+}
 
 void update_routes(std::vector<serverConfig>& server_configs) {
+   std::vector<size_t> ports;
    for (auto& server_config : server_configs) {
+       ports.emplace_back(server_config.getPort());
        auto locations = server_config.getLocation();
        for (auto& [uri, Route] : locations) {
            route& temp = server_config.getRoute(uri);
@@ -283,6 +297,9 @@ void update_routes(std::vector<serverConfig>& server_configs) {
               temp.setIndex(server_config.getIndex());
            }
        }
+   }
+   if (hasDuplicate(ports)) {
+       throw std::runtime_error("Detected the same Port in multiple servers");
    }
 }
 
