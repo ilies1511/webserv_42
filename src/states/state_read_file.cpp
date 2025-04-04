@@ -34,6 +34,7 @@ void Connection::read_file(void)
 		P_DEBUG("Aloooo In read_file EARLY-Exit Case\n");
 		std::cout << coloring("File FD: " + std::to_string(_fdFile) + "\n", LIGHT_BLUE);
 		_server.ft_closeNclean(_fdFile);
+		_fdFile = -1;
 		set_full_status_code(413);
 		return ;
 	}
@@ -49,14 +50,14 @@ void Connection::read_file(void)
 	if (bytes_read < 0) {
 		perror("read");
 		_server.ft_closeNclean(_fdFile);
-		// _fdFile = -1;
+		_fdFile = -1;
 		set_full_status_code(500);
 		return;
 	}
 	else if (bytes_read == 0) {
 		// EOF - Datei vollständig gelesen --> nur hier gehts 'weiter'
 		_server.ft_closeNclean(_fdFile);
-		// _fdFile = -1;
+		_fdFile = -1;
 		_current_response.FileData = true;
 		_state = _next_state;
 		return;
@@ -65,7 +66,7 @@ void Connection::read_file(void)
 		if (_current_response.file_data.size() + (size_t)bytes_read > MAX_FILE_SIZE) {
 			P_DEBUG("read_file Case MAX_FILE_SIZE Case\n");
 			_server.ft_closeNclean(_fdFile);
-			// _fdFile = -1;
+			_fdFile = -1;
 			set_full_status_code(413); // 413 Payload Too Large
 			return;
 		}
