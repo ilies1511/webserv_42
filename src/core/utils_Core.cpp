@@ -1,4 +1,5 @@
 #include "Core.hpp"
+#include <string>
 #include <unordered_set>
 
 void	sig_handler(int)
@@ -63,6 +64,8 @@ void Core::cleanup_deferred(void)
 		std::remove_if(_pollfds.begin(), _pollfds.end(),
 			[&to_close](const pollfd& pfd) {
 				if (to_close.count(pfd.fd) > 0) {
+					std::cout << coloring("Processing Closure of fd: " + \
+							std::to_string(pfd.fd) + "\n", LIGHT_GREEN);
 					close(pfd.fd);
 					return (true);
 				} else {

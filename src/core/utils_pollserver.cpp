@@ -176,14 +176,11 @@ void	Server::del_from_map(int fd)
 // Obsoletes (new: ft_closeNclean(int fd))
 void Server::ft_closeNclean(int fd)
 {
-	// if (fd >= 0)
-	// {
-	// 	std::cout << "Flagged Closing fd: " << fd << "\n";
-	// 	close(fd);
-	// }
+	if (fd >= 0) {
+		std::cout << "Flagged Closing fd: " << fd << "\n";
+	}
 	// Markiere den fd zur späteren Entfernung aus _pollfds und _connections
 	_core._deferred_close_fds.push_back(fd);
-	// _deferred_close_fds.push_back(fd);
 }
 
 void	Server::add_to_map(int fd)
