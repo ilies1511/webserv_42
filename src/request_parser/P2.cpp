@@ -463,7 +463,7 @@ bool RequestParser::parse_request_line(void) {
 }
 
 bool RequestParser::parse_headers(void) {
-	if (this->request.status_code.has_value()) {
+	if (this->request.status_code.has_value() || this->finished_headers) {
 		return (true);
 	}
 	std::smatch	match;
