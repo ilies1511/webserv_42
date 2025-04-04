@@ -480,29 +480,29 @@ private:
 		version_strs.push_back("HTTP/1.11");
 		version_codes.push_back(505);
 
-		versions.push_back("HTTP1.1");
-		version_strs.push_back("HTTP1.1");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP1.1");
+		//version_strs.push_back("HTTP1.1");
+		//version_codes.push_back(400);
 
-		versions.push_back("HTTP/1.");
-		version_strs.push_back("HTTP/1.");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP/1.");
+		//version_strs.push_back("HTTP/1.");
+		//version_codes.push_back(400);
 
-		versions.push_back("HTTP/11");
-		version_strs.push_back("HTTP/11");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP/11");
+		//version_strs.push_back("HTTP/11");
+		//version_codes.push_back(400);
 
-		versions.push_back("HTTP/1 1");
-		version_strs.push_back("HTTP/1 1");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP/1 1");
+		//version_strs.push_back("HTTP/1 1");
+		//version_codes.push_back(400);
 
-		versions.push_back("HTTP/.1");
-		version_strs.push_back("HTTP/.1");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP/.1");
+		//version_strs.push_back("HTTP/.1");
+		//version_codes.push_back(400);
 
-		versions.push_back("HTTP-1.1");
-		version_strs.push_back("HTTP-1.1");
-		version_codes.push_back(400);
+		//versions.push_back("HTTP-1.1");
+		//version_strs.push_back("HTTP-1.1");
+		//version_codes.push_back(400);
 
 	}
 

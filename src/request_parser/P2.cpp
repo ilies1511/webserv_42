@@ -421,48 +421,71 @@ bool RequestParser::parse_request_line(void) {
 	if (this->request.status_code.has_value()) {
 		return (true);
 	}
-	std::smatch match;
-	//size_t len = std::strlen("HTTP/1.1\r\n");
-	//std::string sub = this->input.substr(this->pos, len);
-	//if (
-	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
-		std::cout << "No match (invlaid version syntax?)\n";
-		//this->setStatus(400);
-		return (false);
-	}
-
-	//for (size_t i = 0; i < match.size(); i++) {
-	//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
-	//}
-
-	if (match[3].matched) {
-		PARSE_ASSERT(!match[2].matched);
-		std::cout << "unsupported version, 505\n";
-		this->setStatus(505);
+	if (this->request.version.has_value()) {
 		return (true);
 	}
-	if (!match[4].matched) {
-		if (match[5].matched) {
-			std::cout << "invalid request (not terminated request line with more content)\n";
+	size_t len = std::strlen("HTTP/1.1\r\n");
+	std::string sub = this->input.substr(this->pos, len);
+	if (sub == "HTTP/1.1\r\n") {
+		this->request.version = "HTTP/1.1";
+		this->pos += static_cast<size_t>(len);
+		return (true);
+	}
+	const std::string ver = "HTTP/1.1\r\n";
+	for (size_t i = 0; i < sub.size(); i++) {
+		if (sub[i] != ver[i]) {
+			if (sub.find(' ') != std::string::npos) {
+				this->setStatus(400);
+				std::cout << "Invalid space in request line\n";
+				return (true);
+			}
+			std::cout << " Invlaid version: " << sub << "\n";
 			this->setStatus(505);
 			return (true);
 		}
-		//todo: renable this case
-		//if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
-		//	std::cout << "invalid request: request line too long\n";
-		//	this->setStatus(400);
-		//	return (true);
-		//}
-		std::cout << "not terminated\n";
-		return (false);
 	}
-	else if (match[2].matched) {
-		PARSE_ASSERT(!match[3].matched);
-		this->request.version = match.str(2);
-		this->pos += static_cast<size_t>(match[1].length());
-	}
+	std::cout << "Unfinished version\n";
+	return (false);
 
-	return (true);
+	//std::smatch match;
+	//if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
+	//	std::cout << "No match (invlaid version syntax?)\n";
+	//	//this->setStatus(400);
+	//	return (false);
+	//}
+
+	////for (size_t i = 0; i < match.size(); i++) {
+	////	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
+	////}
+
+	//if (match[3].matched) {
+	//	PARSE_ASSERT(!match[2].matched);
+	//	std::cout << "unsupported version, 505\n";
+	//	this->setStatus(505);
+	//	return (true);
+	//}
+	//if (!match[4].matched) {
+	//	if (match[5].matched) {
+	//		std::cout << "invalid request (not terminated request line with more content)\n";
+	//		this->setStatus(505);
+	//		return (true);
+	//	}
+	//	//todo: renable this case
+	//	//if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
+	//	//	std::cout << "invalid request: request line too long\n";
+	//	//	this->setStatus(400);
+	//	//	return (true);
+	//	//}
+	//	std::cout << "not terminated\n";
+	//	return (false);
+	//}
+	//else if (match[2].matched) {
+	//	PARSE_ASSERT(!match[3].matched);
+	//	this->request.version = match.str(2);
+	//	this->pos += static_cast<size_t>(match[1].length());
+	//}
+
+	//return (true);
 }
 
 bool RequestParser::parse_headers(void) {
