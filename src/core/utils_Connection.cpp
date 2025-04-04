@@ -235,10 +235,83 @@ std::string Connection::get_mime_type(const std::string &path)
 //Cookie-Specific HelperFncs --BEGIN
 void	Connection::check_cgi_response_for_cookies(void)
 {
-	for (;;)
-	{
-		break ;
+
+	std::string output = _cgi->getOutput();
+	std::cout << coloring(output, BLUE) << std::endl;
+	std::regex pattern(R"(Set-Cookie:?\s*([^\r\n]*))", std::regex::icase);
+	auto begin = std::sregex_iterator(output.begin(), output.end(), pattern);
+	auto end = std::sregex_iterator();
+
+	for (std::sregex_iterator i = begin; i != end; ++i) {
+		std::smatch match = *i;
+		if (match.size() > 1) {
+			std::string str = match[1].str();
+			if (str.back() == '\n' || str.back() == '\r') {
+				str.pop_back();
+			}
+			if (str.find(';') != std::string::npos) {
+				std::vector<std::string> arr;
+				std::stringstream ss(str);
+				std::string cookie_name;
+
+				if (!std::getline(ss, cookie_name, ';')) {
+					continue;;
+				}
+				Cookie cookie(cookie_name);
+				std::string temp;
+				while (std::getline(ss, temp, ';')) {
+					if (temp.compare(0, 8, "Max-Age=")) {
+						std::string stime = temp.substr(9);
+						try {
+							long max_age = std::stol(stime);
+							std::time_t now = std::time(nullptr);
+							now += max_age;
+							cookie.setMaxAge(now);
+						} catch (...) {
+							continue;
+						}
+					}
+					arr.push_back(temp);
+				}
+				std::cout << "adding cookie 1\n";
+				bool found = false;
+				for (auto& coo : _server._cookies) {
+					std::cout << coloring("str: " + cookie_name + "; cookie1: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
+					if (coo.cookie_string == cookie_name) {
+						found = true;
+						if (coo.getMaxAge() != 0) {
+							coo.max_age = cookie.max_age;
+						}
+					}
+				}
+				if (!found) {
+                    _server._cookies.emplace_back(cookie);
+				}
+			} else {
+				Cookie cookie(str);
+				std::cout << "adding cookie 2\n";
+				bool found = false;
+				for (auto& coo : _server._cookies) {
+					std::cout << coloring("cookie2: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
+					if (coo.cookie_string == str) {
+						found = true;
+						if (coo.getMaxAge() != 0) {
+							coo.max_age = cookie.max_age;
+						}
+					}
+				}
+				if (!found) {
+					_server._cookies.emplace_back(cookie);
+				}
+			}
+		}
 	}
+	std::cout << coloring("TEST", BLUE) << std::endl;
+	// std::cout << coloring("COOKIE: "+ _cgi->getOutput(),BLUE) << std::endl;
+	// for (;;)
+	// {
+	// 	break ;
+	// }
 }
 
 static std::string trim(const std::string& s) {
