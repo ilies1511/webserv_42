@@ -37,3 +37,4 @@ var/www/data/files/300MB_file
 webserv.ld_eHQ3hH
 webserv.ld_VpGtKh
 src/Tests/trace_open_close.d
+www/upload/data/data.json
