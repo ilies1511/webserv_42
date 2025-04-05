@@ -10,7 +10,7 @@ bool	Connection::entry_parse(void) {
 		if (_request_parser.parse_headers()) {
 			if (_request_parser.parse_body(_server._config.getClientMaxBodySize())) {
 				this->request = _request_parser.getRequest();
-				std::cout << this->request << std::endl;
+				//std::cout << this->request << std::endl;
 				printer::debug_putstr("Aloo In RECV State - request finished", __FILE__, __FUNCTION__, __LINE__);
 				_state = State::PROCESS;
 				return (true);
