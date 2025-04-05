@@ -116,6 +116,7 @@ std::ostream& operator<<(std::ostream &output, const Request &request) {
 	return (output);
 }
 
+// todo: deactive for eval duo to blocking fileIO
 // only called via macro PARSE_ASSERT
 //todo: add some hexdump of input since \r makes it hard to understand
 bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const char *file, const int line, const char *fn_str) {
@@ -211,10 +212,8 @@ char RequestParser::to_hex(char c) {
 		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('0')));
 	} else if (c >= 'A' && c <= 'F') {
 		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('A') + 10));
-		// return (c - 'A' + 10);
 	} else if (c >= 'a' && c <= 'f') {
 		return (static_cast<char>(static_cast<int>(c) - static_cast<int>('a') + 10));
-		// return (c - 'a' + 10);
 	} else {
 		return (PARSE_ASSERT(0));
 	}
@@ -264,7 +263,7 @@ bool RequestParser::parse_uri(void) {
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
 		std::cout << "invalid request uri: " << this->request.uri->full << "\n";
-		this->setStatus(400); //todo: is 400 correct?
+		this->setStatus(400);
 		return (true);
 	}
 	//for (size_t i = 0; i < match.size(); i++) {
@@ -344,7 +343,7 @@ bool RequestParser::parse_method(void) {
 		this->setStatus(501);
 		return (true);
 	} else if (match[3].matched) {
-		if (this->input.length() - this->pos > REQUEST_LINE_MAX) { //todo: could add method too long here
+		if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
 			std::cout << "invalid request: request line too long\n";
 			this->setStatus(400);
 			return (true);

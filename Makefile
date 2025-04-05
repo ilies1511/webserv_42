@@ -104,7 +104,7 @@ CONFIG_DIR_FILES := serverConfig.cpp \
 					validation.cpp
 CONFIG_DIR := $(addprefix Config/, $(CONFIG_DIR_FILES))
 
-FABI_REQUEST_DIR_FILES := P2.cpp
+FABI_REQUEST_DIR_FILES := RequestParser.cpp
 FABI_REQUEST_DIR := $(addprefix request_parser/, $(FABI_REQUEST_DIR_FILES))
 
 STATE_DIR_FILES :=	state_process.cpp \
