@@ -65,7 +65,6 @@ public:
 				RequestParser(std::string &input);
 				~RequestParser();
 	bool		parse_request_line(void);
-	bool		parse_uri(void);
 	bool		parse_headers(void);
 	bool		parse_body(size_t max_body_len);
 	Request		&&getRequest(void);
@@ -87,6 +86,8 @@ private:
 	const static std::regex	header_value_pat;
 
 	bool	parse_method(void);
+	bool	parse_uri(void);
+	bool	parse_version(void);
 	bool	parse_not_encoded_body(size_t max_body_len);
 	bool	parse_encoded_body(size_t max_body_len);
 	bool	parse_chunked(size_t max_body_len);

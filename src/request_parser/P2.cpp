@@ -244,7 +244,25 @@ std::string RequestParser::uri_decode(const std::string &str) {
 }
 
 bool RequestParser::parse_uri(void) {
-	//std::cout << uri_pat_str << "\n";
+	if (this->request.uri.has_value() || this->request.status_code.has_value()) {
+		return (true);
+	}
+	while (this->pos < this->input.size() && this->input[this->pos] == ' ') {
+		this->pos++;
+	}
+	size_t uri_term = this->input.find(' ', this->pos);
+	if ((uri_term - this->pos) > URI_MAX) {
+		this->setStatus(414);
+		std::cout << "Uri too long!\n";
+		return (true);
+	}
+	if (uri_term == std::string::npos) {
+		std::cout << "Not terminated uri\n";
+		return (false);
+	}
+	Uri uri;
+	uri.full = this->input.substr(this->pos, uri_term - this->pos);
+	this->request.uri = std::move(uri);
 
 	std::smatch match;
 	if (!std::regex_match(this->request.uri->full, match, this->uri_pat)) {
@@ -302,6 +320,9 @@ bool RequestParser::parse_uri(void) {
 	}
 	this->request.uri->path = this->uri_decode(this->request.uri->path);
 	this->request.uri->query = this->uri_decode(this->request.uri->query);
+
+	this->pos = uri_term;
+
 	return (true);
 }
 
@@ -341,37 +362,10 @@ bool RequestParser::parse_method(void) {
 	}
 }
 
-bool RequestParser::parse_request_line(void) {
-	if (!this->parse_method()) {
-		return (false);
+bool RequestParser::parse_version(void) {
+	while (this->pos < this->input.size() && this->input[this->pos] == ' ') {
+		this->pos++;
 	}
-	if (this->request.version.has_value() || this->request.status_code.has_value()) {
-		return (true);
-	}
-
-	//todo: should be in parse_uri
-	if (!this->request.uri.has_value())
-	{
-		size_t uri_term = this->input.find(' ', this->pos);
-		Uri uri;
-		//todo: add uri too long check(414)
-		if (uri_term == std::string::npos) {
-			std::cout << "Not terminated uri\n";
-			return (false);
-		}
-		uri.full = this->input.substr(this->pos, uri_term - this->pos);
-		this->request.uri = std::move(uri);
-		this->parse_uri();
-		if (this->request.status_code.has_value()) {
-			return (true);
-		}
-		this->pos = uri_term;
-		while (this->input[this->pos] == ' ') {
-			this->pos++;
-		}
-	}
-
-	//todo: needs function parse_version
 	if (this->request.status_code.has_value()) {
 		return (true);
 	}
@@ -400,6 +394,25 @@ bool RequestParser::parse_request_line(void) {
 	}
 	std::cout << "Unfinished version\n";
 	return (false);
+}
+
+bool RequestParser::parse_request_line(void) {
+	if (this->request.version.has_value() || this->request.status_code.has_value()) {
+		return (true);
+	}
+	if (!this->parse_method()) {
+		return (false);
+	}
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
+	if (!this->parse_uri()) {
+		return (false);
+	}
+	if (this->request.status_code.has_value()) {
+		return (true);
+	}
+	return (this->parse_version());
 }
 
 bool RequestParser::parse_headers(void) {
@@ -508,7 +521,6 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 	while (1) {
 		size_t old_pos = this->pos;
 		if (!is_hex_digit(this->input[this->pos])) {
-			//todo: i think this check can be done for more cases
 			std::cout << "invalid chunk start\n";
 			this->setStatus(400);
 			return (true);
@@ -530,8 +542,8 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 			this->setStatus(400);
 			return (true);
 		}
-		//todo: chunk-ext
 		PARSE_ASSERT(crlf > this->pos);
+		//skips extensions
 		this->pos = 2 + crlf;
 		if (chunk_size == 0) {
 			break ;
@@ -561,7 +573,7 @@ bool RequestParser::parse_chunked(size_t max_body_len) {
 	if (trailer_end == std::string::npos) {
 		return (false);
 	}
-	//todo: trailers
+	//skips trailers
 	this->pos = trailer_end + 4;
 	return (true);
 }
@@ -575,7 +587,6 @@ bool RequestParser::parse_encoded_body(size_t max_body_len) {
 		this->setStatus(400);
 		return (true);
 	}
-	//todo: comma seperated splitting, not whitespace
 	std::vector<std::string> encodings;
 	std::stringstream ss;
 	std::string encoding;
@@ -618,9 +629,8 @@ bool RequestParser::parse_encoded_body(size_t max_body_len) {
 
 // call this after verifying that there is a body by this rule:
 //https://httpwg.org/specs/rfc9112.html#line.folding  section 6 (Message Body (introduction text))
-//todo: check research ifrequests with a body and a method that does not have a body should be rejected
 bool RequestParser::parse_body(size_t max_body_len) {
-	if (this->request.body.has_value()) {
+	if (this->request.body.has_value() || this->request.status_code.has_value()) {
 		return (true);
 	}
 	if (this->request.headers.find("transfer-encoding") != this->request.headers.end()) {
@@ -628,7 +638,6 @@ bool RequestParser::parse_body(size_t max_body_len) {
 	} else if (this->request.headers.find("content-length") != this->request.headers.end()) {
 		return (this->parse_not_encoded_body(max_body_len));
 	} else {
-		//std::cout << "no body\n";
 		return (true);
 	}
 }

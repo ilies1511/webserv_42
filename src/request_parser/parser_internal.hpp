@@ -15,13 +15,11 @@
 
 #define METHOD_PAT "(?:^(?:(?:(GET|POST|DELETE) )|([a-zA-Z]+ )|([a-zA-Z]*$)))"
 
-//#define REQUEST_LINE_PAT "(^((?:(GET|POST|DELETE)|([a-zA-Z]+)) (\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?))"
-//#define REQUEST_LINE_PAT "(?:^(?:(\\S+)? (?:(?:(HTTP\\/1\\.1)\\r)|(\\w+\\/\\d+\\.\\d+\\r))(\\n)?($)?))"
 #define VERSION_PAT "(?:(^(?:(?:(HTTP\\/1\\.1)\\r)|(?:(\\w+\\/\\d+\\.\\d+)\\r))(\\n)?)((?:[\\s\\S]+)$)?)"
 
 #ifndef URI_MAX
 //todo
-# define URI_MAX // give a 414
+# define URI_MAX PATH_MAX// give a 414
 #endif // URI_MAX
 
 // request line patterns

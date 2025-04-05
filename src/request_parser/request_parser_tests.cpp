@@ -257,6 +257,10 @@ private:
 		method_strs.push_back("GET");
 		method_codes.push_back(std::nullopt);
 
+		methods.push_back("GET");
+		method_strs.push_back("GET   ");
+		method_codes.push_back(std::nullopt);
+
 		methods.push_back("get");
 		method_strs.push_back("get");
 		method_codes.push_back(501);
