@@ -1,48 +1,6 @@
 #include "../../Includes/request_parser/RequestParser.hpp"
 #include "parser_internal.hpp"
 
-/* for later TODO:
- * make code efficient
-https://httpwg.org/specs/rfc9112.html#message.format
-1.: "A sender MUST NOT generate a bare CR (a CR character not immediately followed by LF) within any protocol elements other than the content. A recipient of such a bare CR MUST consider that element to be invalid or replace each bare CR with SP before processing the element or forwarding the message"
-2.: "In the interest of robustness, a server that is expecting to receive and parse a request-line SHOULD ignore at least one empty line (CRLF) received prior to the request-lin"
-3.: "A recipient that receives whitespace between the start-line and the first header field MUST either reject the message as invalid or consume each whitespace-preceded line without further processing of it (i.e., ignore the entire line, along with any subsequent lines preceded by whitespace, until a properly formed header field is received or the header section is terminated"
-4.: "When a server listening only for HTTP request messages, or processing what appears from the start-line to be an HTTP request message, receives a sequence of octets that does not match the HTTP-message grammar aside from the robustness exceptions listed above, the server SHOULD respond with a 400 (Bad Request) response and close the connection"
-5.: ""
-6.: ""
-7.: ""
-8.: ""
-9.: ""
-*/
-/*
- *** Request-line:
- - SP is the recommend seperator, tho any whitespace besided CRLF might be interpreted as such
- - leading and trailing whitedpace MAY be skipped, tho it is not recommend
- **1.method:
- - method token followed by a single SP
- - case sensitive
- - 501: not recognized or not implemented (should)
- - 405: not allowed (should)
- **2.tagget
- -"  request-target = origin-form
-				 / absolute-form
-				 / authority-form
-				 / asterisk-form -- asterisk-form: won't implement
-	"
- - no whitespace allowed
- - SHOULD: on invalid target either 400(Bad Request) or 301(Moved Permanently) to redir to the valid one
- - URI in our case) followed by a single SP
- - SHOULD NOT auto correct (without 301) of invalid targets
- **3.Version:
- -case sensitive, "HTTP/1.1
-*** Headers:
-**Host:
-- a client MUST send a Host header-field
-section 3.2: "A client MUST send a Host header field (Section 7.2 of [HTTP]) in all HTTP/1.1 request messages. If the target URI includes an authority component, then a client MUST send a field value for Host that is identical to that authority component, excluding any userinfo subcomponent and its "@" delimiter (Section 4.2 of [HTTP]). If the authority component is missing or undefined for the target URI, then a client MUST send a Host header field with an empty field value.
-A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field line or a Host header field with an invalid field value."
-
-*/
-
 bool Uri::operator==(const struct Uri &other) const {
 	bool ret = true;
 	
@@ -217,7 +175,6 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 //todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
 //example: "GET /abc"
 const std::regex RequestParser::method_pat(METHOD_PAT, std::regex::optimize);
-const std::regex RequestParser::request_line_pat(VERSION_PAT, std::regex::optimize);
 
 const std::regex RequestParser::uri_pat(URI_PAT, std::regex::optimize);
 
@@ -313,7 +270,6 @@ bool RequestParser::parse_uri(void) {
 		PARSE_ASSERT(!match[4].matched);
 		PARSE_ASSERT(!match[8].matched);
 	} else if (match[4].matched) {
-	//} else if (match[10].matched) {
 		// authority-form
 		request.uri->form.is_authority_form = 1;
 		request.uri->authority = match[4].str();
@@ -372,7 +328,6 @@ bool RequestParser::parse_method(void) {
 		this->setStatus(501);
 		return (true);
 	} else if (match[3].matched) {
-		//PARSE_ASSERT(!match[2].matched && !match[3].matched);
 		if (this->input.length() - this->pos > REQUEST_LINE_MAX) { //todo: could add method too long here
 			std::cout << "invalid request: request line too long\n";
 			this->setStatus(400);
@@ -387,7 +342,6 @@ bool RequestParser::parse_method(void) {
 }
 
 bool RequestParser::parse_request_line(void) {
-	//std::cout << "parsing input of |" << this->input << "|" << "\n";
 	if (!this->parse_method()) {
 		return (false);
 	}
@@ -446,46 +400,6 @@ bool RequestParser::parse_request_line(void) {
 	}
 	std::cout << "Unfinished version\n";
 	return (false);
-
-	//std::smatch match;
-	//if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->request_line_pat)) {
-	//	std::cout << "No match (invlaid version syntax?)\n";
-	//	//this->setStatus(400);
-	//	return (false);
-	//}
-
-	////for (size_t i = 0; i < match.size(); i++) {
-	////	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
-	////}
-
-	//if (match[3].matched) {
-	//	PARSE_ASSERT(!match[2].matched);
-	//	std::cout << "unsupported version, 505\n";
-	//	this->setStatus(505);
-	//	return (true);
-	//}
-	//if (!match[4].matched) {
-	//	if (match[5].matched) {
-	//		std::cout << "invalid request (not terminated request line with more content)\n";
-	//		this->setStatus(505);
-	//		return (true);
-	//	}
-	//	//todo: renable this case
-	//	//if (this->input.length() - this->pos > REQUEST_LINE_MAX) {
-	//	//	std::cout << "invalid request: request line too long\n";
-	//	//	this->setStatus(400);
-	//	//	return (true);
-	//	//}
-	//	std::cout << "not terminated\n";
-	//	return (false);
-	//}
-	//else if (match[2].matched) {
-	//	PARSE_ASSERT(!match[3].matched);
-	//	this->request.version = match.str(2);
-	//	this->pos += static_cast<size_t>(match[1].length());
-	//}
-
-	//return (true);
 }
 
 bool RequestParser::parse_headers(void) {
@@ -493,12 +407,10 @@ bool RequestParser::parse_headers(void) {
 		return (true);
 	}
 	std::smatch	match;
-	//std::cout << header_pat_str << "\n";
 	while (1) {
 		if (this->input[this->pos + 0] == '\r' && this->input[this->pos + 1] == '\n') {
 			this->finished_headers = true;
 			this->pos += 2;
-			//std::cout << "headers terminated\n";
 			return (true);
 		}
 		if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->header_name_pat)) {
@@ -520,10 +432,7 @@ bool RequestParser::parse_headers(void) {
 				this->setStatus(400);
 				return (true);
 			}
-			// todo: https://httpwg.org/specs/rfc9112.html#message.format sectio 6.1 end:
-			// understand what to do if http version is 1.0 here
 			std::transform(key.begin(), key.end(), key.begin(), [](char c) { return (std::tolower(c));});
-			//todo: only advance if value is finished
 			this->pos += static_cast<size_t>(match[1].length()) + 1;
 		} else {
 			PARSE_ASSERT(match[2].matched);

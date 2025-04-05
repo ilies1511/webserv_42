@@ -82,7 +82,6 @@ private:
 
 	size_t					pos;
 	const static std::regex	method_pat;
-	const static std::regex	request_line_pat;
 	const static std::regex	uri_pat;
 	const static std::regex	header_name_pat;
 	const static std::regex	header_value_pat;
