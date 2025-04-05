@@ -172,13 +172,10 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 	return (cond);
 }
 
-//todo: if messesge is not finished and exectly cut of where a space would be the request is falsly flaged is invalid
-//example: "GET /abc"
 const std::regex RequestParser::method_pat(METHOD_PAT, std::regex::optimize);
 
 const std::regex RequestParser::uri_pat(URI_PAT, std::regex::optimize);
 
-// field name: either a valid or an unfinished name
 
 const std::regex RequestParser::header_name_pat(FIELD_NAME, std::regex::optimize);
 const std::regex RequestParser::header_value_pat(FIELD_VALUE, std::regex::optimize);
@@ -297,7 +294,6 @@ bool RequestParser::parse_uri(void) {
 		} else {
 			request.uri->host = match[5].str();
 		}
-		//request.uri->host = match[5].str();
 		request.uri->port = match[7].str();
 		PARSE_ASSERT(!match[1].matched);
 		PARSE_ASSERT(!match[8].matched);
@@ -311,7 +307,6 @@ bool RequestParser::parse_uri(void) {
 		} else {
 			request.uri->host = match[10].str();
 		}
-		//request.uri->host = match[9].str();
 		request.uri->port = match[12].str();
 		request.uri->path = match[14].str();
 		request.uri->query = match[15].str();
@@ -415,6 +410,64 @@ bool RequestParser::parse_request_line(void) {
 	return (this->parse_version());
 }
 
+std::string RequestParser::parse_header_name(void) {
+	std::smatch match;
+	std::string name;
+
+	if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->header_name_pat)) {
+		std::cout << "invalid header name\n";
+		this->setStatus(400);
+		return ("");
+	}
+
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
+	//}
+	if (match[1].matched) {
+		name = match.str(1);
+		if (std::isspace(name.back())) {
+			std::cout << "Header name can not end with whitespace!\n";
+			this->setStatus(400);
+			return ("");
+		}
+		std::transform(name.begin(), name.end(), name.begin(), [](char c) { return (std::tolower(c));});
+		this->pos += static_cast<size_t>(match[1].length()) + 1;
+		return (name);
+	} else {
+		PARSE_ASSERT(match[2].matched);
+		std::cout << "unfinished request header\n";
+		this->request.status_code = 1000; // indicate unfinished
+		return ("");
+	}
+}
+
+std::string RequestParser::parse_header_value(void) {
+	std::smatch match;
+	std::string value;
+
+	if (!std::regex_search(
+		this->input.cbegin() + static_cast<long>(this->pos),
+		this->input.cend(), match, this->header_value_pat))
+	{
+		std::cout << "invalid header value\n";
+		this->setStatus(400);
+		return ("");
+	}
+	//for (size_t i = 0; i < match.size(); i++) {
+	//	std::cout << "value[" << i << "]: |" << match[i].str() << "|\n";
+	//}
+	if (match[2].matched) {
+		value = match.str(2);
+		this->pos += static_cast<size_t>(match[1].length());
+		return (value);
+	} else {
+		PARSE_ASSERT(match[3].matched);
+		std::cout << "unfinished request header\n";
+		this->request.status_code = 1000;
+		return ("");
+	}
+}
+
 bool RequestParser::parse_headers(void) {
 	if (this->request.status_code.has_value() || this->finished_headers) {
 		return (true);
@@ -426,51 +479,24 @@ bool RequestParser::parse_headers(void) {
 			this->pos += 2;
 			return (true);
 		}
-		if (!std::regex_search(this->input.cbegin() + static_cast<long>(this->pos), this->input.cend(), match, this->header_name_pat)) {
-			std::cout << "invalid header name\n";
-			this->setStatus(400);
-			return (true);
-		}
-
-		//for (size_t i = 0; i < match.size(); i++) {
-		//	std::cout << "key[" << i << "]: |" << match[i].str() << "|\n";
-		//}
-		std::string key;
-		std::string value;
 		size_t old_pos = this->pos;
-		if (match[1].matched) {
-			key = match.str(1);
-			if (std::isspace(key.back())) {
-				std::cout << "Header name can not end with whitespace!\n";
-				this->setStatus(400);
-				return (true);
+		std::string key = this->parse_header_name();
+		if (this->request.status_code.has_value()) {
+			if (this->request.status_code == 1000) {// indicates unfinished
+				this->request.status_code = std::nullopt;
+				this->pos = old_pos;
+				return (false);
 			}
-			std::transform(key.begin(), key.end(), key.begin(), [](char c) { return (std::tolower(c));});
-			this->pos += static_cast<size_t>(match[1].length()) + 1;
-		} else {
-			PARSE_ASSERT(match[2].matched);
-			std::cout << "unfinished request header\n";
-			return (false);
-		}
-		if (!std::regex_search(
-			this->input.cbegin() + static_cast<long>(this->pos),
-			this->input.cend(), match, this->header_value_pat))
-		{
-			std::cout << "invalid header value\n";
-			this->setStatus(400);
 			return (true);
 		}
-		//for (size_t i = 0; i < match.size(); i++) {
-		//	std::cout << "value[" << i << "]: |" << match[i].str() << "|\n";
-		//}
-		if (match[2].matched) {
-			value = match.str(2);
-			this->pos += static_cast<size_t>(match[1].length());
-		} else {
-			PARSE_ASSERT(match[3].matched);
-			std::cout << "unfinished request header\n";
-			this->pos = old_pos;
-			return (false);
+		std::string value = this->parse_header_value();
+		if (this->request.status_code.has_value()) {
+			if (this->request.status_code == 1000) {// indicates unfinished
+				this->request.status_code = std::nullopt;
+				this->pos = old_pos;
+				return (false);
+			}
+			return (true);
 		}
 		this->request.headers[key] = value;
 	}
@@ -622,7 +648,6 @@ bool RequestParser::parse_encoded_body(size_t max_body_len) {
 			this->setStatus(501);
 			return (true);
 		}
-
 	}
 	return (true);
 }

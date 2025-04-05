@@ -88,6 +88,8 @@ private:
 	bool	parse_method(void);
 	bool	parse_uri(void);
 	bool	parse_version(void);
+	std::string	parse_header_name(void);
+	std::string	parse_header_value(void);
 	bool	parse_not_encoded_body(size_t max_body_len);
 	bool	parse_encoded_body(size_t max_body_len);
 	bool	parse_chunked(size_t max_body_len);
