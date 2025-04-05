@@ -2,12 +2,9 @@
 import cgi
 import cgitb
 import os
-from os import path
+import pathlib
 
-cgitb.enable()  # Enable error reporting
-
-DATA_DIR = "data/"
-DELETE_SCRIPT = "delete_file.cgi"
+cgitb.enable()
 
 print("Content-Type: text/html\n\n")
 print("""<html>
@@ -17,46 +14,68 @@ print("""<html>
         .file-list { margin: 20px; }
         .file-item { 
             padding: 10px;
-            margin: 5px 0;
-            background: #f5f5f5;
+            margin: 15px 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
             border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        }
+        .preview-img {
+            max-width: 300px;
+            max-height: 200px;
+            margin: 10px 0;
         }
         .delete-btn {
-            background: #ff6666;
+            background: #dc3545;
             color: white;
-            border: none;
             padding: 5px 10px;
             border-radius: 3px;
-            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 5px;
         }
-        .delete-btn:hover { background: #ff4444; }
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
-    <h2>Stored Files</h2>
+    <h2>Uploaded Files</h2>
     <div class="file-list">""")
 
-# Get list of files
+DATA_DIR = "data/"
 try:
-    files = [f for f in os.listdir(DATA_DIR) if path.isfile(path.join(DATA_DIR, f))]
-
+    files = sorted(os.listdir(DATA_DIR), key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)), reverse=True)
+    
     if not files:
         print("<p>No files found in storage</p>")
     else:
         for filename in files:
-            print(f"""<div class="file-item">
-                <span>{filename}</span>
-                <form action="{DELETE_SCRIPT}" method="post" style="display: inline;">
-                    <input type="hidden" name="filename" value="{filename}">
-                    <button type="submit" class="delete-btn" 
-                            onclick="return confirm('Delete {filename}?')">
+            file_path = os.path.join(DATA_DIR, filename)
+            if not os.path.isfile(file_path):
+                continue
+                
+            file_ext = pathlib.Path(filename).suffix.lower()
+            print(f"<div class='file-item'>")
+            print(f"<div class='file-name'>{filename}</div>")
+            
+            if file_ext in ['.jpg', '.jpeg', '.png', '.gif']:
+                print(f"<img class='preview-img' src='{DATA_DIR}{filename}' alt='{filename}'>")
+            
+            print(f"""
+            <div class='file-actions'>
+                <a href='{DATA_DIR}{filename}' target='_blank' class='delete-btn' 
+                   style='background: #007bff; margin-right: 5px;'>Open</a>
+                <form action='deleteFile.py' method='post' style='display: inline;'>
+                    <input type='hidden' name='filename' value='{filename}'>
+                    <button type='submit' class='delete-btn' 
+                            onclick="return confirm('Delete {filename} permanently?')">
                         Delete
                     </button>
                 </form>
-            </div>""")
+            </div>
+            """)
+            print("</div>")
 
 except Exception as e:
     print(f"<p style='color: red;'>Error reading directory: {e}</p>")

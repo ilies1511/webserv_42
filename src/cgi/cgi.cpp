@@ -301,7 +301,6 @@ void    CGI::writing(Connection& con) {
 	//05.04 fabi: replaced debugging write size I think? (to be able to upload large files fast)
     //ssize_t written = write(_pipeIn[1], _body.data() + _write_progress, 7 < _body.length() - _write_progress ? 7 : _body.length() - _write_progress);
     ssize_t written = write(_pipeIn[1], _body.data() + _write_progress, _body.length() - _write_progress);
-	std::cout << "written: " << written << std::endl;
     if (written == -1) {
         con._server.ft_closeNclean(_pipeIn[1]);
         _state = ERROR;

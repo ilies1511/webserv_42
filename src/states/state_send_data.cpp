@@ -34,8 +34,8 @@ void	Connection::send_data(void)
 	{
 		this->sent_bytes = sent_bytes + sent;
 		printer::debug_putstr("In Body send", __FILE__, __FUNCTION__, __LINE__);
-		std::cout << "Sent Response:\n"
-				  << std::string(_OutputBuffer.data() + sent_bytes - sent, (size_t)sent) << "\n";
+		//std::cout << "Sent Response:\n"
+		//		  << std::string(_OutputBuffer.data() + sent_bytes - sent, (size_t)sent) << "\n";
 		this->_OutputBuffer._buffer.clear();
 		if (sent_bytes == (ssize_t)_current_response.response_inzemaking.size()) {
 			finished_sending = true;
