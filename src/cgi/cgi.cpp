@@ -373,7 +373,8 @@ void    CGI::writing(Connection& con) {
         return ;
     } else if (!con.check_revent(_pipeIn[1], POLLOUT)) {
         std::cout << "!wpoll pout" << std::endl;
-        pipe_cleaner(con);
+        // con.ft_closeNcleanRoot(_pipeIn[1]);
+        // pipe_cleaner(con);
         return ;
     }
         std::cout << "wpoll pout" << std::endl;
