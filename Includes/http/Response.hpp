@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include "RequestParser.hpp"
+#include "printer.hpp"
 
 class Response
 {

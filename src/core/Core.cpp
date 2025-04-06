@@ -10,7 +10,9 @@ Core::Core(void)
 		_pollfds{},
 		_deferred_close_fds{},
 		_listener_fds{}
-{}
+{
+	printer::ocf_printer("Core", printer::OCF_TYPE::DC);
+}
 
 Core::~Core(void)
 {
@@ -20,6 +22,7 @@ Core::~Core(void)
 		}
 	}
 	_pollfds.clear();
+	printer::ocf_printer("Core", printer::OCF_TYPE::D);
 }
 //OCF -- END
 
@@ -41,7 +44,7 @@ void	Core::poll_loop(int argc, char *argv[])
 	}
 	// _server_confs = parsing(tokenList);
 	for (auto conf : _server_confs) {
-		_servers.emplace_back(Server(conf, *this));
+		_servers.emplace_back(conf, *this);
 	}
 	while (running.load())
 	{
