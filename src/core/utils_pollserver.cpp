@@ -134,25 +134,16 @@ void *Server::get_in_addr(struct sockaddr *sa)
 
 void Server::setup_non_blocking(int fd)
 {
-	//Warum errno auf old setzten, was macht errno ?
 	int	old_err = errno;
-	// Non-Blocking für alle Sockets (F_SETFL)
-	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1)
-	{
-		std::cerr << "fcntl(F_GETFL) failed: " << strerror(errno) << std::endl;
-			close(listener_fd);
-			return ;
-	}
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) == -1)
+	if (fcntl(fd, F_SETFL, O_NONBLOCK | O_CLOEXEC) == -1)
 	{
 		std::cerr << "fcntl(F_SETFL) failed: " << strerror(errno) << std::endl;
 			close(listener_fd);
 			return ;
 	}
-	flags = fcntl(fd, F_GETFL, 0);
 	#ifdef DEBUG
-	std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
+	// flags = fcntl(fd, F_GETFL, 0);
+	// std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
 	#endif
 	// FD_CLOEXEC nur für macOS (F_SETFD)
 	#ifdef __APPLE__
@@ -188,7 +179,6 @@ void Server::ft_closeNclean(int fd)
 void	Server::add_to_map(int fd)
 {
 	//Maybe need to add some checks (ignore addition, if key already known)
-	// this->_connections.insert({fd, new Connection(fd)});
 	this->_connections.emplace(fd, std::make_unique<Connection>(fd, *this));
 	return ;
 }
