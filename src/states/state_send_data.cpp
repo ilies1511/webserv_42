@@ -30,6 +30,12 @@ void	Connection::send_data(void)
 	size_t	left_to_send = _OutputBuffer._buffer.length() - (size_t)sent_bytes;
 	ssize_t	sent = send(this->_fdConnection, this->_OutputBuffer.data() + \
 					sent_bytes, left_to_send, MSG_DONTWAIT);
+	if (sent <= 0) {
+		ft_closeNcleanRoot(_fdFile);
+		_fdFile = -1;
+		ft_closeNcleanRoot(this->_fdConnection);
+		return ;
+	}
 	if (sent > 0)
 	{
 		this->sent_bytes = sent_bytes + sent;

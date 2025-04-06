@@ -41,7 +41,7 @@ void	Connection::recv_data(void)
 		}
 		else {
 			printer::debug_putstr("Pre perror Connection", __FILE__, __FUNCTION__, __LINE__);
-			perror("recv");
+			// perror("recv");
 		}
 		// std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
