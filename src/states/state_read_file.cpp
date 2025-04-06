@@ -28,7 +28,7 @@ void Connection::read_file(void)
 	// }
 	// const size_t MAX_FILE_SIZE = _server._config.getClientMaxBodySize();
 	// const size_t FILE_SIZE_CHECK_THRESHOLD = 100 * 1024 * 1024; // 100MB
-	// if (MAX_FILE_SIZE == 0 || (MAX_FILE_SIZE > 0 && \
+	// if (MAX_FILE_SIZE == 0 || (MAX_FILE_SIZE > 0 &&
 	// 		MAX_FILE_SIZE < FILE_SIZE_CHECK_THRESHOLD
 	// 		&& get_file_size(this->_system_path) > MAX_FILE_SIZE)) {
 	// 	P_DEBUG("Aloooo In read_file EARLY-Exit Case\n");
