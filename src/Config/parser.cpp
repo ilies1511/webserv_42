@@ -393,7 +393,9 @@ std::vector<serverConfig> parsing(const std::vector<TOKEN>& tokenList) {
         }
     }
     update_routes(server_configs);
+    #ifdef DEBUG
 	printServerConfig(server_configs);
+    #endif
     addDefaultErrorPages(server_configs);
 	// printServerConfig(server_configs);
     return server_configs;

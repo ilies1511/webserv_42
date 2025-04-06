@@ -82,7 +82,9 @@ void	Connection::execute_layer2(void)
 		}
 		case State::SEND:
 		{
+			#ifdef DEBUG
 			std::cout << _server._cookies.size() << "==size\n";
+			#endif
 			send_data();
 			return ;
 		}
