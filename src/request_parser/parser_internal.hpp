@@ -3,7 +3,9 @@
 #include "../../Includes/request_parser/RequestParser.hpp"
 #include <cstring>
 
+#ifndef PARSE_ASSERT
 #define PARSE_ASSERT(cond) parse_assertion_exec(cond, #cond, __FILE__, __LINE__, __FUNCTION__)
+#endif
 
 #ifndef REQUEST_LINE_MAX
 //https://httpwg.org/specs/rfc9112.html#message.format '3. Request Line':
