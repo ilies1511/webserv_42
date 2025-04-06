@@ -43,7 +43,7 @@ void	Core::poll_loop(int argc, char *argv[])
 		throw std::runtime_error(config_file + ": " + e.what());
 	}
 	// _server_confs = parsing(tokenList);
-	for (auto conf : _server_confs) {
+	for (const auto& conf : _server_confs) {
 		_servers.emplace_back(conf, *this);
 	}
 	while (running.load())
