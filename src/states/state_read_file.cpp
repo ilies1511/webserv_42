@@ -43,9 +43,7 @@ void Connection::read_file(void)
 	static char buf[BUFFER_SIZE];
 	ssize_t bytes_read;
 
-	do {
-		bytes_read = read(_fdFile, buf, sizeof(buf));
-	} while (bytes_read < 0 && errno == EINTR);
+	bytes_read = read(_fdFile, buf, sizeof(buf));
 
 	if (bytes_read < 0) {
 		perror("read");

@@ -22,9 +22,13 @@ Connection::Connection(int fd, Server &server)
 		_request_parser(_InputBuffer._buffer),
 		_autoindex_enabled(false),
 		_last_activity(std::chrono::steady_clock::now())
-{}
+{
+	printer::ocf_printer("Connection", printer::OCF_TYPE::DC);
+}
 
-Connection::~Connection(void) {}
+Connection::~Connection(void) {
+	printer::ocf_printer("Connection", printer::OCF_TYPE::D);
+}
 
 int Connection::getFdConnection(void)
 {

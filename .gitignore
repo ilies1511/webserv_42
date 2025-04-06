@@ -38,3 +38,9 @@ webserv.ld_eHQ3hH
 webserv.ld_VpGtKh
 src/Tests/trace_open_close.d
 www/upload/data/data.json
+var/www/data/files/test.mov
+www/upload/data/subj_webserv.pdf
+.gitignore
+www/upload/data/Screen Shot 2025-02-13 at 10.24.09 PM.png
+.gitignore
+www/upload/data/screen.png

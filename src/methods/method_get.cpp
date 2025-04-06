@@ -66,7 +66,6 @@ void	Connection::no_trailing_slash_case(void)
 	{
 		if (std::filesystem::is_regular_file(_full_path))
 		{
-			std::cout << "\n\nALO LO\n\n";
 			// prepare_fdFile_param("200");
 			set_full_status_code(200, _full_path);
 		}
@@ -82,7 +81,6 @@ void	Connection::no_trailing_slash_case(void)
 	}
 	else
 	{
-		std::cout << "Asehr\n";
 		// for (auto v : _server._config.getErrorPages()) {
 		// 	std::cout << v.second << std::endl;
 		// }
