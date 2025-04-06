@@ -47,6 +47,12 @@ void	Core::poll_loop(int argc, char *argv[])
 	for (const auto& conf : _server_confs) {
 		_servers.emplace_back(conf, *this);
 	}
+	if (_servers.size() == 1) {
+		std::cout << coloring("Server started\n", LIGHT_BLUE);
+	}
+	else {
+		std::cout << coloring("Servers started\n", LIGHT_BLUE);
+	}
 	while (running.load())
 	{
 		int poll_count = poll(_pollfds.data(), static_cast<nfds_t>(_pollfds.size()), -1);
