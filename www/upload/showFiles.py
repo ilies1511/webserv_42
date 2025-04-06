@@ -10,7 +10,7 @@ print("Content-Type: text/html\n\n")
 print("""<html>
 <head>
     <title>File Manager</title>
-    <style>
+<style>
         .file-list { margin: 20px; }
         .file-item { 
             padding: 10px;
@@ -38,6 +38,25 @@ print("""<html>
             margin-bottom: 5px;
         }
     </style>
+    <script>
+        function deleteFile(filename) {
+            if (confirm('Delete ' + filename + ' permanently?')) {
+                fetch('data/' + filename, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Refresh after successful delete
+                    } else {
+                        alert('Delete failed! Server responded with ' + response.status);
+                    }
+                })
+                .catch(error => {
+                    alert('Delete failed: ' + error);
+                });
+            }
+        }
+    </script>
 </head>
 <body>
     <h2>Uploaded Files</h2>
@@ -46,11 +65,13 @@ print("""<html>
 DATA_DIR = "data/"
 try:
     files = sorted(os.listdir(DATA_DIR), key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)), reverse=True)
-    
+
     if not files:
         print("<p>No files found in storage</p>")
     else:
         for filename in files:
+            if filename == "deleteData.html":
+                continue
             file_path = os.path.join(DATA_DIR, filename)
             if not os.path.isfile(file_path):
                 continue
@@ -66,13 +87,10 @@ try:
             <div class='file-actions'>
                 <a href='{DATA_DIR}{filename}' target='_blank' class='delete-btn' 
                    style='background: #007bff; margin-right: 5px;'>Open</a>
-                <form action='deleteFile.py' method='post' style='display: inline;'>
-                    <input type='hidden' name='filename' value='{filename}'>
-                    <button type='submit' class='delete-btn' 
-                            onclick="return confirm('Delete {filename} permanently?')">
-                        Delete
-                    </button>
-                </form>
+                <button class='delete-btn' 
+                        onclick="deleteFile('{filename}')">
+                    Delete
+                </button>
             </div>
             """)
             print("</div>")
