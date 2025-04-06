@@ -46,7 +46,7 @@ void Connection::read_file(void)
 	bytes_read = read(_fdFile, buf, sizeof(buf));
 
 	if (bytes_read < 0) {
-		perror("read");
+		// perror("read");
 		_server.ft_closeNclean(_fdFile);
 		_fdFile = -1;
 		set_full_status_code(500);
