@@ -9,7 +9,7 @@ cgitb.enable()
 # Configuration
 UPLOAD_DIR = "data/"
 MAX_SIZE = 10 * 1024 * 1024  # 10MB limit
-ALLOWED_TYPES = {'image/png', 'image/jpeg', 'application/pdf'}
+# ALLOWED_TYPES = {'image/png', 'image/jpeg', 'application/pdf'}
 
 # Ensure upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -40,9 +40,10 @@ else:
         file_size = int(fileitem.headers.get('Content-Length', 0))
 
         # Validate file type and size
-        if content_type not in ALLOWED_TYPES:
-            print(f"<p style='color: red;'>Error: File type {content_type} not allowed</p>")
-        elif file_size > MAX_SIZE:
+        # if content_type not in ALLOWED_TYPES:
+        #     print(f"<p style='color: red;'>Error: File type {content_type} not allowed</p>")
+        # elif
+        if file_size > MAX_SIZE:
             print(f"<p style='color: red;'>Error: File too large ({file_size//1024}KB)</p>")
         else:
             # Save the file

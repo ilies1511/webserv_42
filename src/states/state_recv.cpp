@@ -53,7 +53,7 @@ void	Connection::recv_data(void)
 	#ifdef DEBUG
 	std::cout << "Received Data:\n"
 				<< std::string(_InputBuffer.data() + old_size, (size_t)bytes) << "\n";
-	std::cerr << "cur input:\n" << _InputBuffer._buffer << std::endl;
+	std::cout << "cur input:\n" << _InputBuffer._buffer << std::endl;
 	#endif
 	this->entry_parse();
 }

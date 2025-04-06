@@ -64,22 +64,21 @@ void	Connection::setup_cgi() {
 	// }
 	// std::vector<std::string> env;
 
-	// //TODO: 02.04.25
+
 	// if (request.headers.find("cookie") != request.headers.end()) {
 	// }
 
 	auto cookie_finder = request.headers.find("cookie");
 	if (cookie_finder != request.headers.end()) {
 		std::vector<std::string> res_split = cookie_split(request.headers["cookie"]);
-		std::cout << res_split.size() << "== size\n";
+		// std::cout << res_split.size() << "== size\n";
 		for (const auto& cookie : res_split) {
-			if (_server.is_valid_cookie(cookie)) { // TODO: 03.04.25 Annahme: Server-Validierung
-				std::cout << "res_split: " << cookie << "\n";
+			if (_server.is_valid_cookie(cookie)) { //
+				// std::cout << "res_split: " << cookie << "\n";
 				_cgi->_env.emplace_back(cookie);
 			}
 		}
 
-		//TODO: split following string --> split bases on ';' delimiter
 		/*
 			std::string cookies = "cookies: key1=val1; key2=val2";
 			_cgi->_env.emplace_back("key1=val1");

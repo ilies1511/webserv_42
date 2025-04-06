@@ -98,7 +98,9 @@ bool	Server::is_valid_cookie(const std::string& cookie_string)
 			}
 			return (true);
 		}
+		#ifdef DEBUG
 		std::cout << coloring(_cookies[i].cookie_string,BLUE) << std::endl;
+		#endif
 	}
 	return (false);
 	// return (true);
