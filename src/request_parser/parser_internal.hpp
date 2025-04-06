@@ -20,8 +20,11 @@
 #define VERSION_PAT "(?:(^(?:(?:(HTTP\\/1\\.1)\\r)|(?:(\\w+\\/\\d+\\.\\d+)\\r))(\\n)?)((?:[\\s\\S]+)$)?)"
 
 #ifndef URI_MAX
-//todo
-# define URI_MAX PATH_MAX// give a 414
+# ifdef PATH_MAX
+#  define URI_MAX PATH_MAX// give a 414
+# else
+#  define URI_MAX 4000
+# endif //PATH_MAX
 #endif // URI_MAX
 
 // request line patterns
