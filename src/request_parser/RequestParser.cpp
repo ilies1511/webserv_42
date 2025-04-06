@@ -123,52 +123,56 @@ bool RequestParser::parse_assertion_exec(bool cond, const char *str_cond, const 
 	if (cond) {
 		return (cond);
 	}
-	const char *log_file_name = "parser_asserts.log";
+	(void) str_cond;
+	(void) file;
+	(void) line;
+	(void) fn_str;
+	//const char *log_file_name = "parser_asserts.log";
 
-	struct stat stats;
-	stat(log_file_name, &stats);
-	//std::ifstream in_log_stream(log_file_name);
-	//std::string old_log_file;
-	//old_log_file.reserve(static_cast<size_t>(stats.st_size));
-	//in_log_stream.read(old_log_file.data(), static_cast<long>(stats.st_size));
-	//in_log_stream.close();
+	//struct stat stats;
+	//stat(log_file_name, &stats);
+	////std::ifstream in_log_stream(log_file_name);
+	////std::string old_log_file;
+	////old_log_file.reserve(static_cast<size_t>(stats.st_size));
+	////in_log_stream.read(old_log_file.data(), static_cast<long>(stats.st_size));
+	////in_log_stream.close();
 
-	std::string time_stamp;
-	time_stamp.resize(30);
-	std::time_t now = std::time(nullptr);
-	std::tm tm_buf;
-	localtime_r(&now, &tm_buf);
-	size_t time_len = std::strftime(time_stamp.data(), time_stamp.size(), "%d-%m %H:%M", &tm_buf);
-	time_stamp.resize(time_len);
-	time_stamp += "\n";
+	//std::string time_stamp;
+	//time_stamp.resize(30);
+	//std::time_t now = std::time(nullptr);
+	//std::tm tm_buf;
+	//localtime_r(&now, &tm_buf);
+	//size_t time_len = std::strftime(time_stamp.data(), time_stamp.size(), "%d-%m %H:%M", &tm_buf);
+	//time_stamp.resize(time_len);
+	//time_stamp += "\n";
 
-	std::string cur_input = this->input;
-	std::stringstream request_stream;
-	request_stream << this->request;
-	std::string cur_request = request_stream.str();
-	std::string log_body;
-	log_body += "RequestParser assertion in file " + std::string(file) + " line "
-		+ std::to_string(line) + "(function '" + fn_str + "')!\n";
-	log_body += std::string("Assert condion: '(") + std::string(str_cond) + ")'\n";
-	log_body += "------------";
-	log_body += "Current input:\n";
-	log_body += cur_input;
-	log_body += "------------";
-	log_body += "Current request:\n";
-	log_body += cur_request;
+	//std::string cur_input = this->input;
+	//std::stringstream request_stream;
+	//request_stream << this->request;
+	//std::string cur_request = request_stream.str();
+	//std::string log_body;
+	//log_body += "RequestParser assertion in file " + std::string(file) + " line "
+	//	+ std::to_string(line) + "(function '" + fn_str + "')!\n";
+	//log_body += std::string("Assert condion: '(") + std::string(str_cond) + ")'\n";
+	//log_body += "------------";
+	//log_body += "Current input:\n";
+	//log_body += cur_input;
+	//log_body += "------------";
+	//log_body += "Current request:\n";
+	//log_body += cur_request;
 
-	std::string header = "*****************************************************************\n";
-	std::string footer = "-----------------------------------------------------------------\n";
+	//std::string header = "*****************************************************************\n";
+	//std::string footer = "-----------------------------------------------------------------\n";
 
-	std::string log_msg = header;
-	log_msg += time_stamp;
-	log_msg += log_body;
-	log_msg += footer;
-	std::ofstream out_log_stream(log_file_name, std::ios::app);
-	std::cerr << log_msg;
+	//std::string log_msg = header;
+	//log_msg += time_stamp;
+	//log_msg += log_body;
+	//log_msg += footer;
+	//std::ofstream out_log_stream(log_file_name, std::ios::app);
+	//std::cerr << log_msg;
 
-	out_log_stream.write(log_msg.data(), static_cast<long>(log_msg.length()));
-	out_log_stream.close();
+	//out_log_stream.write(log_msg.data(), static_cast<long>(log_msg.length()));
+	//out_log_stream.close();
 	this->setStatus(500);
 	return (cond);
 }
