@@ -148,10 +148,10 @@ OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 
 # CFLAGS := -Wall -Wextra -Werror -g -MMD -MP -I$(INC_DIRS)
 CFLAGS :=	-Wall -Werror -Wextra -Wpedantic -Wshadow -Wno-shadow -std=c++17 \
-			-Wconversion -Wsign-conversion -g -MMD -MP -fsanitize=address\
+			-Wconversion -Wsign-conversion -g -MMD -MP -Ofast\
 			$(addprefix -I, $(INC_DIRS))
 CFLAGS_SAN := $(CFLAGS) -fsanitize=address
-LDFLAGS := -lncurses -fsanitize=address
+LDFLAGS := -lncurses
 # LDFLAGS := -lncurses
 LDFLAGS_SAN := -lncurses -fsanitize=address
 ARFLAGS := -rcs
