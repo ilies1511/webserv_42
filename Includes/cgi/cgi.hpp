@@ -19,6 +19,10 @@
 
 class Connection;
 
+class ChildError: public std::exception 
+{
+};
+
 enum CGI_STATE {
     INIT,
     WAIT,
@@ -61,6 +65,7 @@ public:
     size_t                     _write_progress;
     std::vector<std::string>    _env;
 
+
     CGI();
     // CGI(const Request& request);
     ~CGI();
@@ -96,6 +101,7 @@ public:
     void    setup_connection(Connection& con);
     void    writing(Connection& con);
     void    waiting(Connection& con);
+    void    pipe_cleaner(Connection& con);
 
     std::string parseCgiOutput();
 };

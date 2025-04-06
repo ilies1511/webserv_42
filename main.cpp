@@ -1,5 +1,6 @@
 #include "Core.hpp"
 #include <atomic>
+#include <cgi.hpp>
 
 std::atomic<bool> running(true);
 
@@ -11,6 +12,10 @@ int main(int argc, char *argv[])
 	{
 		Core core;
 		core.poll_loop(argc, argv); //MAIN LOOP
+	}
+	catch (const ChildError &e)
+	{
+		return (1);
 	}
 	catch(const std::exception& e)
 	{
