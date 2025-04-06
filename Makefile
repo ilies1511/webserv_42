@@ -150,10 +150,10 @@ OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:%.cpp=%.o))
 CFLAGS :=	-Wall -Werror -Wextra -Wpedantic -Wshadow -Wno-shadow -std=c++17 \
 			-Wconversion -Wsign-conversion -g -MMD -MP -Ofast\
 			$(addprefix -I, $(INC_DIRS))
-CFLAGS_SAN := $(CFLAGS) -fsanitize=address
-LDFLAGS := -lncurses
+CFLAGS_SAN := $(CFLAGS)
+#LDFLAGS := -lncurses -fsanitize=address
 # LDFLAGS := -lncurses
-LDFLAGS_SAN := -lncurses -fsanitize=address
+#LDFLAGS_SAN := -lncurses -fsanitize=address
 ARFLAGS := -rcs
 
 # ANSI color codes
@@ -196,7 +196,7 @@ fclean: clean
 re: fclean submodule_update all
 
 submodule_update:
-	git submodule update --remote --merge
+	#git submodule update --remote --merge
 
 bonus: all
 
