@@ -164,6 +164,7 @@ void	Connection::entry_process(void)
 {
 	//0:
 	if (request.status_code.has_value()) {
+		std::cout << "stat\n";
 		P_DEBUG("Early-Exit in entry_process\n");
 		set_full_status_code((size_t)*request.status_code);
 		return;

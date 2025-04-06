@@ -249,7 +249,7 @@ void CGI::readCgiOutput(Connection& con) {
         // con._server.ft_closeNclean(_pipeOut[0]);
         // _pipeOut[0] = -1;
         pipe_cleaner(con);
-        _state = FINISH;
+        _state = ERROR;
         // _is_finished = true;
     }
     if (bytesRead == 0) {
@@ -391,7 +391,7 @@ void    CGI::writing(Connection& con) {
         _write_progress += static_cast<size_t>(written);
     }
 
-    if (_body.length() == _write_progress) {
+    if (_body.length() == _write_progress || written == 0) {
         con._server.ft_closeNclean(_pipeIn[1]);
         _state = WAIT;
         _start = std::chrono::high_resolution_clock::now();

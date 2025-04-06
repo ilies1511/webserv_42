@@ -13,6 +13,27 @@ bool	Connection::entry_parse(void) {
 				//std::cout << this->request << std::endl;
 				printer::debug_putstr("Aloo In RECV State - request finished", __FILE__, __FUNCTION__, __LINE__);
 				_state = State::PROCESS;
+				if (this->request.status_code.has_value()) {
+					return (true);
+				}
+				if (this->_server._config.getServerName().empty()) {
+					return (true);
+				}
+				std::optional<std::string> host = std::nullopt;
+				if (this->request.headers.find("host") != this->request.headers.end()) {
+					host.emplace(this->request.headers["host"]);
+				}
+				for (const auto & name : this->_server._config.getServerName()) {
+					if (!this->request.status_code.has_value() && host.has_value()) {
+						if (name ==  host || name + ":" + std::to_string(this->_server._config.getPort()) == host) {
+							return (true);
+						}
+					}
+					if (this->request.uri->host == name || this->request.uri->authority == name) {
+						return (true);
+					}
+				}
+				this->request.status_code.emplace(404);
 				return (true);
 			}
 		}
