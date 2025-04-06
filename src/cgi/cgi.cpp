@@ -228,13 +228,6 @@ void CGI::readCgiOutput(Connection& con) {
     static char buffer[BUFFER_S];
     ssize_t bytesRead = 0;
 
-    if (con.check_revent(_pipeOut[0], POLLHUP)) {
-        // con._server.ft_closeNclean(_pipeOut[0]);
-        // _pipeOut[0] = -1;
-        pipe_cleaner(con);
-        _state = ERROR;
-        return ;
-    }
     if (!con.check_revent(_pipeOut[0], POLLIN)) {
         std::cout << "!poll in" << std::endl;
         return ;
