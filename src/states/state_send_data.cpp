@@ -45,6 +45,7 @@ void	Connection::send_data(void)
 			printer::debug_putstr("sent == response_inzemaking.size() 'case'",\
 				__FILE__, __FUNCTION__, __LINE__);
 			ft_closeNcleanRoot(_fdFile);
+			// _fdFile = -1;
 			ft_closeNcleanRoot(this->_fdConnection);
 			return ;
 		}
