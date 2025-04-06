@@ -104,7 +104,6 @@ void	Connection::trailing_slash_case(void)
 	if (file_exists_and_readable(index_file)) {
 		printer::debug_putstr("file_exists_and_readable(index_file) CASE", __FILE__, __FUNCTION__, __LINE__);
 		_system_path = index_file;
-		std::cout << "im here\n";
 		set_full_status_code(200, index_file);
 		return ;
 	}

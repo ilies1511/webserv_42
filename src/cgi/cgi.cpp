@@ -196,9 +196,9 @@ std::string CGI::parseCgiOutput() {
 
 
 void CGI::cgiProcess() {
-    std::cerr << "CHECK FROM CGI PROCESS" << std::endl;
-    std::cerr << _argv[0] << std::endl;
-    std::cerr << _argv[1] << std::endl;
+    // std::cerr << "CHECK FROM CGI PROCESS" << std::endl;
+    // std::cerr << _argv[0] << std::endl;
+    // std::cerr << _argv[1] << std::endl;
     if (close(_pipeIn[1]) == -1 || close(_pipeOut[0]) == -1
     || dup2(_pipeIn[0], STDIN_FILENO) == - 1 || dup2(_pipeOut[1], STDOUT_FILENO) == -1
     || close(_pipeIn[0]) == -1 || close(_pipeOut[1]) == -1) {
@@ -211,7 +211,9 @@ void CGI::cgiProcess() {
         std::string temp = _script.substr(0, pos);
         std::filesystem::current_path(_script.substr(0, pos));
     }
+    #ifdef DEBUG
     std::cerr << "script location: " << std::filesystem::current_path() << std::endl;
+    #endif
     execve(_argv[0], _argv.data(), _envp.data());
     std::cerr << "CGI execution failed" << std::endl;
     close(_pipeIn[0]);
@@ -228,13 +230,13 @@ void CGI::readCgiOutput(Connection& con) {
     static char buffer[BUFFER_S];
     ssize_t bytesRead = 0;
 
-    if (con.check_revent(_pipeOut[0], POLLHUP)) {
-        // con._server.ft_closeNclean(_pipeOut[0]);
-        // _pipeOut[0] = -1;
-        pipe_cleaner(con);
-        _state = ERROR;
-        return ;
-    }
+    // if (con.check_revent(_pipeOut[0], POLLHUP)) {
+    //     // con._server.ft_closeNclean(_pipeOut[0]);
+    //     // _pipeOut[0] = -1;
+    //     pipe_cleaner(con);
+    //     _state = ERROR;
+    //     return ;
+    // }
     if (!con.check_revent(_pipeOut[0], POLLIN)) {
         std::cout << "!poll in" << std::endl;
         return ;
@@ -258,7 +260,7 @@ void CGI::readCgiOutput(Connection& con) {
         pipe_cleaner(con);
         _state = FINISH;
         // _is_finished = true;
-        std::cout << "read Data: " << _output << std::endl;
+        // std::cout << "read Data: " << _output << std::endl;
     }
     _output.append(buffer, static_cast<size_t>(bytesRead));
 }
