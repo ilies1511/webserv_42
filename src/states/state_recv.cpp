@@ -33,7 +33,7 @@ void	Connection::recv_data(void)
 						sizeof buf, MSG_DONTWAIT);
 
 	printer::debug_putstr("Post recv", __FILE__, __FUNCTION__, __LINE__);
-	if (bytes <= 0) //TODO: 12.03 check if return of 0 is valid
+	if (bytes <= 0)
 	{
 		printer::debug_putstr("Post recv '<= case'", __FILE__, __FUNCTION__, __LINE__);
 		if (bytes == 0) { // Connection closed
@@ -43,7 +43,7 @@ void	Connection::recv_data(void)
 			printer::debug_putstr("Pre perror Connection", __FILE__, __FUNCTION__, __LINE__);
 			perror("recv");
 		}
-		std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);
+		// std::cout << coloring("Pre ft_closeNcleanRoot()\n", RED);
 		ft_closeNcleanRoot(_fdConnection);
 		return ;
 	}

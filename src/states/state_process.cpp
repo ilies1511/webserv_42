@@ -194,52 +194,5 @@ void	Connection::entry_process(void)
 		return;
 	}
     validate_match(longest_match);
-
-	/*
-	TODO: PART 1
-		0. check if request was invalid --> parser sets status-code xy : read file, send to clieant (assemble_resonse)
-		1. Allgemeine Schritte:
-			- location auswaehlen/matching
-			- if location is a redirect
-				--> just send 30x + specific Header
-			- Path Variable zusammenbauen --> Config + Request = FilePath
-
-			- Verifizierung ob Meth
-
-		2. Check CGI:
-			Conditional Blocks ((is_get || is_post() )&& is_cgi(_sys_path))
-			{
-				_state = State::CGI; //Kein write mehr notwending, da in CGI Mode gemacht wird
-				_nex_state = SEND;
-			}
-			else {
-				do normal cycle
-			}
-	*/
-
-	/*
-		PART 2:
-			methode_handler()
-	*/
-
-	// GET / HTTP/1.1
-	// Cookie: username, theme
-
-	// request.method = "GET";
-	// request.uri = "/index.html";
-	// request._version = "HTTP/1.1";
-	// request._body = "";
-	// // ed_request.is_finished = true;
-	// request.is_finished = true;
-	// request.readFile = true;
-	// // request.filename = "html/index.html";
-	// // filled_request._headers = ;
-	// std::cout << coloring(request.uri->path, BLUE) << std::endl;
-	// if (is_cgi(request.uri->path)) {
-	// 	this->_state = State::CGI;
-	// 	this->_next_state = State::SEND;
-	// 	return ;
-	// }
-	// methode_handler();
 	return ;
 }

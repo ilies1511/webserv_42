@@ -5,20 +5,20 @@
 #include "printer.hpp"
 #include <map>
 
+/*
+	0. immer event beim POLLFD immer (POLLIN & POLLOUT) initen, statt ueber enable_pollout() zu gehen
+	1. CHECK ob _fdConnection revent auf POLLOUT
+	2. wenn nein, return
+	3. wenn ja, dann send-Vorgang starten: bytes_send = send(_fdConnection, respone_buffer,  respone_buffer.size(), MSG_DONTWAIT)
+		--> Checken ob alles geschickt wurde, und erst wenn bytes_send der response.size() entspricht
+			dann Connection closen. Wenn nicht, dann position merken, wieder ueber poll gehen und
+			da dann wieder ansaetzen und senden;s
+			(siehe Client.cpp) --> send()
+	4. Close connection
+		- close_later: nach jeder Iter cleanup
+*/
 void	Connection::send_data(void)
 {
-	/*
-		0. immer event beim POLLFD immer (POLLIN & POLLOUT) initen, statt ueber enable_pollout() zu gehen
-		1. CHECK ob _fdConnection revent auf POLLOUT
-		2. wenn nein, return
-		3. wenn ja, dann send-Vorgang starten: bytes_send = send(_fdConnection, respone_buffer,  respone_buffer.size(), MSG_DONTWAIT)
-			--> Checken ob alles geschickt wurde, und erst wenn bytes_send der response.size() entspricht
-				dann Connection closen. Wenn nicht, dann position merken, wieder ueber poll gehen und
-				da dann wieder ansaetzen und senden;s
-				(siehe Client.cpp) --> send()
-		4. Close connection
-			- close_later: nach jeder Iter cleanup
-	*/
 	printer::debug_putstr("In PRE send File Content", __FILE__, __FUNCTION__, __LINE__);
 	if (!check_revent(_fdConnection, POLLOUT))
 	{
