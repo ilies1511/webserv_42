@@ -5,6 +5,9 @@ import cgi
 import html
 import datetime
 
+# while True:
+#     pass
+
 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # Print the required HTTP headers
 print("Status: 200 OK")

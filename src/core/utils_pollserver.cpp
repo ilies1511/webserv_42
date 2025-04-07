@@ -145,15 +145,6 @@ void Server::setup_non_blocking(int fd)
 	// flags = fcntl(fd, F_GETFL, 0);
 	// std::cout << PURPLE << __FILE__ << " " << __FUNCTION__ << " :Socket " << fd << " flags: " << flags << " (Non-Blocking: " << (flags & O_NONBLOCK ? "YES" : "NO") << NC << "\n";
 	#endif
-	// FD_CLOEXEC nur für macOS (F_SETFD)
-	#ifdef __APPLE__
-	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-	{
-		std::cerr << "fcntl(F_SETFD) failed: " << strerror(errno) << std::endl;
-			close(listener_fd);
-			return ;
-	}
-	#endif
 	errno = old_err;
 }
 
