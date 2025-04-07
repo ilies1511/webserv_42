@@ -70,7 +70,7 @@ try:
         print("<p>No files found in storage</p>")
     else:
         for filename in files:
-            if filename == "deleteData.html" or filename == ".gitignore":
+            if filename == "deleteData.html" or filename == ".gitkeep":
                 continue
             file_path = os.path.join(DATA_DIR, filename)
             if not os.path.isfile(file_path):
