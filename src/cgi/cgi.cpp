@@ -64,7 +64,15 @@ CGI::CGI() :    _state(INIT),
 
 CGI::~CGI() {
     if (_pid > 0) {
-        kill(_pid, SIGKILL);
+        if (waitpid(_pid, &_wpidstatus, WNOHANG) != _pid) {
+            kill(_pid, SIGKILL);
+            P_DEBUGC(("Killed process " + std::to_string(_pid)).c_str(), ORANGE);
+            // std::cout << "Killed process " << _pid << std::endl;
+            waitpid(_pid, &_wpidstatus, WNOHANG);
+        } else {
+            P_DEBUGC(("Child process finished: " + std::to_string(_pid)).c_str(), ORANGE);
+            // std::cout << "waited for process " << _pid << std::endl;
+        }
     }
     if (_pipeIn[1] != -1) {
         ::close(_pipeIn[1]);
@@ -313,6 +321,8 @@ void    CGI::setup_connection(Connection& con) {
     if (_pid == 0) {
         cgiProcess();
     }
+    // std::cout << "PID: " << _pid << std::endl;
+    P_DEBUGC(("PID " + std::to_string(_pid)).c_str(), ORANGE);
     if (close(_pipeIn[0]) == -1) {
         std::cout << "closing pipe failed" << std::endl;
         close(_pipeIn[1]);
@@ -336,8 +346,18 @@ void    CGI::setup_connection(Connection& con) {
         _state = ERROR;
         return;
     }
-    con._server.add_to_pollfds(_pipeIn[1]);
-    con._server.add_to_pollfds(_pipeOut[0]);
+    struct pollfd fd1 = {
+        _pipeIn[1],
+        POLLOUT,
+        0
+    };
+    struct pollfd fd2 = {
+        _pipeOut[0],
+        POLLIN,
+        0
+    };
+    con._server.add_to_pollfds_prefilled(fd1);
+    con._server.add_to_pollfds_prefilled(fd2);
     con._server.setup_non_blocking(_pipeIn[1]);
     con._server.setup_non_blocking(_pipeOut[0]);
 
@@ -355,29 +375,29 @@ void    CGI::setup_connection(Connection& con) {
 // TODO: check useful events for pipefds
 void    CGI::writing(Connection& con) {
     if (con.check_revent(_pipeIn[1], POLLNVAL)) {
-        std::cout << "wpoll perr" << std::endl;
+        //std::cout << "wpoll perr" << std::endl;
         pipe_cleaner(con);
         _state = ERROR;
         return ;
     }
     if (con.check_revent(_pipeIn[1], POLLERR)) {
-        std::cout << "wpoll perr" << std::endl;
+        //std::cout << "wpoll perr" << std::endl;
         pipe_cleaner(con);
         _state = ERROR;
         return ;
     }
     if (con.check_revent(_pipeIn[1], POLLHUP)) {
-        std::cout << "wpoll phup" << std::endl;
+        //std::cout << "wpoll phup" << std::endl;
         pipe_cleaner(con);
         _state = ERROR;
         return ;
     } else if (!con.check_revent(_pipeIn[1], POLLOUT)) {
-        std::cout << "!wpoll pout" << std::endl;
+        //std::cout << "!wpoll pout" << std::endl;
         // con.ft_closeNcleanRoot(_pipeIn[1]);
         // pipe_cleaner(con);
         return ;
     }
-        std::cout << "wpoll pout" << std::endl;
+        //std::cout << "wpoll pout" << std::endl;
     // Todo Should be non-blocking !!!
     //write(_pipeIn[1], _body.data(), _body.length());
 	//05.04 fabi: replaced debugging write size I think? (to be able to upload large files fast)
@@ -410,20 +430,25 @@ void    CGI::waiting(Connection& con) {
     auto current = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current - _start);
     // std::cout << "duration: " << duration.count() << std::endl;
-    if (duration.count() >= CGI_TIMEOUT) {
+    if (process != _pid && duration.count() >= CGI_TIMEOUT) {
         std::cout << "CGI_TIMEOUT after " << duration.count() << std::endl;
         kill(_pid, SIGKILL);
-        pipe_cleaner(con);
+        waitpid(_pid, &_wpidstatus, WNOHANG);
+        P_DEBUGC(("Killed process " + std::to_string(_pid)).c_str(), ORANGE);
+        // std::cout << "Killed process " << _pid << std::endl;
         _pid  = -1;
+        pipe_cleaner(con);
         _state = ERROR;
         // setCgiState(FINISH);
         // _is_finished = true;
     } else if (process == _pid) {
+        // std::cout << "waited for process " << _pid << std::endl;
+        P_DEBUGC(("Child process finished: " + std::to_string(_pid)).c_str(), ORANGE);
         _pid  = -1;
         std::cout << "Script finished in " << duration.count() << std::endl;
         _state = READ;
-    }
-    else if (_wpidstatus != 0) {
+    //} else if (WEXITSTATUS(_wpidstatus) != 0) {
+    } else if (_wpidstatus != 0) {
         std::cout << coloring("Script execution failed", BLUE) << std::endl;
         std::cout << coloring("wpidstatus: " + std::to_string(_wpidstatus), BLUE) << std::endl;
         pipe_cleaner(con);

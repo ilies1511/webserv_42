@@ -84,6 +84,7 @@ def build_request(method, uri, host, port):
 	]
 	return "\r\n".join(request_lines)
 
+#python3 src/Tests/baba_test.py --host:localhost --port:9035 --method:GET --uri:/upload/listFiles.py
 def main():
 	parser = argparse.ArgumentParser(
 		description="Ein einfacher TCP-Client, um HTTP DELETE/GET/POST-Requests zu testen."
