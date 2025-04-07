@@ -39,10 +39,16 @@ bool	Connection::method_is_allowed(const std::vector<std::string>& methods) {
 	// const std::vector<std::string>& methods =_matching_route->getAllowedMethods();
 	auto it = std::find(methods.begin(), methods.end(), request.method.value());
 	if (it != methods.end()) {
+		#ifdef DEBUG
 		std::cout << coloring("method: " + request.method.value() + " is allowed", BLUE) << std::endl;
+		#endif
+
 		return true;
 	} else {
+		#ifdef DEBUG
 		std::cout << coloring("method: " + request.method.value() + " is not allowed", BLUE) << std::endl;
+		#endif
+
 		set_full_status_code(405);
 		return false;
 	}
@@ -60,8 +66,9 @@ bool	Connection::malicious_request() {
 }
 
 void	Connection::validate_match(std::string& longest_match) {
-
+#ifdef DEBUG
 	std::cout << coloring("longest match " + longest_match, BLUE) << std::endl;
+#endif
 
 	_matching_route = _server._config.getLocation()[longest_match];
 	if (longest_match.back() != '/') {
@@ -74,10 +81,14 @@ void	Connection::validate_match(std::string& longest_match) {
 	if (request.uri->path.length() > longest_match.length()) {
 		// remainder = request.uri->path.substr(longest_match.length() + 1, request.uri->path.length());
 		remainder = request.uri->path.substr(longest_match.length() , request.uri->path.length());
+	#ifdef DEBUG
 		std::cout << coloring("remainder " + remainder, BLUE) << std::endl;
+	#endif
 	}
 	_expanded_path =_matching_route->getActualPath();
+	#ifdef DEBUG
 	std::cout << coloring("Actual Path: " + _expanded_path, BLUE) << std::endl;
+	#endif
 	if (!remainder.empty()) {
 		_expanded_path.append(remainder);
 	}
@@ -85,7 +96,9 @@ void	Connection::validate_match(std::string& longest_match) {
 
 	if (is_redirect()) return;
 
+	#ifdef DEBUG
 	std::cout << coloring("Expanded Path: " + _expanded_path, BLUE) << std::endl;
+	#endif
 	// TODO this logic sucks - need improvement
 	std::string currPath = std::filesystem::current_path();
 	if (!currPath.empty() && currPath.back() == '/') {
@@ -101,15 +114,18 @@ void	Connection::validate_match(std::string& longest_match) {
 	// 	_absolute_path = currPath + "/" + _expanded_path;
 	// }
 	_absolute_path = _expanded_path;
-
+	#ifdef DEBUG
 	std::cout << coloring("Absolute Path: " + _absolute_path, BLUE)  << std::endl;
-
+	#endif
 	if (!method_is_allowed(_matching_route->getAllowedMethods())) return;
-
+	#ifdef DEBUG
 	std::cout << coloring("autoindex: " + (_matching_route->getAutoIndex() ? std::string("on") : std::string("off")), BLUE) << std::endl;
+	#endif
 	_autoindex_enabled =_matching_route->getAutoIndex();
 
+	#ifdef DEBUG
 	std::cout << coloring(request.uri->path, BLUE) << std::endl;
+	#endif
 	if (is_cgi(_absolute_path) && request.method.value() != "DELETE") {
 		size_t pos = _absolute_path.rfind('.');
 		std::string cgi_identifier;
@@ -118,12 +134,16 @@ void	Connection::validate_match(std::string& longest_match) {
 		} else {
 			cgi_identifier = _absolute_path;
 		}
+		#ifdef DEBUG
 		std::cout << coloring("CGI identifier: " + cgi_identifier, BLUE) << std::endl;
+		#endif
 		for (const auto& [fst, snd] :_matching_route->getCgi()) {
 			// if (fst == ".py") {
 			if (fst == cgi_identifier) {
 				const std::string cgiExec = snd; // TODO maybe check if cgi executable is valid
+				#ifdef DEBUG
 				std::cout << coloring("CGI executable: " + cgiExec, BLUE) << std::endl;
+				#endif
 				_cgi.emplace();
 				this->_state = State::CGI;
 				this->_next_state = State::SEND;
@@ -144,12 +164,15 @@ void	Connection::entry_process(void)
 {
 	//0:
 	if (request.status_code.has_value()) {
+		std::cout << "stat\n";
 		P_DEBUG("Early-Exit in entry_process\n");
 		set_full_status_code((size_t)*request.status_code);
 		return;
 	}
+	#ifdef DEBUG
 	std::cout << coloring("request uri_path: " + request.uri->path, BLUE) << std::endl;
 	std::cout << coloring("request method: " + request.method.value(), BLUE) << std::endl;
+	#endif
 
 	// getting URI of all locations
 	const auto& all_locations = _server._config.getLocation();
@@ -187,7 +210,9 @@ void	Connection::entry_process(void)
 		// }
 	}
 	if (count == 0) {
+		#ifdef DEBUG
 		std::cout << coloring("NO MATCH!!!", BLUE) << std::endl;
+		#endif
         // if no location is matching and config doesn't have "location /" error will be generated because:
         // method and autoindex can only be activated inside a location
 		set_full_status_code(403); // TODO check if forbidden or not found

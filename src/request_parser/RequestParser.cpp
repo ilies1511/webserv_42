@@ -522,7 +522,7 @@ bool RequestParser::parse_not_encoded_body(size_t max_body_len) {
 		return (true);
 	} catch (const std::out_of_range &e) {
 		this->setStatus(413);
-		std::cout << "invalid body len: " << body_len_str << "\n";
+		std::cout << "body too large: " << body_len_str << "\n";
 		return (true);
 	}
 	std::cout << "not encoded, body len: " << body_len << "\n";

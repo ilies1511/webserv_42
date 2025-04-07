@@ -279,7 +279,9 @@ void	Connection::check_cgi_response_for_cookies(void)
 {
 
 	std::string output = _cgi->getOutput();
+	#ifdef DEBUG
 	std::cout << coloring(output, BLUE) << std::endl;
+	#endif
 	std::regex pattern(R"(Set-Cookie:?\s*([^\r\n]*))", std::regex::icase);
 	auto begin = std::sregex_iterator(output.begin(), output.end(), pattern);
 	auto end = std::sregex_iterator();
@@ -315,10 +317,10 @@ void	Connection::check_cgi_response_for_cookies(void)
 					}
 					arr.push_back(temp);
 				}
-				std::cout << "adding cookie 1\n";
+				// std::cout << "adding cookie 1\n";
 				bool found = false;
 				for (auto& coo : _server._cookies) {
-					std::cout << coloring("str: " + cookie_name + "; cookie1: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
+					// std::cout << coloring("str: " + cookie_name + "; cookie1: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
 					if (coo.cookie_string == cookie_name) {
 						found = true;
 						if (coo.getMaxAge() != 0) {
@@ -331,10 +333,10 @@ void	Connection::check_cgi_response_for_cookies(void)
 				}
 			} else {
 				Cookie cookie(str);
-				std::cout << "adding cookie 2\n";
+				// std::cout << "adding cookie 2\n";
 				bool found = false;
 				for (auto& coo : _server._cookies) {
-					std::cout << coloring("cookie2: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
+					// std::cout << coloring("cookie2: " + coo.cookie_string + " " + std::to_string(coo.getMaxAge()), BLUE) << std::endl;
 					if (coo.cookie_string == str) {
 						found = true;
 						if (coo.getMaxAge() != 0) {
@@ -348,7 +350,7 @@ void	Connection::check_cgi_response_for_cookies(void)
 			}
 		}
 	}
-	std::cout << coloring("TEST", BLUE) << std::endl;
+	// std::cout << coloring("TEST", BLUE) << std::endl;
 	// std::cout << coloring("COOKIE: "+ _cgi->getOutput(),BLUE) << std::endl;
 	// for (;;)
 	// {

@@ -42,9 +42,16 @@ void	Core::poll_loop(int argc, char *argv[])
 	} catch (const std::exception& e) {
 		throw std::runtime_error(config_file + ": " + e.what());
 	}
+
 	// _server_confs = parsing(tokenList);
 	for (const auto& conf : _server_confs) {
 		_servers.emplace_back(conf, *this);
+	}
+	if (_servers.size() == 1) {
+		std::cout << coloring("Server started\n", LIGHT_BLUE);
+	}
+	else {
+		std::cout << coloring("Servers started\n", LIGHT_BLUE);
 	}
 	while (running.load())
 	{

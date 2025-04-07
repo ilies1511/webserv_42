@@ -30,7 +30,7 @@ if session_id is None or session_id == "":
     ## cookie['session_id']['expires'] = expires_time.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
     #cookie['session_id']['Max-Age'] = 15
 
-print(f"Set-Cookie: session_id={session_id}; Max-Age=5\r")
+print(f"Set-Cookie: session_id={session_id}; Max-Age=10\r")
 # Output headers
 #print(cookie.output())
 # print("Set-Cookie: name=jo; Max-Age=15")

@@ -85,8 +85,8 @@ void	Server::execute(void)
 bool	Server::is_valid_cookie(const std::string& cookie_string)
 {
 	// (void)cookie_string;
-    std::cout << coloring("IS valid cookie", BLUE) << std::endl;
-    std::cout << coloring("cookie size " + std::to_string(_cookies.size()) , BLUE) << std::endl;
+    // std::cout << coloring("IS valid cookie", BLUE) << std::endl;
+    // std::cout << coloring("cookie size " + std::to_string(_cookies.size()) , BLUE) << std::endl;
 	for (size_t i = 0; i < _cookies.size(); i++)
 	{
 		P_DEBUG("PRE Condition check\n");
@@ -98,7 +98,9 @@ bool	Server::is_valid_cookie(const std::string& cookie_string)
 			}
 			return (true);
 		}
+		#ifdef DEBUG
 		std::cout << coloring(_cookies[i].cookie_string,BLUE) << std::endl;
+		#endif
 	}
 	return (false);
 	// return (true);
