@@ -54,7 +54,7 @@ void Server::get_listener_socket(void)
 	}
 	// freeaddrinfo(ai); // All done with this --> not needed since RAII: Smart Pointer mit Custom-Deleter für addrinfo
 	// Listen
-	if (listen(listener_fd, 10) == -1)
+	if (listen(listener_fd, 128) == -1)
 	{
 		close(listener_fd);
 		throw (std::runtime_error("Failed to listen"));
