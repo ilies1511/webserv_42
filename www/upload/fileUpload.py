@@ -8,7 +8,6 @@ cgitb.enable()
 
 # Configuration
 UPLOAD_DIR = "data/"
-MAX_SIZE = 10 * 1024 * 1024  # 10MB limit
 # ALLOWED_TYPES = {'image/png', 'image/jpeg', 'application/pdf'}
 
 # Ensure upload directory exists
@@ -43,20 +42,14 @@ else:
         # if content_type not in ALLOWED_TYPES:
         #     print(f"<p style='color: red;'>Error: File type {content_type} not allowed</p>")
         # elif
-        if file_size > MAX_SIZE:
-            print(f"<p style='color: red;'>Error: File too large ({file_size//1024}KB)</p>")
-        else:
-            # Save the file
-            try:
-                with open(filepath, 'wb') as f:
-                    while True:
-                        chunk = fileitem.file.read(100000)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                print(f"<p>File '{filename}' uploaded successfully!</p>")
-                print(f"<p><a href='index.html'>Return to upload form</a></p>")
-            except Exception as e:
-                print(f"<p style='color: red;'>Error saving file: {e}</p>")
+        # Save the file
+        try:
+            with open(filepath, 'wb') as f:
+                chunk = fileitem.file.read(file_size)
+                f.write(chunk)
+            print(f"<p>File '{filename}' uploaded successfully!</p>")
+            print(f"<p><a href='index.html'>Return to upload form</a></p>")
+        except Exception as e:
+            print(f"<p style='color: red;'>Error saving file: {e}</p>")
 
 print("</body></html>")
